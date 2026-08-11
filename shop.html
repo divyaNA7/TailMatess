@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TailMates Shop</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding-top: 100px;
+    }
+
+    .navbar {
+      background-color: #7E0CF5;
+      padding: 20px 50px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      font-size: 22px;
+      font-weight: bold;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-size: 17px;
+      transition: opacity 0.3s;
+    }
+
+    .nav-links a:hover {
+      opacity: 0.85;
+    }
+
+    h1 {
+      text-align: center;
+      color: #7E0CF5;
+      font-size: 36px;
+      margin: 30px 0;
+    }
+
+    .shop-section {
+      max-width: 1100px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      margin: 40px 0 20px;
+      color: #4a326a;
+      border-left: 6px solid #7E0CF5;
+      padding-left: 12px;
+    }
+
+    .product-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      justify-content: center;
+    }
+
+    .product-card {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 260px;
+      text-align: center;
+      padding: 20px;
+      transition: transform 0.3s;
+    }
+
+    .product-card:hover {
+      transform: translateY(-6px);
+    }
+
+    .product-card h3 {
+      margin-bottom: 10px;
+      color: #333;
+      font-size: 18px;
+    }
+
+    .product-card p {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .buy-btn {
+      padding: 10px 20px;
+      background-color: #7E0CF5;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background-color 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .buy-btn:hover {
+      background-color: #5e00c9;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="navbar">
+    <div>TailMates</div>
+    <div class="nav-links">
+      <a href="index">Home</a>
+      <a href="Adopt">Adopt</a>
+      <a href="register">Register</a>
+      <a href="services">Services</a>
+      <a href="shop">Shop</a>
+      <a href="login">Login</a>
+    </div>
+  </div>
+
+  <!-- Shop Content -->
+  <h1>Shop TailMates</h1>
+  <div class="shop-section">
+
+    <!-- Pet Food -->
+    <div>
+      <div class="section-title"> Pet Food Picks</div>
+      <div class="product-grid">
+
+        <div class="product-card">
+          <h3>Pedigree Adult</h3>
+          <p>Wholesome dry dog food packed with vitamins. 3kg pack.</p>
+          <a class="buy-btn" href="https://www.amazon.in/s?k=Pedigree+Adult+Dog+Food" target="_blank">Search on Amazon</a>
+        </div>
+
+        <div class="product-card">
+          <h3>Whiskas Tuna</h3>
+          <p>Tender tuna chunks in jelly. A cat’s gourmet dream. 85g pack.</p>
+          <a class="buy-btn" href="https://www.amazon.in/s?k=Whiskas+Tuna+Cat+Food" target="_blank">Search on Amazon</a>
+        </div>
+
+        <div class="product-card">
+          <h3>Drools Chicken</h3>
+          <p>Protein-rich chicken and egg formula. Perfect for active pups.</p>
+          <a class="buy-btn" href="https://www.amazon.in/s?k=Drools+Chicken+Dog+Food" target="_blank">Search on Amazon</a>
+        </div>
+
+        <div class="product-card">
+          <h3>Purepet Ocean Fish</h3>
+          <p>Crunchy dry food infused with ocean fish flavor. 1.2kg pack.</p>
+          <a class="buy-btn" href="https://www.amazon.in/s?k=Purepet+Ocean+Fish+Cat+Food" target="_blank">Search on Amazon</a>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Merch -->
+    <div>
+      <div class="section-title"> TailMates Merch</div>
+      <div class="product-grid">
+        <div class="product-card">
+          <h3>TailMates T-shirt</h3>
+          <p>TailMates official merch. 100% cotton. Sizes S to XXL.</p>
+          <a class="buy-btn" href="#">Coming Soon</a>
+        </div>
+        <div class="product-card">
+          <h3>TailMates Mug</h3>
+          <p>Sip in style with our purple pup love mug </p>
+          <a class="buy-btn" href="#">Coming Soon</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Personalized Pet Tags -->
+    <div>
+      <div class="section-title"> Personalized Pet Name Tags</div>
+      <div class="product-grid">
+        <div class="product-card">
+          <h3>Custom Tag</h3>
+          <p>Elegant engraved tags with your pet's name and your contact info.</p>
+          <a class="buy-btn" href="#">Coming Soon</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

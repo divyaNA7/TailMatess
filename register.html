@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Register Your Pet</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js" type="module"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js" type="module"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js" type="module"></script>
+  <style>
+    body {
+      background-image: url('https://mk0amtml5m6i7bxry6.kinstacdn.com/wp-content/uploads/2019/11/mission-1.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      font-family: 'Segoe UI', sans-serif;
+      margin-top: 80px;
+    }
+
+    .navbar {
+      background: #7E0CF5;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      font-size: 22px;
+      font-weight: bold;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .nav-links a, .nav-links button {
+      text-decoration: none;
+      color: white;
+      font-size: 17px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.3s;
+    }
+
+    .nav-links a:hover, .nav-links button:hover {
+      opacity: 0.85;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+    }
+
+    .file-input {
+      opacity: 0;
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 100%;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="navbar">
+    <div>TailMates</div>
+    <div class="nav-links">
+      <a href="index">Home</a>
+      <a href="Adopt">Adopt</a>
+      <a href="register">Register</a>
+      <a href="services">Services</a>
+      <a href="shop">Shop</a>
+      <a href="login">Login</a>
+    </div>
+  </div>
+
+  <!-- Register Form + Dashboard -->
+  <div class="min-h-screen flex flex-col items-center justify-start p-6 pt-36">
+    <form class="p-8 rounded-xl shadow-xl w-full max-w-md mb-12" style="background-color: #dec9ed;" id="petForm">
+      <h2 class="text-2xl font-bold text-center text-gray-700 mb-6">Register Your Pet</h2>
+
+      <input type="text" name="name" placeholder="Pet's Name" required
+             class="w-full mb-4 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+      <input type="number" name="age" placeholder="Pet's Age" required
+             class="w-full mb-4 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+      <select name="gender" required
+              class="w-full mb-4 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+        <option value="">Select Gender</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+      </select>
+      <input type="text" name="breed" placeholder="Breed" required
+             class="w-full mb-4 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+      <input type="text" name="city" placeholder="City" required
+             class="w-full mb-4 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+      <input type="text" name="contact" placeholder="Your Contact Number" required
+             class="w-full mb-4 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+
+      <div class="file-input-wrapper mb-6">
+        <label class="w-full flex items-center justify-center px-4 py-3 bg-white border border-dashed border-purple-500 text-purple-700 rounded-md shadow-sm cursor-pointer hover:bg-purple-50 transition">
+          <span class="text-sm">Select the pet's pic 🐾</span>
+          <input type="file" name="image" accept="image/*" required class="file-input">
+        </label>
+      </div>
+
+      <button type="submit"
+              class="w-full bg-[#7E0CF5] text-white font-semibold py-2 rounded-md hover:bg-[#5e00c9] transition-colors">
+        Register
+      </button>
+    </form>
+
+    <!-- Manage Pets Dashboard -->
+    <div class="w-full max-w-4xl p-6 bg-white bg-opacity-90 rounded-xl shadow-md">
+      <h2 class="text-xl font-bold mb-4 text-gray-700">Your Registered Pets</h2>
+      <div id="dashboardPets" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <p class="col-span-full text-center text-gray-600" id="loadingMsg">Loading your pets...</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC3g1m-b1BSgao7FZFprbFzhG55DkGv81w",
+      authDomain: "tailmates-add33.firebaseapp.com",
+      projectId: "tailmates-add33",
+      storageBucket: "tailmates-add33.firebasestorage.app",
+      messagingSenderId: "768725934824",
+      appId: "1:768725934824:web:5f35cc30df381f44b69f5d",
+      measurementId: "G-VFCS5EJ69K"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const form = document.getElementById("petForm");
+    const dashboard = document.getElementById("dashboardPets");
+    const loadingMsg = document.getElementById("loadingMsg");
+    let currentUser = null;
+
+    window.logout = async function () {
+      await signOut(auth);
+      alert("You’ve been logged out.");
+      window.location.href = "login.html";
+    }
+
+    async function loadUserPets(uid) {
+      const q = query(collection(db, "pets"), where("ownerId", "==", uid), orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
+      dashboard.innerHTML = "";
+
+      if (snapshot.empty) {
+        dashboard.innerHTML = "<p class='text-center col-span-full text-gray-500'>You haven't registered any pets yet.</p>";
+        return;
+      }
+
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const id = docSnap.id;
+
+        const card = document.createElement("div");
+        card.className = "bg-[#dec9ed] p-4 rounded-lg shadow text-center";
+
+        card.innerHTML = `
+          <img src="${data.image}" alt="${data.name}" class="w-full h-40 object-cover rounded mb-3">
+          <h3 class="text-lg font-semibold text-gray-800">${data.name}</h3>
+          <p class="text-sm text-gray-600"><strong>Breed:</strong> ${data.breed}</p>
+          <p class="text-sm text-gray-600"><strong>Age:</strong> ${data.age}</p>
+          <button class="mt-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded" data-id="${id}">
+            Delete
+          </button>
+        `;
+
+        const deleteBtn = card.querySelector("button");
+        deleteBtn.addEventListener("click", () => deletePet(id));
+
+        dashboard.appendChild(card);
+      });
+    }
+
+    async function deletePet(id) {
+      const confirmDelete = confirm("Are you sure you want to delete this pet?");
+      if (!confirmDelete) return;
+
+      try {
+        await deleteDoc(doc(db, "pets", id));
+        alert("Pet deleted!");
+        if (currentUser) loadUserPets(currentUser.uid);
+      } catch (err) {
+        alert("Error deleting pet.");
+        console.error(err);
+      }
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const file = form.image.files[0];
+      const reader = new FileReader();
+
+      reader.onloadend = async () => {
+        const imageBase64 = reader.result;
+
+        if (!currentUser) {
+          alert("You must be logged in to register a pet.");
+          return;
+        }
+
+        const petData = {
+          name: form.name.value,
+          age: form.age.value,
+          gender: form.gender.value,
+          breed: form.breed.value,
+          city: form.city.value,
+          contact: form.contact.value,
+          image: imageBase64,
+          timestamp: new Date(),
+          ownerId: currentUser.uid
+        };
+
+        try {
+          await addDoc(collection(db, "pets"), petData);
+          alert("Pet registered successfully!");
+          form.reset();
+          loadUserPets(currentUser.uid);
+        } catch (error) {
+          alert("Something went wrong. Try again!");
+          console.error("Error adding document: ", error);
+        }
+      };
+
+      if (file) reader.readAsDataURL(file);
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        console.log("✅ Logged in as:", user.email);
+        console.log("🆔 UID:", user.uid);
+        loadUserPets(user.uid);
+      } else {
+        alert("Please log in first.");
+        window.location.href = "login.html";
+      }
+    });
+  </script>
+
+</body>
+</html>

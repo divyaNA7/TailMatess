@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Adopt a Pet</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js" type="module"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js" type="module"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    .navbar {
+      background-color: #7E0CF5;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-size: 17px;
+      transition: opacity 0.3s;
+    }
+
+    .nav-links a:hover {
+      opacity: 0.85;
+    }
+
+    .pet-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      padding: 40px 20px;
+    }
+
+    .pet-card {
+      background-color: white;
+      width: 280px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      overflow: hidden;
+      text-align: center;
+      transition: transform 0.3s;
+    }
+
+    .pet-card:hover {
+      transform: translateY(-6px);
+    }
+
+    .pet-card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .pet-card h3 {
+      margin: 15px 0 5px;
+      color: #333;
+    }
+
+    .pet-card p {
+      margin: 4px 0;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .adopt-btn {
+      margin: 15px 0 20px;
+      padding: 10px 20px;
+      background-color: #7E0CF5;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+
+    .adopt-btn:hover {
+      background-color: #e05a50;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="navbar">
+    <div>TailMates</div>
+    <div class="nav-links">
+      <a href="index">Home</a>
+      <a href="Adopt">Adopt</a>
+      <a href="register">Register</a>
+      <a href="services">Services</a>
+      <a href="shop">Shop</a>
+      <a href="login">Login</a>
+    </div>
+  </div>
+
+  <!-- Pet Listing -->
+  <div class="pet-list" id="petList">Loading pets...</div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC3g1m-b1BSgao7FZFprbFzhG55DkGv81w",
+  authDomain: "tailmates-add33.firebaseapp.com",
+  projectId: "tailmates-add33",
+  storageBucket: "tailmates-add33.firebasestorage.app",
+  messagingSenderId: "768725934824",
+  appId: "1:768725934824:web:5f35cc30df381f44b69f5d",
+  measurementId: "G-VFCS5EJ69K"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const petList = document.getElementById("petList");
+
+async function loadPets() {
+  try {
+    const snapshot = await getDocs(collection(db, "pets"));
+
+    petList.innerHTML = "";
+
+    if (snapshot.empty) {
+      petList.innerHTML = "<h2>No pets found.</h2>";
+      return;
+    }
+
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+
+      const card = document.createElement("div");
+      card.className = "pet-card";
+
+      card.innerHTML = `
+        <img src="${data.image}" alt="${data.name}">
+        <h3>${data.name}</h3>
+        <p><strong>Breed:</strong> ${data.breed}</p>
+        <p><strong>Age:</strong> ${data.age}</p>
+        <p><strong>Gender:</strong> ${data.gender}</p>
+        <p><strong>City:</strong> ${data.city}</p>
+        <p><strong>Contact:</strong> ${data.contact}</p>
+        <button class="adopt-btn">Adopt</button>
+      `;
+
+      petList.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error(err);
+    petList.innerHTML = "<h2>" + err.message + "</h2>";
+  }
+}
+
+loadPets();
+    
+  </script>
+ </body>
+</html>

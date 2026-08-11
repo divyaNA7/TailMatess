@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create an Account</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-image: url('https://mk0amtml5m6i7bxry6.kinstacdn.com/wp-content/uploads/2019/11/mission-1.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      font-family: 'Segoe UI', sans-serif;
+      margin-top: 80px;
+    }
+
+    .glass-effect {
+      background: rgba(222, 201, 237, 0.85);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .purple-link {
+      color: #7E0CF5;
+    }
+
+    .purple-link:hover {
+      text-decoration: underline;
+    }
+
+    .purple-button {
+      background-color: #7E0CF5;
+    }
+
+    .purple-button:hover {
+      background-color: #690acc;
+    }
+
+    .navbar {
+      background: #7E0CF5;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      font-size: 22px;
+      font-weight: bold;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: white;
+      font-size: 17px;
+      transition: opacity 0.3s;
+    }
+
+    .nav-links a:hover {
+      opacity: 0.85;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="navbar">
+    <div>TailMates</div>
+    <div class="nav-links">
+      <a href="index">Home</a>
+      <a href="Adopt">Adopt</a>
+      <a href="register">Register</a>
+      <a href="services">Services</a>
+      <a href="shop">Shop</a>
+      <a href="login">Login</a>
+    </div>
+  </div>
+
+  <!-- Create Account Form -->
+  <form class="w-full max-w-md glass-effect rounded-lg shadow-lg p-8" id="createForm">
+    <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Create an Account</h2>
+
+    <input type="text" name="fullname" placeholder="Full Name" required
+      class="w-full mb-4 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7E0CF5]">
+    
+    <input type="email" name="email" placeholder="Email Address" required
+      class="w-full mb-4 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7E0CF5]">
+    
+    <input type="password" name="password" placeholder="Password" required
+      class="w-full mb-6 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7E0CF5]">
+    
+    <button type="submit"
+      class="w-full purple-button text-white py-2 px-4 rounded-md hover:bg-[#690acc] focus:outline-none focus:ring-2 focus:ring-[#7E0CF5]">
+      Sign Up
+    </button>
+
+    <p class="text-center text-sm text-gray-600 mt-4">
+      Already have an account? <a href="login.html" class="purple-link">Login here</a>
+    </p>
+  </form>
+
+  <!-- Firebase Account Creation Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC3g1m-b1BSgao7FZFprbFzhG55DkGv81w",
+      authDomain: "tailmates-add33.firebaseapp.com",
+      projectId: "tailmates-add33",
+      storageBucket: "tailmates-add33.firebasestorage.app",
+      messagingSenderId: "768725934824",
+      appId: "1:768725934824:web:5f35cc30df381f44b69f5d",
+      measurementId: "G-VFCS5EJ69K"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const form = document.getElementById("createForm");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name = form.fullname.value;
+      const email = form.email.value;
+      const password = form.password.value;
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Save user data in Firestore
+        await setDoc(doc(db, "users", user.uid), {
+          name: name,
+          email: email,
+          createdAt: new Date()
+        });
+
+        // Redirect to thank you page
+        window.location.href = "thankyou.html";
+      } catch (error) {
+        alert("Oops! " + error.message);
+        console.error(error);
+      }
+    });
+  </script>
+
+</body>
+</html>

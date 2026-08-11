@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Our Services</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f6f6f6;
+            padding: 0;
+            margin: 0;
+        }
+
+        .navbar {
+            background: #7E0CF5;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: white;
+            font-size: 17px;
+            transition: opacity 0.3s;
+        }
+
+        .nav-links a:hover {
+            opacity: 0.85;
+        }
+
+        h2 {
+            color: #333;
+            text-align: center;
+            margin: 30px 0;
+            font-size: 28px;
+        }
+
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            padding: 0 20px;
+        }
+
+        .card {
+            background-color: #dec9ed;
+            padding: 20px;
+            width: 260px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.2s;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+            background-color: #f0f8ff;
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+
+        .card p {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            text-decoration: none;
+            color: #7E0CF5;
+        }
+    </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="navbar">
+    <div>TailMates</div>
+    <div class="nav-links">
+      <a href="index">Home</a>
+      <a href="Adopt">Adopt</a>
+      <a href="register">Register</a>
+      <a href="services">Services</a>
+      <a href="shop">Shop</a>
+      <a href="login">Login</a>
+    </div>
+  </div>
+
+    <!-- Our Services Section -->
+    <h2>Our Services</h2>
+
+    <div class="card-container">
+        <a href="pet-grooming.html" class="card">
+            <h3>Pet Grooming</h3>
+            <p>Book professional grooming for your pet at home.</p>
+        </a>
+
+        <a href="foster-info.html" class="card">
+            <h3>Foster Information</h3>
+            <p>Learn about fostering pets and how to get involved.</p>
+        </a>
+
+        <a href="vet-online.html" class="card">
+            <h3>Vet Online</h3>
+            <p>Consult a certified veterinarian online for your pet's health.</p>
+        </a>
+    </div>
+
+    <a href="index.html" class="back-link">← Back to Home</a>
+
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TailMates Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-image: url('https://mk0amtml5m6i7bxry6.kinstacdn.com/wp-content/uploads/2019/11/mission-1.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      margin-top: 80px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .navbar {
+      background: #7E0CF5;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      font-size: 22px;
+      font-weight: bold;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: white;
+      font-size: 17px;
+      transition: opacity 0.3s;
+    }
+
+    .nav-links a:hover {
+      opacity: 0.85;
+    }
+
+    .purple-button {
+      background-color: #7E0CF5;
+    }
+
+    .purple-button:hover {
+      background-color: #6603cc;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="navbar">
+    <div>TailMates</div>
+    <div class="nav-links">
+      <a href="index">Home</a>
+      <a href="Adopt">Adopt</a>
+      <a href="register">Register</a>
+      <a href="services">Services</a>
+      <a href="shop">Shop</a>
+      <a href="login">Login</a>
+    </div>
+  </div>
+
+  <!-- Login Card -->
+  <div class="min-h-screen flex items-center justify-center p-6">
+    <div class="w-full max-w-md rounded-lg shadow-lg p-8" style="background-color: #dec9ed;">
+      <div class="text-center mb-6">
+        <h1 class="text-3xl font-bold text-gray-700">Login to TailMates</h1>
+        <p class="text-gray-700">Sign in to explore pets available for adoption</p>
+      </div>
+      <form id="loginForm" class="space-y-6" onsubmit="handleSubmit(event)">
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+          <input type="email" id="email" name="email" required
+                 class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                 placeholder="your.email@example.com">
+          <p id="emailError" class="text-red-500 text-sm mt-1 hidden">Please enter a valid email address</p>
+        </div>
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+          <input type="password" id="password" name="password" required minlength="6"
+                 class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                 placeholder="••••••">
+          <p id="passwordError" class="text-red-500 text-sm mt-1 hidden">Password must be at least 6 characters</p>
+        </div>
+        <div class="flex items-center justify-between">
+          <label class="flex items-center">
+            <input type="checkbox" class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
+            <span class="ml-2 text-sm text-gray-600">Remember me</span>
+          </label>
+          <a href="forgotpass.html" class="text-sm text-[#7E0CF5] hover:underline">Forgot Password?</a>
+        </div>
+        <button type="submit"
+                class="w-full purple-button text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+          Sign In
+        </button>
+      </form>
+
+      <p class="mt-4 text-center text-sm text-gray-700">
+        New to TailMates? <a href="createacc.html" class="text-[#7E0CF5] hover:underline">Create an account</a>
+      </p>
+
+      <div class="mt-6 text-center">
+        <p class="text-gray-600 text-sm">Support our mission to rescue and rehabilitate pets</p>
+        <a href="donate.html" class="inline-block mt-2 text-[#7E0CF5] font-medium hover:underline">Donate Now</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase Login Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC3g1m-b1BSgao7FZFprbFzhG55DkGv81w",
+      authDomain: "tailmates-add33.firebaseapp.com",
+      projectId: "tailmates-add33",
+      storageBucket: "tailmates-add33.firebasestorage.app",
+      messagingSenderId: "768725934824",
+      appId: "1:768725934824:web:5f35cc30df381f44b69f5d",
+      measurementId: "G-VFCS5EJ69K"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.handleSubmit = async function(event) {
+      event.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const emailError = document.getElementById('emailError');
+      const passwordError = document.getElementById('passwordError');
+
+      emailError.classList.add('hidden');
+      passwordError.classList.add('hidden');
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      let isValid = true;
+
+      if (!emailRegex.test(email)) {
+        emailError.classList.remove('hidden');
+        isValid = false;
+      }
+      if (password.length < 6) {
+        passwordError.classList.remove('hidden');
+        isValid = false;
+      }
+
+      if (!isValid) return;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert("Login successful!");
+        window.location.href = "register.html"; // Redirect to dashboard or pet manager
+      } catch (error) {
+        alert("Login failed: " + error.message);
+      }
+    }
+  </script>
+
+</body>
+</html>

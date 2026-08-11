@@ -1,0 +1,444 @@
+</div><!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>TailMates - Pet Adoption</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background-color: #f8f9fa;
+      background-image: linear-gradient(120deg, #f3f3f3 25%, transparent 25%),
+                        linear-gradient(240deg, #f3f3f3 25%, transparent 25%);
+      background-size: 30px 30px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .navbar {
+      background: #7E0CF5;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: white;
+      font-size: 17px;
+      transition: opacity 0.3s;
+    }
+
+    .nav-links a:hover {
+      opacity: 0.85;
+    }
+
+    .hero {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #dec9ed;
+      padding: 60px;
+      border-radius: 12px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+
+    .hero-text {
+      max-width: 50%;
+    }
+
+    .hero-text h1 {
+      font-size: 36px;
+      margin-bottom: 15px;
+      color: #4a326a;
+    }
+
+    .hero-text p {
+      font-size: 18px;
+      line-height: 1.6;
+    }
+
+    .hero img {
+      width: 40%;
+      border-radius: 10px;
+    }
+
+    .section {
+      background: white;
+      margin: 40px 0;
+      padding: 60px 50px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
+
+    .section.how-it-works {
+      width: 100%;
+    }
+
+    .section h2 {
+      font-size: 28px;
+      color: #7E0CF5;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .section p {
+      font-size: 18px;
+      line-height: 1.7;
+      text-align: center;
+      max-width: 1000px;
+      margin: 0 auto 40px;
+      color: #444;
+    }
+
+    .steps, .urgent-cards {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      flex: 1 1 280px;
+      background-color: #f5ecfb;
+      padding: 24px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    .card h3 {
+      margin: 10px 0;
+      color: #7E0CF5;
+      font-size: 20px;
+    }
+
+    .card p {
+      font-size: 16px;
+      line-height: 1.5;
+      color: #555;
+    }
+
+    .card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    .testimonials {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 25px;
+      padding: 30px 0;
+    }
+
+    .testimonial {
+      background-color: #e8d5ff;
+      padding: 24px 28px;
+      border-radius: 10px;
+      max-width: 800px;
+      text-align: center;
+      font-style: italic;
+      font-size: 18px;
+      line-height: 1.9;
+      color: #4a326a;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+
+/* ===========================
+   Slider
+=========================== */
+
+.slider-container{
+    position:relative;
+    width:100%;
+    max-width:850px;
+    margin:60px auto;
+    overflow:hidden;
+    border-radius:20px;
+    box-shadow:0 12px 30px rgba(0,0,0,.15);
+}
+
+.slider{
+    display:flex;
+    transition:transform .8s ease-in-out;
+}
+
+.slide{
+    min-width:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.slide img{
+    width:100%;
+    display:block;
+    border-radius:20px;
+}
+
+    footer {
+      background-color: #7E0CF5;
+      color: white;
+      padding: 50px 30px;
+      margin-top: 60px;
+    }
+
+    footer .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 30px;
+    }
+
+    footer h3 {
+      margin-bottom: 15px;
+    }
+
+    footer ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    footer a {
+      color: white;
+      text-decoration: none;
+      font-size: 16px;
+      transition: opacity 0.3s;
+    }
+
+    footer a:hover {
+      opacity: 0.85;
+    }
+
+    footer p {
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    footer .container p:last-child {
+      text-align: center;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    
+    
+  </style>
+      <link rel="stylesheet" href="tailbot.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="navbar">
+    <div>TailMates</div>
+    <div class="nav-links">
+      <a href="index">Home</a>
+      <a href="Adopt">Adopt</a>
+      <a href="register">Register</a>
+      <a href="services">Services</a>
+      <a href="shop">Shop</a>
+      <a href="login">Login</a>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="container">
+
+    <!-- Hero Section -->
+    <div class="hero">
+      <div class="hero-text">
+        <h1>Find Your Perfect Companion Today</h1>
+        <p>TailMates revolutionizes the pet adoption experience by connecting loving homes with pets in need. Whether you’re looking to adopt or have a stray to share, our streamlined platform makes it easy to find a match.</p>
+      </div>
+      <img src="https://cdni.iconscout.com/illustration/premium/thumb/online-pet-shopping-6036825-5010161.png" alt="Pet Adoption">
+    </div>
+
+    <!-- How It Works -->
+    <div class="section how-it-works">
+      <h2>How It Works</h2>
+      <p>At TailMates, we believe that adopting a pet should be intuitive, supportive, and heartwarming. We've simplified the process into three easy steps that ensure both the pet and adopter find their perfect match, guided by compassion and care.</p>
+      <div class="steps">
+        <div class="card">
+          <h3>1. Browse</h3>
+          <p>Explore a diverse range of dogs, cats, and other pets waiting for a second chance. Use smart filters to narrow your search by breed, location, age, and even behavior traits.</p>
+        </div>
+        <div class="card">
+          <h3>2. Connect</h3>
+          <p>Reach out to shelters, caregivers, or individuals directly. Ask questions, schedule meetups, and ensure your potential pet fits perfectly into your lifestyle and home.</p>
+        </div>
+        <div class="card">
+          <h3>3. Adopt</h3>
+          <p>Complete your profile and verification, and we’ll walk you through each step. From adoption forms to follow-up care tips, we’re here every paw-step of the way.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Urgent Adoptions -->
+    <div class="section">
+      <h2>Urgent Adoptions</h2>
+      <div class="urgent-cards">
+        <div class="card">
+          <img src="https://placedog.net/400/300?id=10" alt="Pet 1">
+          <h3>Bella</h3>
+          <p>Rescued from the highway, needs a home ASAP.</p>
+        </div>
+        <div class="card">
+          <img src="https://dbw3zep4prcju.cloudfront.net/animal/925c6e97-0df2-485e-88ed-1767bbf66c53/image/bebbebe7-8054-4da3-bf74-6a36d4343185.jpg?versionId=aicKL9Y88zV31sj8E2zL.e.IZXOKs6kY&bust=1744853723" alt="Pet 2">
+          <h3>Snowy</h3>
+          <p>Blind in one eye, but full of love and joy.</p>
+        </div>
+        <div class="card">
+          <img src="https://placedog.net/400/300?id=15" alt="Pet 3">
+          <h3>Leo</h3>
+          <p>Recovering from an injury, looking for comfort and care.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Stories -->
+    <div class="section">
+      <h2>Success Stories</h2>
+      <div class="testimonials">
+        <div class="testimonial">“Adopting Tuffy from TailMates was the best decision we ever made. He’s our bundle of joy now!” – Riya & Aman</div>
+        <div class="testimonial">“I found my furry best friend through TailMates. Thank you for making it so easy!” – Neha</div>
+        <div class="testimonial">“We were nervous about adoption at first, but TailMates gave us all the support we needed. We’re now proud pet parents!” – Arjun & Deepa</div>
+        <div class="testimonial">“TailMates helped me find Luna, my adorable tabby. I’m grateful for the guidance, love, and community!” – Meera</div>
+      </div>
+    </div>
+
+    <!-- Slider -->
+    <div class="slider-container">
+      <div class="slider">
+        <div class="slide">
+          <img src="love-turtles.jpg">
+        </div>
+        <div class="slide">
+          <img src="cat-human.jpg">
+        </div>
+        <div class="slide">
+          <img src="paw-hang.jpg">
+        </div>
+        <div class="slide">
+          <img src="rabbit.jpg">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div>
+        <h3>About TailMates</h3>
+        <p>TailMates is a community-driven platform dedicated to rescuing and rehoming stray and abandoned pets. We connect adopters, caregivers, and volunteers to create a safe haven for animals in need.</p>
+      </div>
+      <div>
+        <h3>Quick Links</h3>
+        <ul>
+          <li><a href="#">Home</a></li>
+          <li><a href="#">Adopt</a></li>
+          <li><a href="#">Services</a></li>
+          <li><a href="#">Shop</a></li>
+        </ul>
+      </div>
+
+</div>
+      <div>
+        <h3>Contact Us</h3>
+        <p>Email: support@tailmates.org</p>
+        <p>Phone: +91 9876543210</p>
+        <p>Address: 123 Pet Street, Mumbai, India</p>
+      </div>
+      <p>© 2025 TailMates. All Rights Reserved.</p>
+    </div>
+  </footer>
+<!-- ================= TailBot ================= -->
+
+<div id="tailbot-btn">
+    <div id="tailbot-bubble">
+        Need assistance? Ask TailBot!
+    </div>
+    <img src="cc06df9fcfb2cc518dddd7487c600b6f-removebg-preview.png">
+</div>
+
+<div id="tailbot-window">
+<div id="tailbot-header">
+<div class="tailbot-title">
+<span>TailBot</span>
+<small>Your TailMates Assistant</small>
+</div>
+<button id="close-chat">&times;</button>
+</div>
+
+<div id="tailbot-messages">
+<div class="bot-message">
+  I'm <strong>TailBot</strong>.<br><br>
+Welcome to <strong>TailMates</strong>. Ask me about -
+</div>
+</div>
+
+<div id="quick-buttons">
+<button data-question="How do I adopt a pet?">Adopt</button>
+<button data-question="How do I register my pet?">Register</button>
+<button data-question="What services do you provide?">Services</button>
+<button data-question="What can I buy pet food?">Shop</button>
+<button data-question="What is TailMates?">About</button>
+</div>
+
+<div id="tailbot-input-area">
+<input id="user-input" type="text" placeholder="Ask TailBot...">
+<button id="send-btn">➤</button>
+</div>
+</div>
+  
+  <script>
+const slider = document.querySelector(".slider");
+const slides = document.querySelectorAll(".slide");
+let currentSlide = 0;
+function showSlide(index){
+    slider.style.transform =
+    `translateX(-${index * 100}%)`;
+}
+function nextSlide(){
+    currentSlide++;
+    if(currentSlide >= slides.length){
+        currentSlide = 0;
+    }
+    showSlide(currentSlide);
+}
+setInterval(nextSlide,6000);
+    </script>
+
+<script src="tailbot.js"></script>
+</body>
+</html>

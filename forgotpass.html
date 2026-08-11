@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forgot Password</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-image: url('https://mk0amtml5m6i7bxry6.kinstacdn.com/wp-content/uploads/2019/11/mission-1.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      margin-top: 80px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .glass-effect {
+      background: rgba(222, 201, 237, 0.8); /* your custom purple glass */
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .purple-link {
+      color: #7E0CF5;
+    }
+
+    .purple-link:hover {
+      text-decoration: underline;
+    }
+
+    .purple-button {
+      background-color: #7E0CF5;
+    }
+
+    .purple-button:hover {
+      background-color: #6603cc;
+    }
+
+    .navbar {
+      background: #7E0CF5;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      font-size: 22px;
+      font-weight: bold;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: white;
+      font-size: 17px;
+      transition: opacity 0.3s;
+    }
+
+    .nav-links a:hover {
+      opacity: 0.85;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="navbar">
+    <div>TailMates</div>
+    <div class="nav-links">
+      <a href="index">Home</a>
+      <a href="Adopt">Adopt</a>
+      <a href="register">Register</a>
+      <a href="services">Services</a>
+      <a href="shop">Shop</a>
+      <a href="login">Login</a>
+    </div>
+  </div>
+
+  <!-- Forgot Password Form -->
+  <form class="w-full max-w-md glass-effect rounded-lg shadow-lg p-8" action="/reset-password" method="POST">
+    <h2 class="text-2xl font-bold text-center text-gray-800 mb-4">Forgot Password</h2>
+    <p class="text-center text-sm text-gray-600 mb-6">Enter your email and we’ll send you a reset link</p>
+
+    <input type="email" name="email" placeholder="Your email address" required
+      class="w-full mb-6 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7E0CF5]">
+
+    <button type="submit"
+      class="w-full purple-button text-white py-2 px-4 rounded-md hover:bg-[#690acc] focus:outline-none focus:ring-2 focus:ring-[#7E0CF5]">
+      Send Reset Link
+    </button>
+
+    <p class="text-center text-sm text-gray-600 mt-4">
+      Changed your mind? <a href="C:\Users\Divya\Downloads\MiniProj\login.html" class="purple-link">Go back to Login</a>
+    </p>
+  </form>
+
+</body>
+</html>
