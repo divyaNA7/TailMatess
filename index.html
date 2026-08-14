@@ -1,1346 +1,446 @@
-<!DOCTYPE html>
+</div><!DOCTYPE html>
 <html lang="en">
-
 <head>
+  <title>TailMates - Pet Adoption</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    body {
+      background-color: #f8f9fa;
+      background-image: linear-gradient(120deg, #f3f3f3 25%, transparent 25%),
+                        linear-gradient(240deg, #f3f3f3 25%, transparent 25%);
+      background-size: 30px 30px;
+      color: #333;
+    }
 
-    <title>TailMates | Where Every Paw Finds Home</title>
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 20px;
+    }
 
-    <!-- Google Fonts -->
+    .navbar {
+      background: #7E0CF5;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      font-size: 22px;
+      font-weight: bold;
+    }
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    .nav-links {
+      display: flex;
+      gap: 24px;
+    }
 
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    .nav-links a {
+      text-decoration: none;
+      color: white;
+      font-size: 17px;
+      transition: opacity 0.3s;
+    }
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    .nav-links a:hover {
+      opacity: 0.85;
+    }
 
-    <!-- Icons -->
+    .hero {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #dec9ed;
+      padding: 60px;
+      border-radius: 12px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
 
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    .hero-text {
+      max-width: 50%;
+    }
 
-    <!-- CSS -->
+    .hero-text h1 {
+      font-size: 36px;
+      margin-bottom: 15px;
+      color: #4a326a;
+    }
 
-    <link rel="stylesheet" href="css/style.css">
+    .hero-text p {
+      font-size: 18px;
+      line-height: 1.6;
+    }
 
-    <link rel="stylesheet" href="css/animations.css">
+    .hero img {
+      width: 40%;
+      border-radius: 10px;
+    }
 
-    <link rel="stylesheet" href="css/responsive.css">
+    .section {
+      background: white;
+      margin: 40px 0;
+      padding: 60px 50px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
 
+    .section.how-it-works {
+      width: 100%;
+    }
+
+    .section h2 {
+      font-size: 28px;
+      color: #7E0CF5;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .section p {
+      font-size: 18px;
+      line-height: 1.7;
+      text-align: center;
+      max-width: 1000px;
+      margin: 0 auto 40px;
+      color: #444;
+    }
+
+    .steps, .urgent-cards {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      flex: 1 1 280px;
+      background-color: #f5ecfb;
+      padding: 24px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    .card h3 {
+      margin: 10px 0;
+      color: #7E0CF5;
+      font-size: 20px;
+    }
+
+    .card p {
+      font-size: 16px;
+      line-height: 1.5;
+      color: #555;
+    }
+
+    .card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    .testimonials {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 25px;
+      padding: 30px 0;
+    }
+
+    .testimonial {
+      background-color: #e8d5ff;
+      padding: 24px 28px;
+      border-radius: 10px;
+      max-width: 800px;
+      text-align: center;
+      font-style: italic;
+      font-size: 18px;
+      line-height: 1.9;
+      color: #4a326a;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+
+/* ===========================
+   Slider
+=========================== */
+
+.slider-container{
+    position:relative;
+    width:100%;
+    max-width:850px;
+    margin:60px auto;
+    overflow:hidden;
+    border-radius:20px;
+    box-shadow:0 12px 30px rgba(0,0,0,.15);
+}
+
+.slider{
+    display:flex;
+    transition:transform .8s ease-in-out;
+}
+
+.slide{
+    min-width:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.slide img{
+    width:100%;
+    display:block;
+    border-radius:20px;
+}
+
+    footer {
+      background-color: #7E0CF5;
+      color: white;
+      padding: 50px 30px;
+      margin-top: 60px;
+    }
+
+    footer .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 30px;
+    }
+
+    footer h3 {
+      margin-bottom: 15px;
+    }
+
+    footer ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    footer a {
+      color: white;
+      text-decoration: none;
+      font-size: 16px;
+      transition: opacity 0.3s;
+    }
+
+    footer a:hover {
+      opacity: 0.85;
+    }
+
+    footer p {
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    footer .container p:last-child {
+      text-align: center;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    
+    
+  </style>
+      <link rel="stylesheet" href="tailbot.css">
 </head>
-
 <body>
 
-<div class="background">
+  <!-- Navbar -->
+  <div class="navbar">
+    <div>TailMates</div>
+    <div class="nav-links">
+      <a href="index">Home</a>
+      <a href="Adopt">Adopt</a>
+      <a href="register">Register</a>
+      <a href="message">Message</a>
+      <a href="PawMate">PawMate</a>
+      <a href="services">Services</a>
+      <a href="shop">Shop</a>
+      <a href="login">Login</a>
+    </div>
+  </div>
 
-    <div class="gradient gradient-one"></div>
+  <!-- Main Container -->
+  <div class="container">
 
-    <div class="gradient gradient-two"></div>
-
-    <div class="gradient gradient-three"></div>
-
-    <div class="noise"></div>
-
-</div>
-
-<!-- =========================== -->
-
-<!-- NAVBAR -->
-
-<!-- =========================== -->
-
-<header class="navbar">
-
-    <div class="logo">
-
-        <div class="logo-icon">
-
-            <i class="fa-solid fa-paw"></i>
-
-        </div>
-
-        <div class="logo-text">
-
-            <h2>TailMates</h2>
-
-            <span>Where Every Paw Finds Home</span>
-
-        </div>
-
+    <!-- Hero Section -->
+    <div class="hero">
+      <div class="hero-text">
+        <h1>Find Your Perfect Companion Today</h1>
+        <p>TailMates revolutionizes the pet adoption experience by connecting loving homes with pets in need. Whether you’re looking to adopt or have a stray to share, our streamlined platform makes it easy to find a match.</p>
+      </div>
+      <img src="https://cdni.iconscout.com/illustration/premium/thumb/online-pet-shopping-6036825-5010161.png" alt="Pet Adoption">
     </div>
 
-    <nav>
+    <!-- How It Works -->
+    <div class="section how-it-works">
+      <h2>How It Works</h2>
+      <p>At TailMates, we believe that adopting a pet should be intuitive, supportive, and heartwarming. We've simplified the process into three easy steps that ensure both the pet and adopter find their perfect match, guided by compassion and care.</p>
+      <div class="steps">
+        <div class="card">
+          <h3>1. Browse</h3>
+          <p>Explore a diverse range of dogs, cats, and other pets waiting for a second chance. Use smart filters to narrow your search by breed, location, age, and even behavior traits.</p>
+        </div>
+        <div class="card">
+          <h3>2. Connect</h3>
+          <p>Reach out to shelters, caregivers, or individuals directly. Ask questions, schedule meetups, and ensure your potential pet fits perfectly into your lifestyle and home.</p>
+        </div>
+        <div class="card">
+          <h3>3. Adopt</h3>
+          <p>Complete your profile and verification, and we’ll walk you through each step. From adoption forms to follow-up care tips, we’re here every paw-step of the way.</p>
+        </div>
+      </div>
+    </div>
 
+    <!-- Urgent Adoptions -->
+    <div class="section">
+      <h2>Urgent Adoptions</h2>
+      <div class="urgent-cards">
+        <div class="card">
+          <img src="https://placedog.net/400/300?id=10" alt="Pet 1">
+          <h3>Bella</h3>
+          <p>Rescued from the highway, needs a home ASAP.</p>
+        </div>
+        <div class="card">
+          <img src="https://dbw3zep4prcju.cloudfront.net/animal/925c6e97-0df2-485e-88ed-1767bbf66c53/image/bebbebe7-8054-4da3-bf74-6a36d4343185.jpg?versionId=aicKL9Y88zV31sj8E2zL.e.IZXOKs6kY&bust=1744853723" alt="Pet 2">
+          <h3>Snowy</h3>
+          <p>Blind in one eye, but full of love and joy.</p>
+        </div>
+        <div class="card">
+          <img src="https://placedog.net/400/300?id=15" alt="Pet 3">
+          <h3>Leo</h3>
+          <p>Recovering from an injury, looking for comfort and care.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Stories -->
+    <div class="section">
+      <h2>Success Stories</h2>
+      <div class="testimonials">
+        <div class="testimonial">“Adopting Tuffy from TailMates was the best decision we ever made. He’s our bundle of joy now!” – Riya & Aman</div>
+        <div class="testimonial">“I found my furry best friend through TailMates. Thank you for making it so easy!” – Neha</div>
+        <div class="testimonial">“We were nervous about adoption at first, but TailMates gave us all the support we needed. We’re now proud pet parents!” – Arjun & Deepa</div>
+        <div class="testimonial">“TailMates helped me find Luna, my adorable tabby. I’m grateful for the guidance, love, and community!” – Meera</div>
+      </div>
+    </div>
+
+    <!-- Slider -->
+    <div class="slider-container">
+      <div class="slider">
+        <div class="slide">
+          <img src="love-turtles.jpg">
+        </div>
+        <div class="slide">
+          <img src="cat-human.jpg">
+        </div>
+        <div class="slide">
+          <img src="paw-hang.jpg">
+        </div>
+        <div class="slide">
+          <img src="rabbit.jpg">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div>
+        <h3>About TailMates</h3>
+        <p>TailMates is a community-driven platform dedicated to rescuing and rehoming stray and abandoned pets. We connect adopters, caregivers, and volunteers to create a safe haven for animals in need.</p>
+      </div>
+      <div>
+        <h3>Quick Links</h3>
         <ul>
-
-            <li><a href="#">Explore</a></li>
-
-            <li><a href="#">Adopt</a></li>
-
-            <li><a href="#">Success Stories</a></li>
-
-            <li><a href="#">Pet Match</a></li>
-
-            <li><a href="#">Services</a></li>
-
-            <li><a href="#">Shop</a></li>
-
+          <li><a href="#">Home</a></li>
+          <li><a href="#">Adopt</a></li>
+          <li><a href="#">Services</a></li>
+          <li><a href="#">Shop</a></li>
         </ul>
+      </div>
 
-    </nav>
-
-    <div class="nav-buttons">
-
-        <button class="glass-btn">
-
-            Login
-
-        </button>
-
-        <button class="primary-btn">
-
-            Register Pet
-
-        </button>
-
+</div>
+      <div>
+        <h3>Contact Us</h3>
+        <p>Email: support@tailmates.org</p>
+        <p>Phone: +91 9876543210</p>
+        <p>Address: 123 Pet Street, Mumbai, India</p>
+      </div>
+      <p>© 2026 TailMates. All Rights Reserved.</p>
     </div>
-
-</header>
-
-<!-- =========================== -->
-
-<!-- HERO -->
-
-<!-- =========================== -->
-
-<section class="hero">
-
-<div class="hero-left">
-
-<span class="hero-badge">
-
-<i class="fa-solid fa-heart"></i>
-
-Trusted by 2,500+ Happy Families
-
-</span>
-
-<h1>
-
-Find Your
-
-<span>Forever</span>
-
-Friend.
-
-</h1>
-
-<p>
-
-Discover loving dogs, cats, rabbits, hamsters,
-
-hedgehogs, chameleons and many more waiting
-
-for a forever home.
-
-TailMates helps connect caring families
-
-with adorable companions across India.
-
-</p>
-
-<div class="hero-buttons">
-
-<button class="primary-btn big">
-
-Adopt Now
-
-</button>
-
-<button class="glass-btn big">
-
-Meet TailBot
-
-</button>
-
-</div>
-
-<div class="hero-stats">
-
-<div class="stat-card">
-
-<h2>2500+</h2>
-
-<p>Successful Adoptions</p>
-
-</div>
-
-<div class="stat-card">
-
-<h2>300+</h2>
-
-<p>Partner Shelters</p>
-
-</div>
-
-<div class="stat-card">
-
-<h2>98%</h2>
-
-<p>Happy Matches</p>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="hero-right">
-
-<div class="circle circle-one"></div>
-
-<div class="circle circle-two"></div>
-
-<div class="circle circle-three"></div>
-
-<div class="circle circle-four"></div>
-
-<div class="circle circle-five"></div>
-
-<div class="animal-layer">
-
-<img
-src="assets/images/dog.png"
-class="dog">
-
-<img
-src="assets/images/cat.png"
-class="cat">
-
-<img
-src="assets/images/rabbit.png"
-class="rabbit">
-
-<img
-src="assets/images/hamster.png"
-class="hamster">
-
-<img
-src="assets/images/hedgehog.png"
-class="hedgehog">
-
-<img
-src="assets/images/chameleon.png"
-class="chameleon">
-
-</div>
-
-<div class="floating-card card-one">
-
-<i class="fa-solid fa-shield-dog"></i>
-
-<div>
-
-<h3>Verified Pets</h3>
-
-<p>Healthy & Vaccinated</p>
-
-</div>
-
-</div>
-
-<div class="floating-card card-two">
-
-<i class="fa-solid fa-location-dot"></i>
-
-<div>
-
-<h3>Nearby Shelters</h3>
-
-<p>Find pets close to you</p>
-
-</div>
-
-</div>
-
-<div class="floating-card card-three">
-
-<i class="fa-solid fa-star"></i>
-
-<div>
-
-<h3>AI Matching</h3>
-
-<p>Find your perfect companion</p>
-
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- =========================== -->
-
-<!-- SCROLL INDICATOR -->
-
-<!-- =========================== -->
-
-<div class="scroll-indicator">
-
-<span></span>
-
-<p>Scroll to Explore</p>
-
-</div>
-
-<!-- =========================== -->
-
-<!-- FEATURED PETS -->
-
-<!-- =========================== -->
-
-<section class="featured">
-
-<div class="section-title">
-
-<span>Meet Your Companion</span>
-
-<h2>Featured Pets Looking For A Home</h2>
-
-<p>
-
-Every animal deserves love.
-
-Meet some of our adorable friends waiting to become part of your family.
-
-</p>
-
-</div>
-
-<div class="featured-grid">
-
-      <!-- ================= PET CARD 1 ================= -->
-
-    <div class="pet-card">
-
-        <div class="pet-image">
-
-            <span class="pet-badge">
-                <i class="fa-solid fa-shield-heart"></i>
-                Verified
-            </span>
-
-            <button class="favorite-btn">
-                <i class="fa-regular fa-heart"></i>
-            </button>
-
-            <img src="assets/images/dog.png" alt="Golden Retriever">
-
-        </div>
-
-        <div class="pet-content">
-
-            <div class="pet-title">
-
-                <h3>Bruno</h3>
-
-                <span>Golden Retriever</span>
-
-            </div>
-
-            <div class="pet-info">
-
-                <span><i class="fa-solid fa-cake-candles"></i> 2 Years</span>
-
-                <span><i class="fa-solid fa-venus-mars"></i> Male</span>
-
-                <span><i class="fa-solid fa-location-dot"></i> Mumbai</span>
-
-            </div>
-
-            <div class="pet-tags">
-
-                <span>Friendly</span>
-
-                <span>Vaccinated</span>
-
-                <span>Playful</span>
-
-            </div>
-
-            <button class="card-btn">
-
-                Meet Bruno
-
-            </button>
-
-        </div>
-
+  </footer>
+<!-- ================= TailBot ================= -->
+
+<div id="tailbot-btn">
+    <div id="tailbot-bubble">
+        Need assistance? Ask TailBot!
     </div>
-
-
-
-    <!-- ================= PET CARD 2 ================= -->
-
-    <div class="pet-card">
-
-        <div class="pet-image">
-
-            <span class="pet-badge">
-
-                <i class="fa-solid fa-shield-heart"></i>
-
-                Verified
-
-            </span>
-
-            <button class="favorite-btn">
-
-                <i class="fa-regular fa-heart"></i>
-
-            </button>
-
-            <img src="assets/images/cat.png" alt="Cat">
-
-        </div>
-
-        <div class="pet-content">
-
-            <div class="pet-title">
-
-                <h3>Luna</h3>
-
-                <span>Persian Cat</span>
-
-            </div>
-
-            <div class="pet-info">
-
-                <span><i class="fa-solid fa-cake-candles"></i> 1 Year</span>
-
-                <span><i class="fa-solid fa-venus"></i> Female</span>
-
-                <span><i class="fa-solid fa-location-dot"></i> Pune</span>
-
-            </div>
-
-            <div class="pet-tags">
-
-                <span>Indoor</span>
-
-                <span>Gentle</span>
-
-                <span>Calm</span>
-
-            </div>
-
-            <button class="card-btn">
-
-                Meet Luna
-
-            </button>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- ================= PET CARD 3 ================= -->
-
-    <div class="pet-card">
-
-        <div class="pet-image">
-
-            <span class="pet-badge">
-
-                <i class="fa-solid fa-shield-heart"></i>
-
-                Verified
-
-            </span>
-
-            <button class="favorite-btn">
-
-                <i class="fa-regular fa-heart"></i>
-
-            </button>
-
-            <img src="assets/images/rabbit.png" alt="Rabbit">
-
-        </div>
-
-        <div class="pet-content">
-
-            <div class="pet-title">
-
-                <h3>Snow</h3>
-
-                <span>Mini Lop Rabbit</span>
-
-            </div>
-
-            <div class="pet-info">
-
-                <span><i class="fa-solid fa-cake-candles"></i> 8 Months</span>
-
-                <span><i class="fa-solid fa-location-dot"></i> Delhi</span>
-
-            </div>
-
-            <div class="pet-tags">
-
-                <span>Cute</span>
-
-                <span>Quiet</span>
-
-                <span>Indoor</span>
-
-            </div>
-
-            <button class="card-btn">
-
-                Meet Snow
-
-            </button>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- ================= PET CARD 4 ================= -->
-
-    <div class="pet-card">
-
-        <div class="pet-image">
-
-            <span class="pet-badge">
-
-                <i class="fa-solid fa-shield-heart"></i>
-
-                Verified
-
-            </span>
-
-            <button class="favorite-btn">
-
-                <i class="fa-regular fa-heart"></i>
-
-            </button>
-
-            <img src="assets/images/hedgehog.png" alt="Hedgehog">
-
-        </div>
-
-        <div class="pet-content">
-
-            <div class="pet-title">
-
-                <h3>Spike</h3>
-
-                <span>African Hedgehog</span>
-
-            </div>
-
-            <div class="pet-info">
-
-                <span><i class="fa-solid fa-cake-candles"></i> 1 Year</span>
-
-                <span><i class="fa-solid fa-location-dot"></i> Bangalore</span>
-
-            </div>
-
-            <div class="pet-tags">
-
-                <span>Rare</span>
-
-                <span>Healthy</span>
-
-                <span>Adorable</span>
-
-            </div>
-
-            <button class="card-btn">
-
-                Meet Spike
-
-            </button>
-
-        </div>
-
-    </div>
-
+    <img src="cc06df9fcfb2cc518dddd7487c600b6f-removebg-preview.png">
 </div>
 
-</section>
-
-<!-- ====================================== -->
-
-<!-- WHY TAILMATES -->
-
-<!-- ====================================== -->
-
-<section class="why-tailmates">
-
-<div class="section-title">
-
-<span>Why TailMates?</span>
-
-<h2>More Than Just Pet Adoption</h2>
-
-<p>
-
-Helping families and pets find each other through a smarter, safer and more loving adoption experience.
-
-</p>
-
+<div id="tailbot-window">
+<div id="tailbot-header">
+<div class="tailbot-title">
+<span>TailBot</span>
+<small>Your TailMates Assistant</small>
+</div>
+<button id="close-chat">&times;</button>
 </div>
 
-<div class="feature-grid">
-
-<div class="feature-card">
-
-<i class="fa-solid fa-heart-circle-check"></i>
-
-<h3>Verified Pets</h3>
-
-<p>
-
-Every pet is health checked and verified before being listed.
-
-</p>
-
+<div id="tailbot-messages">
+<div class="bot-message">
+  I'm <strong>TailBot</strong>.<br><br>
+Welcome to <strong>TailMates</strong>. Ask me about -
+</div>
 </div>
 
-<div class="feature-card">
-
-<i class="fa-solid fa-robot"></i>
-
-<h3>AI Matchmaking</h3>
-
-<p>
-
-Find your perfect pet using our intelligent matching system.
-
-</p>
-
+<div id="quick-buttons">
+<button data-question="How do I adopt a pet?">Adopt</button>
+<button data-question="How do I register my pet?">Register</button>
+<button data-question="What services do you provide?">Services</button>
+<button data-question="What can I buy pet food?">Shop</button>
+<button data-question="What is TailMates?">About</button>
 </div>
 
-<div class="feature-card">
-
-<i class="fa-solid fa-user-group"></i>
-
-<h3>Trusted Community</h3>
-
-<p>
-
-Thousands of successful adoptions and growing every day.
-
-</p>
-
+<div id="tailbot-input-area">
+<input id="user-input" type="text" placeholder="Ask TailBot...">
+<button id="send-btn">➤</button>
 </div>
-
-<div class="feature-card">
-
-<i class="fa-solid fa-stethoscope"></i>
-
-<h3>Pet Care Support</h3>
-
-<p>
-
-Access trusted veterinarians, grooming and training resources.
-
-</p>
-
 </div>
-
-</div>
-
-</section>
-
-<!-- ====================================== -->
-
-<!-- PET CATEGORIES -->
-
-<!-- ====================================== -->
-
-<section class="categories">
-
-<div class="section-title">
-
-<span>Choose Your Companion</span>
-
-<h2>Every Personality Deserves A Perfect Match</h2>
-
-</div>
-
-<div class="category-grid">
-      <!-- ================= CATEGORY 1 ================= -->
-
-    <div class="category-card dog-theme">
-
-        <div class="category-icon">
-            <img src="assets/icons/dog-icon.png" alt="Dog">
-        </div>
-
-        <h3>Dogs</h3>
-
-        <p>
-            Loyal, energetic and always ready to become your best friend.
-        </p>
-
-        <span>120+ Available</span>
-
-    </div>
-
-    <!-- ================= CATEGORY 2 ================= -->
-
-    <div class="category-card cat-theme">
-
-        <div class="category-icon">
-            <img src="assets/icons/cat-icon.png" alt="Cat">
-        </div>
-
-        <h3>Cats</h3>
-
-        <p>
-            Calm, cuddly and perfect companions for cozy homes.
-        </p>
-
-        <span>84+ Available</span>
-
-    </div>
-
-    <!-- ================= CATEGORY 3 ================= -->
-
-    <div class="category-card rabbit-theme">
-
-        <div class="category-icon">
-            <img src="assets/icons/rabbit-icon.png" alt="Rabbit">
-        </div>
-
-        <h3>Rabbits</h3>
-
-        <p>
-            Gentle little companions that love peaceful environments.
-        </p>
-
-        <span>46+ Available</span>
-
-    </div>
-
-    <!-- ================= CATEGORY 4 ================= -->
-
-    <div class="category-card hamster-theme">
-
-        <div class="category-icon">
-            <img src="assets/icons/hamster-icon.png" alt="Hamster">
-        </div>
-
-        <h3>Hamsters</h3>
-
-        <p>
-            Tiny bundles of joy that are playful and adorable.
-        </p>
-
-        <span>29+ Available</span>
-
-    </div>
-
-    <!-- ================= CATEGORY 5 ================= -->
-
-    <div class="category-card hedgehog-theme">
-
-        <div class="category-icon">
-            <img src="assets/icons/hedgehog-icon.png" alt="Hedgehog">
-        </div>
-
-        <h3>Hedgehogs</h3>
-
-        <p>
-            Unique little explorers with charming personalities.
-        </p>
-
-        <span>15+ Available</span>
-
-    </div>
-
-    <!-- ================= CATEGORY 6 ================= -->
-
-    <div class="category-card chameleon-theme">
-
-        <div class="category-icon">
-            <img src="assets/icons/chameleon-icon.png" alt="Chameleon">
-        </div>
-
-        <h3>Chameleons</h3>
-
-        <p>
-            Exotic companions with incredible colors and calm nature.
-        </p>
-
-        <span>12+ Available</span>
-
-    </div>
-
-</div>
-
-</section>
-
-<!-- ================================================= -->
-<!-- ADOPTION PROCESS -->
-<!-- ================================================= -->
-
-<section class="adoption-process">
-
-    <div class="section-title">
-
-        <span>Simple Process</span>
-
-        <h2>Adopting Has Never Been Easier</h2>
-
-        <p>
-            From discovering your perfect companion to welcoming them home,
-            TailMates makes every step simple and enjoyable.
-        </p>
-
-    </div>
-
-    <div class="process-container">
-
-        <div class="process-card">
-
-            <div class="step-number">01</div>
-
-            <i class="fa-solid fa-magnifying-glass"></i>
-
-            <h3>Explore Pets</h3>
-
-            <p>
-                Browse hundreds of verified pets based on breed,
-                personality, age and location.
-            </p>
-
-        </div>
-
-        <div class="process-line"></div>
-
-        <div class="process-card">
-
-            <div class="step-number">02</div>
-
-            <i class="fa-solid fa-comments"></i>
-
-            <h3>Meet TailBot</h3>
-
-            <p>
-                Let our AI recommend companions that perfectly match
-                your lifestyle.
-            </p>
-
-        </div>
-
-        <div class="process-line"></div>
-
-        <div class="process-card">
-
-            <div class="step-number">03</div>
-
-            <i class="fa-solid fa-house-heart"></i>
-
-            <h3>Welcome Home</h3>
-
-            <p>
-                Complete your adoption safely and give a loving pet
-                their forever family.
-            </p>
-
-        </div>
-
-    </div>
-
-</section>
-
-<!-- ================================================= -->
-<!-- MATCH QUIZ -->
-<!-- ================================================= -->
-
-<section class="match-quiz">
-
-    <div class="quiz-left">
-
-        <span class="quiz-badge">
-
-            <i class="fa-solid fa-sparkles"></i>
-
-            AI Powered
-
-        </span>
-
-        <h2>
-
-            Find Your
-
-            Perfect Companion
-
-        </h2>
-
-        <p>
-
-            Not sure which pet suits your lifestyle?
-
-            Let TailBot ask a few questions and instantly recommend
-
-            your ideal companion.
-
-        </p>
-
-        <button class="primary-btn big">
-
-            Start Match Quiz
-
-        </button>
-
-    </div>
-
-    <div class="quiz-right">
-
-        <div class="quiz-card">
-
-            <h3>
-
-                Quick Lifestyle Check
-
-            </h3>
-
-            <div class="question">
-
-                <p>
-
-                    Where do you live?
-
-                </p>
-
-                <button>Apartment</button>
-
-                <button>Independent House</button>
-
-                <button>Farm</button>
-
-            </div>
-
-            <div class="question">
-
-                <p>
-
-                    Activity Level
-
-                </p>
-
-                <button>Low</button>
-
-                <button>Medium</button>
-
-                <button>High</button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-<!-- ================================================= -->
-<!-- SUCCESS STORIES -->
-<!-- ================================================= -->
-
-<section class="stories">
-
-    <div class="section-title">
-
-        <span>Happy Families</span>
-
-        <h2>Thousands Of Hearts Connected</h2>
-
-        <p>
-            Every adoption creates a beautiful story worth celebrating.
-        </p>
-
-    </div>
-
-    <div class="stories-grid">
-      <!-- ================= STORY 1 ================= -->
-
-    <div class="story-card">
-
-        <div class="story-image">
-            <img src="assets/images/family1.jpg" alt="Happy Adoption">
-        </div>
-
-        <div class="story-content">
-
-            <div class="story-stars">
-                <i class="fa-solid fa-star"></i>
-                <i class="fa-solid fa-star"></i>
-                <i class="fa-solid fa-star"></i>
-                <i class="fa-solid fa-star"></i>
-                <i class="fa-solid fa-star"></i>
-            </div>
-
-            <p>
-
-                "Bruno completely changed our lives.
-                TailMates made the adoption process so smooth and
-                within a week he became part of our family."
-
-            </p>
-
-            <div class="story-user">
-
-                <img src="assets/images/user1.jpg" alt="User">
-
-                <div>
-
-                    <h4>Aarav & Bruno</h4>
-
-                    <span>Mumbai</span>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- ================= STORY 2 ================= -->
-
-    <div class="story-card">
-
-        <div class="story-image">
-            <img src="assets/images/family2.jpg" alt="Happy Adoption">
-        </div>
-
-        <div class="story-content">
-
-            <div class="story-stars">
-                <i class="fa-solid fa-star"></i>
-                <i class="fa-solid fa-star"></i>
-                <i class="fa-solid fa-star"></i>
-                <i class="fa-solid fa-star"></i>
-                <i class="fa-solid fa-star"></i>
-            </div>
-
-            <p>
-
-                "Luna was exactly the calm companion we were searching for.
-                We instantly connected."
-
-            </p>
-
-            <div class="story-user">
-
-                <img src="assets/images/user2.jpg" alt="User">
-
-                <div>
-
-                    <h4>Riya & Luna</h4>
-
-                    <span>Pune</span>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- ================= STORY 3 ================= -->
-
-    <div class="story-card">
-
-        <div class="story-image">
-            <img src="assets/images/family3.jpg" alt="Happy Adoption">
-        </div>
-
-        <div class="story-content">
-
-            <div class="story-stars">
-                <i class="fa-solid fa-star"></i>
-                <i class="fa-solid fa-star"></i>
-                <i class="fa-solid fa-star"></i>
-                <i class="fa-solid fa-star"></i>
-                <i class="fa-solid fa-star"></i>
-            </div>
-
-            <p>
-
-                "The AI Match Quiz recommended Snow,
-                and it couldn't have been more perfect."
-
-            </p>
-
-            <div class="story-user">
-
-                <img src="assets/images/user3.jpg" alt="User">
-
-                <div>
-
-                    <h4>Ishita & Snow</h4>
-
-                    <span>Delhi</span>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-</section>
-
-<!-- ============================================== -->
-<!-- TAILBOT -->
-<!-- ============================================== -->
-
-<section class="tailbot">
-
-    <div class="tailbot-left">
-
-        <span class="bot-badge">
-
-            <i class="fa-solid fa-robot"></i>
-
-            AI Assistant
-
-        </span>
-
-        <h2>
-
-            Meet TailBot
-
-        </h2>
-
-        <p>
-
-            Your personal adoption assistant.
-
-            Ask about breeds, vaccinations,
-            nutrition, temperament,
-            apartment-friendly pets,
-            first-time pet ownership
-            and much more.
-
-        </p>
-
-        <button class="primary-btn big">
-
-            Chat with TailBot
-
-        </button>
-
-    </div>
-
-    <div class="tailbot-right">
-
-        <div class="chat-window">
-
-            <div class="chat-header">
-
-                <div class="bot-avatar">
-
-                    <i class="fa-solid fa-paw"></i>
-
-                </div>
-
-                <div>
-
-                    <h3>TailBot</h3>
-
-                    <span>Online</span>
-
-                </div>
-
-            </div>
-
-            <div class="chat-body">
-
-                <div class="message bot">
-
-                    Hi 👋
-
-                    Looking for a pet today?
-
-                </div>
-
-                <div class="message user">
-
-                    I live in an apartment.
-
-                </div>
-
-                <div class="message bot">
-
-                    Great!
-
-                    I recommend cats,
-                    rabbits,
-                    small dogs
-                    or hamsters.
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-<!-- ============================================== -->
-<!-- NEWSLETTER -->
-<!-- ============================================== -->
-
-<section class="newsletter">
-
-    <div class="newsletter-card">
-
-        <span>
-
-            🐾 Join Our Community
-
-        </span>
-
-        <h2>
-
-            Get Weekly Pet Stories,
-            Adoption Tips & New Arrivals
-
-        </h2>
-
-        <form>
-
-            <input
-                type="email"
-                placeholder="Enter your email">
-
-            <button>
-
-                Subscribe
-
-            </button>
-
-        </form>
-
-    </div>
-
-</section>
-
-<!-- ============================================== -->
-<!-- FOOTER -->
-<!-- ============================================== -->
-
-<footer>
-
-    <div class="footer-grid">
-
-        <div>
-
-            <h2>
-
-                🐾 TailMates
-
-            </h2>
-
-            <p>
-
-                Giving every paw
-                a second chance at happiness.
-
-            </p>
-
-        </div>
-
-        <div>
-
-            <h3>
-
-                Explore
-
-            </h3>
-
-            <a href="#">Adopt</a>
-            <a href="#">Pet Match</a>
-            <a href="#">Services</a>
-            <a href="#">Stories</a>
-
-        </div>
-
-        <div>
-
-            <h3>
-
-                Support
-
-            </h3>
-
-            <a href="#">FAQ</a>
-            <a href="#">Contact</a>
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms</a>
-
-        </div>
-
-        <div>
-
-            <h3>
-
-                Follow Us
-
-            </h3>
-
-            <div class="socials">
-
-                <a href="#"><i class="fab fa-instagram"></i></a>
-
-                <a href="#"><i class="fab fa-facebook"></i></a>
-
-                <a href="#"><i class="fab fa-x-twitter"></i></a>
-
-                <a href="#"><i class="fab fa-github"></i></a>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="copyright">
-
-        © 2026 TailMates. All Rights Reserved.
-
-    </div>
-
-</footer>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
-
-<script src="js/app.js"></script>
-
+  
+  <script>
+const slider = document.querySelector(".slider");
+const slides = document.querySelectorAll(".slide");
+let currentSlide = 0;
+function showSlide(index){
+    slider.style.transform =
+    `translateX(-${index * 100}%)`;
+}
+function nextSlide(){
+    currentSlide++;
+    if(currentSlide >= slides.length){
+        currentSlide = 0;
+    }
+    showSlide(currentSlide);
+}
+setInterval(nextSlide,6000);
+    </script>
+
+<script src="tailbot.js"></script>
 </body>
 </html>
