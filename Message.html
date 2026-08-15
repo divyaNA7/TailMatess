@@ -33,7 +33,6 @@
 
     .chat-container { width: 100%; height: 100vh; display: flex; flex-direction: column; }
 
-    /* Header */
     .wa-header {
       background: var(--wa-green);
       color: white;
@@ -46,7 +45,6 @@
       z-index: 30;
       box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
-
     .header-left { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
     .back-btn { display: none; padding: 0.4rem; background: none; border: none; border-radius: 50%; cursor: pointer; color: white; }
     .back-btn:hover { background: rgba(255,255,255,0.1); }
@@ -59,7 +57,6 @@
     .icon-btn:hover { background: rgba(255,255,255,0.1); }
     .icon-btn svg { width: 1.25rem; height: 1.25rem; }
 
-    /* Pet bar */
     .pet-bar {
       background: #e1f5e1;
       padding: 0.5rem 1rem;
@@ -73,7 +70,6 @@
     .pet-bar-text span { font-weight: 700; }
     .pet-badge { font-size: 0.65rem; background: var(--wa-green); color: white; padding: 0.15rem 0.5rem; border-radius: 1rem; font-weight: 600; margin-left: auto; }
 
-    /* Messages */
     .messages-area {
       flex: 1;
       overflow-y: auto;
@@ -88,15 +84,10 @@
 
     .date-separator { display: flex; justify-content: center; margin: 0.75rem 0; }
     .date-separator span {
-      background: #e1f2fb;
-      color: #54656f;
-      font-size: 0.7rem;
-      padding: 0.35rem 0.75rem;
-      border-radius: 0.5rem;
+      background: #e1f2fb; color: #54656f; font-size: 0.7rem;
+      padding: 0.35rem 0.75rem; border-radius: 0.5rem;
       box-shadow: 0 1px 1px rgba(0,0,0,0.05);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
+      font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;
     }
 
     .msg-row { display: flex; margin-bottom: 0.25rem; animation: msgIn 0.2s ease-out; }
@@ -119,22 +110,16 @@
     .msg-read { font-size: 0.7rem; color: var(--wa-blue); line-height: 1; }
     .msg-read.pending { color: var(--wa-meta); }
 
-    /* System message */
     .system-row { display: flex; justify-content: center; margin: 0.5rem 0; }
     .system-bubble {
-      background: #ffeac8;
-      color: #7b5c2e;
-      font-size: 0.75rem;
-      padding: 0.4rem 0.875rem;
-      border-radius: 0.5rem;
+      background: #ffeac8; color: #7b5c2e; font-size: 0.75rem;
+      padding: 0.4rem 0.875rem; border-radius: 0.5rem;
       box-shadow: 0 1px 1px rgba(0,0,0,0.05);
-      text-align: center;
-      max-width: 85%;
+      text-align: center; max-width: 85%;
     }
     .system-bubble p:first-child { font-weight: 600; }
     .system-bubble p:last-child { font-size: 0.7rem; margin-top: 0.125rem; opacity: 0.8; }
 
-    /* Typing */
     .typing-row { display: flex; justify-content: flex-start; margin-bottom: 0.25rem; }
     .typing-bubble { background: white; border-radius: 0.5rem; border-top-left-radius: 0; padding: 0.75rem 1rem; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
     .typing-dots { display: flex; gap: 0.25rem; }
@@ -142,7 +127,6 @@
     .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
     .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
 
-    /* Input */
     .input-area {
       background: var(--wa-input-bg);
       padding: 0.5rem 0.75rem;
@@ -159,16 +143,10 @@
 
     .send-btn {
       width: 2.5rem; height: 2.5rem;
-      border-radius: 50%;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: all 0.2s;
-      background: var(--wa-green);
-      color: white;
+      border-radius: 50%; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.2s;
+      background: var(--wa-green); color: white;
       box-shadow: 0 1px 2px rgba(0,0,0,0.15);
     }
     .send-btn:hover { background: var(--wa-green-dark); }
@@ -176,76 +154,72 @@
     .camera-btn { color: var(--wa-meta); }
     .camera-btn:hover { background: rgba(0,0,0,0.05); color: var(--wa-green); }
 
-    /* Image message bubble */
     .image-bubble {
       max-width: 280px;
       padding: 0.25rem 0.25rem 0.5rem !important;
-      overflow: hidden;
-      cursor: pointer;
+      overflow: hidden; cursor: pointer;
     }
     .image-bubble img {
-      width: 100%;
-      max-height: 240px;
-      object-fit: cover;
-      border-radius: 0.375rem;
-      display: block;
-      background: #e5e7eb;
+      width: 100%; max-height: 240px; object-fit: cover;
+      border-radius: 0.375rem; display: block; background: #e5e7eb;
     }
     .image-bubble .msg-meta {
-      position: static;
-      justify-content: flex-end;
-      padding: 0 0.5rem;
-      margin-top: 0.25rem;
-      display: flex;
-      align-items: center;
-      gap: 0.15rem;
+      position: static; justify-content: flex-end;
+      padding: 0 0.5rem; margin-top: 0.25rem;
+      display: flex; align-items: center; gap: 0.15rem;
     }
+
+    /* Not logged in state */
+    .not-logged {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      padding: 2rem;
+      text-align: center;
+    }
+    .not-logged h3 { font-size: 1.1rem; color: var(--wa-text); }
+    .not-logged p { font-size: 0.85rem; color: var(--wa-meta); }
+    .not-logged a {
+      padding: 0.75rem 1.5rem;
+      background: var(--wa-green);
+      color: white;
+      text-decoration: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+    }
+
+    @keyframes msgIn { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes typingBounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-5px); } }
+
+    @media (max-width: 640px) { .back-btn { display: block; } }
 
     /* Meetup Panel */
     .meetup-panel {
-      position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      width: 100%;
-      max-width: 400px;
-      background: white;
-      z-index: 50;
-      transform: translateX(100%);
-      transition: transform 0.3s ease;
-      display: flex;
-      flex-direction: column;
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: 100%; max-width: 400px; background: white; z-index: 50;
+      transform: translateX(100%); transition: transform 0.3s ease;
+      display: flex; flex-direction: column;
       box-shadow: -4px 0 20px rgba(0,0,0,0.15);
     }
     .meetup-panel.open { transform: translateX(0); }
     .panel-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.3);
-      z-index: 40;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 40;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
     }
     .panel-overlay.open { opacity: 1; pointer-events: auto; }
     .panel-header {
-      background: var(--wa-green);
-      color: white;
-      padding: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      background: var(--wa-green); color: white; padding: 1rem;
+      display: flex; align-items: center; justify-content: space-between;
     }
     .panel-header h3 { font-size: 1rem; font-weight: 600; }
     .panel-close { background: none; border: none; color: white; cursor: pointer; padding: 0.25rem; }
     .panel-body { flex: 1; overflow-y: auto; padding: 1rem; }
     .spot-card2 {
-      padding: 0.875rem;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.75rem;
-      margin-bottom: 0.5rem;
-      cursor: pointer;
-      transition: all 0.2s;
+      padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem;
+      margin-bottom: 0.5rem; cursor: pointer; transition: all 0.2s;
     }
     .spot-card2:hover { border-color: var(--wa-green); background: #f0fdf4; }
     .spot-card2.selected { border-color: var(--wa-green); background: #f0fdf4; box-shadow: 0 0 0 2px rgba(7,94,84,0.1); }
@@ -260,158 +234,52 @@
     .time-btn.selected { background: var(--wa-green); color: white; border-color: var(--wa-green); }
     .confirm-btn2 { width: 100%; padding: 0.75rem; background: var(--wa-green); color: white; border: none; border-radius: 0.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
     .confirm-btn2:hover { background: var(--wa-green-dark); }
-    .safety-tip2 { background: #eff6ff; border: 1px solid #dbeafe; border-radius: 0.75rem; padding: 0.75rem; margin-top: 1rem; display: flex; gap: 0.5rem; }
-    .safety-tip2 svg { width: 1rem; height: 1rem; color: #3b82f6; flex-shrink: 0; margin-top: 0.125rem; }
-    .safety-tip2 p { font-size: 0.75rem; color: #1e40af; line-height: 1.4; }
-    .safety-tip2 strong { display: block; margin-bottom: 0.125rem; }
-
-    @keyframes msgIn { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-    @keyframes typingBounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-5px); } }
-
-    @media (max-width: 640px) { .back-btn { display: block; } }
 
     /* Map Panel */
     .map-panel {
-      position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      width: 100%;
-      max-width: 420px;
-      background: white;
-      z-index: 50;
-      transform: translateX(100%);
-      transition: transform 0.3s ease;
-      display: flex;
-      flex-direction: column;
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: 100%; max-width: 420px; background: white; z-index: 50;
+      transform: translateX(100%); transition: transform 0.3s ease;
+      display: flex; flex-direction: column;
       box-shadow: -4px 0 20px rgba(0,0,0,0.15);
     }
     .map-panel.open { transform: translateX(0); }
     .map-container { flex: 1; position: relative; min-height: 0; }
     .map-search-bar {
-      display: flex;
-      gap: 0.5rem;
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid #e5e7eb;
-      background: #f9fafb;
+      display: flex; gap: 0.5rem;
+      padding: 0.75rem 1rem; border-bottom: 1px solid #e5e7eb; background: #f9fafb;
     }
-    .map-search-bar input {
-      flex: 1;
-      padding: 0.5rem 0.75rem;
-      border: 1px solid #d1d5db;
-      border-radius: 0.5rem;
-      font-size: 0.875rem;
-      outline: none;
-    }
+    .map-search-bar input { flex: 1; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.875rem; outline: none; }
     .map-search-bar input:focus { border-color: var(--wa-green); box-shadow: 0 0 0 3px rgba(7,94,84,0.08); }
-    .map-search-btn {
-      padding: 0.5rem 0.75rem;
-      background: var(--wa-green);
-      border: none;
-      border-radius: 0.5rem;
-      color: white;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    .map-search-btn { padding: 0.5rem 0.75rem; background: var(--wa-green); border: none; border-radius: 0.5rem; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .map-search-btn:hover { background: var(--wa-green-dark); }
-    .map-results {
-      max-height: 180px;
-      overflow-y: auto;
-      background: white;
-      border-bottom: 1px solid #e5e7eb;
-      display: none;
-    }
+    .map-results { max-height: 180px; overflow-y: auto; background: white; border-bottom: 1px solid #e5e7eb; display: none; }
     .map-results.active { display: block; }
-    .map-result-item {
-      padding: 0.625rem 1rem;
-      cursor: pointer;
-      border-bottom: 1px solid #f3f4f6;
-      font-size: 0.85rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
+    .map-result-item { padding: 0.625rem 1rem; cursor: pointer; border-bottom: 1px solid #f3f4f6; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
     .map-result-item:hover { background: #f0fdf4; }
     .map-result-item svg { flex-shrink: 0; color: var(--wa-green); }
     .map-result-name { font-weight: 500; color: var(--wa-text); }
     .map-result-area { font-size: 0.75rem; color: var(--wa-meta); }
-    .map-footer {
-      padding: 0.75rem 1rem;
-      border-top: 1px solid #e5e7eb;
-      display: flex;
-      gap: 0.5rem;
-      background: white;
-    }
-    .map-locate-btn, .map-send-btn {
-      flex: 1;
-      padding: 0.625rem;
-      border-radius: 0.5rem;
-      font-size: 0.875rem;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.375rem;
-      transition: all 0.2s;
-    }
+    .map-footer { padding: 0.75rem 1rem; border-top: 1px solid #e5e7eb; display: flex; gap: 0.5rem; background: white; }
+    .map-locate-btn, .map-send-btn { flex: 1; padding: 0.625rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; gap: 0.375rem; transition: all 0.2s; }
     .map-locate-btn { background: #f3f4f6; color: #374151; }
     .map-locate-btn:hover { background: #e5e7eb; }
     .map-send-btn { background: var(--wa-green); color: white; }
     .map-send-btn:hover:not(:disabled) { background: var(--wa-green-dark); }
     .map-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* Location Message Bubble */
-    .location-bubble {
-      max-width: 280px;
-      padding: 0 !important;
-      overflow: hidden;
-      cursor: pointer;
-    }
-    .location-bubble .loc-map-img {
-      width: 100%;
-      height: 140px;
-      object-fit: cover;
-      display: block;
-      background: #e5e7eb;
-    }
-    .location-bubble .loc-info {
-      padding: 0.5rem 0.75rem;
-    }
-    .location-bubble .loc-name {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--wa-text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .location-bubble .loc-address {
-      font-size: 0.75rem;
-      color: var(--wa-meta);
-      margin-top: 0.125rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .location-bubble .loc-meta {
-      padding: 0 0.75rem 0.375rem;
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-    }
+    .location-bubble { max-width: 280px; padding: 0 !important; overflow: hidden; cursor: pointer; }
+    .location-bubble .loc-map-img { width: 100%; height: 140px; object-fit: cover; display: block; background: #e5e7eb; }
+    .location-bubble .loc-info { padding: 0.5rem 0.75rem; }
+    .location-bubble .loc-name { font-size: 0.85rem; font-weight: 600; color: var(--wa-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .location-bubble .loc-address { font-size: 0.75rem; color: var(--wa-meta); margin-top: 0.125rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .location-bubble .loc-meta { padding: 0 0.75rem 0.375rem; display: flex; align-items: center; gap: 0.25rem; }
     .location-bubble .loc-meta .msg-time { position: static; }
 
-    /* Leaflet custom popup */
     .leaflet-popup-content-wrapper { border-radius: 0.75rem; }
     .leaflet-popup-content { margin: 0.5rem 0.75rem; font-size: 0.8rem; }
 
-    @media (max-width: 640px) {
-      .map-panel { max-width: 100%; }
-    }
+    @media (max-width: 640px) { .map-panel { max-width: 100%; } }
   </style>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
@@ -431,9 +299,9 @@
     <div class="panel-body">
       <p style="font-size: 0.8rem; color: var(--wa-meta); margin-bottom: 0.75rem;">Pick a safe, public spot in Mumbai to meet the pet.</p>
       <div id="spot-list">
-        <div class="spot-card2" onclick="selectSpot(this, 'Carter Road Promenade', 'Bandra West • Dog-friendly • Sea-facing')">
+        <div class="spot-card2" onclick="selectSpot(this, 'Carter Road Promenade', 'Bandra West • Cat-friendly • Sea-facing')">
           <div class="spot-name2">Carter Road Promenade</div>
-          <div class="spot-area2">Bandra West • Dog-friendly • Sea-facing</div>
+          <div class="spot-area2">Bandra West • Cat-friendly • Sea-facing</div>
         </div>
         <div class="spot-card2" onclick="selectSpot(this, 'Joggers Park', 'Bandra West • Leashed pets • 6AM–9PM')">
           <div class="spot-name2">Joggers Park</div>
@@ -447,9 +315,9 @@
           <div class="spot-name2">The Pet Café</div>
           <div class="spot-area2">Versova • Indoor • 10AM–10PM</div>
         </div>
-        <div class="spot-card2" onclick="selectSpot(this, 'Shivaji Park', 'Dadar • Large ground • Dog-friendly')">
+        <div class="spot-card2" onclick="selectSpot(this, 'Shivaji Park', 'Dadar • Large ground • Cat-friendly')">
           <div class="spot-name2">Shivaji Park</div>
-          <div class="spot-area2">Dadar • Large ground • Dog-friendly</div>
+          <div class="spot-area2">Dadar • Large ground • Cat-friendly</div>
         </div>
       </div>
       <div class="datetime-section2" id="datetime-section" style="display: none;">
@@ -499,63 +367,66 @@
     </div>
   </div>
 
-  <div class="chat-container">
+  <div class="chat-container" id="chat-container">
     <div class="wa-header">
       <div class="header-left">
         <button class="back-btn" onclick="history.back()">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
         </button>
-        <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=100&h=100&fit=crop" class="header-avatar" alt="Pet" id="header-avatar">
+        <img src="https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop" class="header-avatar" alt="Pet" id="header-avatar">
         <div class="header-info">
-          <h2 id="header-name">Bruno (Golden Retriever)</h2>
-          <div class="header-status">Online</div>
+          <h2 id="header-name">Whiskers (Siamese)</h2>
+          <div class="header-status" id="header-status">Online</div>
         </div>
       </div>
       <div class="header-actions">
         <button class="icon-btn" onclick="toggleMeetupPanel()" title="Schedule Meetup">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         </button>
-        <button class="icon-btn">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
+        <button class="icon-btn" onclick="logoutUser()" title="Logout">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
         </button>
       </div>
     </div>
 
     <div class="pet-bar" id="pet-bar">
-      <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=100&h=100&fit=crop" alt="Pet" id="pet-bar-img">
-      <div class="pet-bar-text">Chatting about <span id="pet-name">Bruno</span></div>
-      <span class="pet-badge" id="match-score">92%</span>
+      <img src="https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop" alt="Pet" id="pet-bar-img">
+      <div class="pet-bar-text">Chatting about <span id="pet-name">Whiskers</span></div>
+      <span class="pet-badge" id="match-score">88%</span>
     </div>
 
+    <!-- Messages area -->
     <div class="messages-area" id="chat-messages">
       <div class="date-separator"><span>Today</span></div>
     </div>
 
-    <div class="input-area">
-      <!-- CAMERA -->
+    <!-- Not logged in placeholder (hidden by default) -->
+    <div class="not-logged" id="not-logged" style="display:none;">
+      <h3>Please sign in to chat</h3>
+      <p>You need to be logged in to message about this pet.</p>
+      <a href="login.html" id="login-link">Go to Login</a>
+    </div>
+
+    <div class="input-area" id="input-area">
       <button class="input-icon camera-btn" onclick="document.getElementById('camera-input').click()" title="Take photo">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
       </button>
       <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none" onchange="handleCameraCapture(event)">
 
-      <!-- LOCATION -->
       <button class="input-icon" onclick="toggleMapPanel()" title="Share location">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
       </button>
 
-      <!-- TEXT -->
       <div class="input-field-wrap">
         <input type="text" class="input-field" id="message-input" placeholder="Type a message" autocomplete="off">
       </div>
 
-      <!-- SEND -->
       <button class="send-btn" id="send-btn" onclick="sendMessage()" title="Send">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
       </button>
     </div>
   </div>
 
-  <!-- Firebase -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -563,7 +434,7 @@
 
   <script>
     // ==========================================
-    // FIREBASE CONFIG
+    // FIREBASE CONFIG (same as your login page)
     // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyBifu5Te7paXOFUFrDUtogIPpi5H0xR7rY",
@@ -574,6 +445,7 @@
       appId: "1:445299543083:web:e7be85a3eae32f8ba5ee6e",
       measurementId: "G-ZLQG062LVE"
     };
+
     let db, auth, currentUser, conversationId, unsubMessages;
     let firebaseReady = false;
 
@@ -582,43 +454,106 @@
       auth = firebase.auth();
       db = firebase.firestore();
       firebaseReady = true;
+      console.log("Firebase initialized");
     } catch (e) {
-      console.log("Firebase not configured - demo mode");
+      console.error("Firebase init failed:", e);
     }
 
     // ==========================================
-    // STATE
+    // PET DATA FROM URL + DATASET
     // ==========================================
     const urlParams = new URLSearchParams(window.location.search);
-    const petId = urlParams.get('pet') || 'bruno-001';
-    const petName = urlParams.get('name') || 'Bruno';
-    const petBreed = urlParams.get('breed') || 'Golden Retriever';
-    const petImg = urlParams.get('img') || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=100&h=100&fit=crop';
-    const listerId = urlParams.get('lister') || 'lister_demo';
-    const adopterId = urlParams.get('adopter') || 'adopter_demo';
-    const matchScore = urlParams.get('match') || '92';
-    const myRole = urlParams.get('role') || localStorage.getItem('tm_role') || 'adopter';
+    const petId = urlParams.get('pet') || 'whiskers-001';
+    const petName = urlParams.get('name') || 'Whiskers';
+    const petBreed = urlParams.get('breed') || 'Siamese';
+    const petImg = urlParams.get('img') || 'https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop';
+    const otherUserId = urlParams.get('lister') || '';  // UID of the pet owner from your dataset
+    const matchScore = urlParams.get('match') || '88';
 
     let selectedSpot = null;
     let selectedTime = null;
+    let otherUserProfile = null;
 
     // ==========================================
-    // CHAT MESSAGING
+    // AUTH STATE - connects to YOUR login page
+    // ==========================================
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('not-logged').style.display = 'none';
+        document.getElementById('input-area').style.display = 'flex';
+        document.getElementById('chat-messages').style.display = 'flex';
+
+        await initChat();
+      } else {
+        currentUser = null;
+        if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+        document.getElementById('not-logged').style.display = 'flex';
+        document.getElementById('input-area').style.display = 'none';
+        document.getElementById('chat-messages').style.display = 'none';
+      }
+    });
+
+    function logoutUser() {
+      if (confirm('Logout?')) auth.signOut();
+    }
+
+    // ==========================================
+    // CONVERSATION SETUP
+    // ==========================================
+    async function getOrCreateConversation() {
+      if (!currentUser || !otherUserId) {
+        console.error("Missing user IDs for conversation");
+        return null;
+      }
+      const participants = [currentUser.uid, otherUserId].sort();
+      conversationId = participants.join('_') + '_' + petId;
+
+      const convRef = db.collection('conversations').doc(conversationId);
+      const convDoc = await convRef.get();
+
+      if (!convDoc.exists) {
+        await convRef.set({
+          participants: participants,
+          petId: petId,
+          petName: petName,
+          petImage: petImg,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          lastMessage: '',
+          lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+          unreadCount: 0
+        });
+      }
+      return conversationId;
+    }
+
+    async function loadOtherUserProfile() {
+      if (!otherUserId) return;
+      try {
+        const doc = await db.collection('users').doc(otherUserId).get();
+        if (doc.exists) {
+          otherUserProfile = doc.data();
+          const headerName = document.getElementById('header-name');
+          const statusEl = document.getElementById('header-status');
+          if (headerName && otherUserProfile.name) {
+            headerName.textContent = `${otherUserProfile.name} • ${petName}`;
+          }
+          if (statusEl) statusEl.textContent = otherUserProfile.name || 'Online';
+        }
+      } catch (e) {
+        console.log('Could not load other user profile');
+      }
+    }
+
+    // ==========================================
+    // CHAT UI
     // ==========================================
     const chatMessages = document.getElementById('chat-messages');
     const messageInput = document.getElementById('message-input');
 
-    // Demo conversation data
-    const demoMessages = [
-      { type: 'received', text: "Hi! I saw you were interested in Buddy. He is a 2-year-old Golden Retriever, very friendly with kids and other dogs.", time: '10:30 AM' },
-      { type: 'sent', text: "Yes, he looks adorable! Is he vaccinated?", time: '10:32 AM', read: true },
-      { type: 'received', text: "Absolutely. All vaccinations are up to date including rabies. I have the vet records ready.", time: '10:33 AM' },
-      { type: 'sent', text: "That's great to hear. Would it be okay to meet him this weekend?", time: '10:35 AM', read: true },
-      { type: 'received', text: "Sure! I'm free on Saturday afternoon or Sunday morning. What works for you?", time: '10:36 AM' },
-    ];
+    async function initChat() {
+      if (!currentUser) return;
 
-    function initChat() {
-      // Set header info
       const headerName = document.getElementById('header-name');
       const petNameEl = document.getElementById('pet-name');
       const matchScoreEl = document.getElementById('match-score');
@@ -632,29 +567,72 @@
       if (headerAvatar) headerAvatar.src = petImg;
       document.title = `Chat - ${petName} | TailMates`;
 
-      // Load messages
-      if (firebaseReady) {
-        loadMessagesFromFirebase();
-      } else {
-        loadDemoMessages();
-      }
+      await getOrCreateConversation();
+      await loadOtherUserProfile();
+      loadMessagesFromFirebase();
     }
 
-    function loadDemoMessages() {
-      demoMessages.forEach(m => addMessageToUI(m.type, m.text, m.time, m.read));
+    function loadMessagesFromFirebase() {
+      if (!conversationId) return;
+      if (unsubMessages) unsubMessages();
+
+      const msgsRef = db.collection('conversations')
+        .doc(conversationId)
+        .collection('messages')
+        .orderBy('time', 'asc');
+
+      unsubMessages = msgsRef.onSnapshot(snapshot => {
+        chatMessages.innerHTML = '<div class="date-separator"><span>Today</span></div>';
+        snapshot.forEach(doc => {
+          const m = doc.data();
+          const isMe = m.sender === currentUser.uid;
+          const type = isMe ? 'sent' : 'received';
+          const time = m.time ? m.time.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+
+          if (m.type === 'location') {
+            addLocationMessageToUI(type, { lat: m.lat, lng: m.lng, name: m.name, address: m.address }, time);
+          } else if (m.type === 'image') {
+            addImageMessageToUI(type, m.imageUrl, time);
+          } else if (m.type === 'system') {
+            addSystemMessageToUI(m.text, m.subtext);
+          } else {
+            addMessageToUI(type, m.text, time, m.read || false);
+          }
+        });
+        scrollToBottom();
+      }, err => {
+        console.error("Messages error:", err);
+      });
+    }
+
+    async function saveMessage(data) {
+      if (!db || !currentUser || !conversationId) return;
+      const msgData = {
+        ...data,
+        sender: currentUser.uid,
+        senderName: currentUser.displayName || 'User',
+        time: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      try {
+        await db.collection('conversations').doc(conversationId).collection('messages').add(msgData);
+        await db.collection('conversations').doc(conversationId).update({
+          lastMessage: data.type === 'text' ? data.text : (data.type === 'image' ? '📷 Photo' : '📍 Location'),
+          lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+          lastSender: currentUser.uid
+        });
+      } catch (e) {
+        console.error("Error saving message:", e);
+      }
     }
 
     function sendMessage() {
       const text = messageInput.value.trim();
-      if (!text) return;
+      if (!text || !currentUser) return;
       messageInput.value = '';
       const time = formatTime(new Date());
       addMessageToUI('sent', text, time, false);
       scrollToBottom();
-
-      if (firebaseReady) {
-        saveMessage({ text, type: 'text', sender: myRole, time: new Date(), read: false });
-      }
+      saveMessage({ text, type: 'text', read: false });
     }
 
     function addMessageToUI(type, text, time, read) {
@@ -673,23 +651,16 @@
       scrollToBottom();
     }
 
-    function showTyping() {
-      if (document.getElementById('typing-indicator')) return;
+    function addSystemMessageToUI(text, subtext) {
       const row = document.createElement('div');
-      row.id = 'typing-indicator';
-      row.className = 'typing-row';
+      row.className = 'system-row';
       row.innerHTML = `
-        <div class="typing-bubble">
-          <div class="typing-dots"><span></span><span></span><span></span></div>
+        <div class="system-bubble">
+          <p>${escapeHtml(text)}</p>
+          ${subtext ? `<p>${escapeHtml(subtext)}</p>` : ''}
         </div>
       `;
       chatMessages.appendChild(row);
-      scrollToBottom();
-    }
-
-    function removeTyping() {
-      const el = document.getElementById('typing-indicator');
-      if (el) el.remove();
     }
 
     function scrollToBottom() {
@@ -707,30 +678,18 @@
     }
 
     // ==========================================
-    // CAMERA CAPTURE & SEND
+    // CAMERA
     // ==========================================
     function handleCameraCapture(event) {
       const file = event.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = (e) => {
         const imageUrl = e.target.result;
         const time = formatTime(new Date());
-
         addImageMessageToUI('sent', imageUrl, time);
         scrollToBottom();
-
-        if (firebaseReady) {
-          saveMessage({
-            type: 'image',
-            imageUrl: imageUrl,
-            text: '',
-            sender: myRole,
-            time: new Date(),
-            read: false
-          });
-        }
+        saveMessage({ type: 'image', imageUrl: imageUrl, text: '', read: false });
         event.target.value = '';
       };
       reader.readAsDataURL(file);
@@ -753,9 +712,10 @@
     }
 
     // ==========================================
-    // MEETUP PANEL
+    // MEETUP
     // ==========================================
     function toggleMeetupPanel() {
+      if (!currentUser) { alert('Please sign in first'); return; }
       const panel = document.getElementById('meetup-panel');
       const overlay = document.getElementById('panel-overlay');
       const isOpen = panel.classList.contains('open');
@@ -779,7 +739,8 @@
       selectedTime = btn.textContent;
     }
 
-    function confirmMeetup() {
+    async function confirmMeetup() {
+      if (!currentUser) return;
       const dateVal = document.getElementById('meetup-date').value;
       if (!selectedSpot) { alert('Please select a meetup spot.'); return; }
       if (!dateVal) { alert('Please pick a date.'); return; }
@@ -788,78 +749,33 @@
       const dateObj = new Date(dateVal);
       const dateStr = dateObj.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
 
-      const systemRow = document.createElement('div');
-      systemRow.className = 'system-row';
-      systemRow.innerHTML = `
-        <div class="system-bubble">
-          <p>📍 Meetup Scheduled</p>
-          <p>${selectedSpot.name} — ${dateStr} at ${selectedTime}</p>
-        </div>
-      `;
-      chatMessages.appendChild(systemRow);
-      scrollToBottom();
+      await saveMessage({
+        type: 'system',
+        text: '📍 Meetup Scheduled',
+        subtext: `${selectedSpot.name} — ${dateStr} at ${selectedTime}`,
+        read: false
+      });
 
-      addMessageToUI('received', `Great! I've noted the meetup at ${selectedSpot.name} on ${dateStr} at ${selectedTime}. See you there! 🐕`, formatTime(new Date()), false);
+      await saveMessage({
+        type: 'text',
+        text: `Great! I've noted the meetup at ${selectedSpot.name} on ${dateStr} at ${selectedTime}. See you there! 🐈`,
+        read: false
+      });
 
       toggleMeetupPanel();
-      selectedSpot = null;
-      selectedTime = null;
+      selectedSpot = null; selectedTime = null;
       document.querySelectorAll('.spot-card2').forEach(c => c.classList.remove('selected'));
       document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
       document.getElementById('datetime-section').style.display = 'none';
     }
 
     // ==========================================
-    // FIREBASE
+    // MAP
     // ==========================================
-    function loadMessagesFromFirebase() {
-      conversationId = [listerId, adopterId, petId].sort().join('_');
-      const msgsRef = db.collection('conversations').doc(conversationId).collection('messages').orderBy('time', 'asc');
-      unsubMessages = msgsRef.onSnapshot(snapshot => {
-        chatMessages.innerHTML = '<div class="date-separator"><span>Today</span></div>';
-        snapshot.forEach(doc => {
-          const m = doc.data();
-          const type = m.sender === myRole ? 'sent' : 'received';
-          const time = m.time ? m.time.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-          if (m.type === 'location') {
-            addLocationMessageToUI(type, { lat: m.lat, lng: m.lng, name: m.name, address: m.address }, time);
-          } else if (m.type === 'image') {
-            addImageMessageToUI(type, m.imageUrl, time);
-          } else {
-            addMessageToUI(type, m.text, time, m.read);
-          }
-        });
-      });
-    }
-
-    async function saveMessage(data) {
-      if (!db) return;
-      conversationId = conversationId || [listerId, adopterId, petId].sort().join('_');
-      try {
-        await db.collection('conversations').doc(conversationId).collection('messages').add(data);
-      } catch (e) {
-        console.error("Error saving message:", e);
-      }
-    }
-
-    // ==========================================
-    // EVENT LISTENERS
-    // ==========================================
-    messageInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
-
-    // ==========================================
-    // MAP / LOCATION SHARING
-    // ==========================================
-    let map = null;
-    let mapMarker = null;
-    let selectedLocation = null;
+    let map = null, mapMarker = null, selectedLocation = null;
 
     function toggleMapPanel() {
+      if (!currentUser) { alert('Please sign in first'); return; }
       const panel = document.getElementById('map-panel');
       const overlay = document.getElementById('map-overlay');
       const isOpen = panel.classList.contains('open');
@@ -876,12 +792,8 @@
     }
 
     function initMap() {
-      if (map) {
-        map.invalidateSize();
-        return;
-      }
-      const defaultLat = 19.0760;
-      const defaultLng = 72.8777;
+      if (map) { map.invalidateSize(); return; }
+      const defaultLat = 19.0760, defaultLng = 72.8777;
       map = L.map('leaflet-map').setView([defaultLat, defaultLng], 13);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -904,18 +816,14 @@
       const customIcon = L.divIcon({
         className: 'custom-pin',
         html: `<div style="width:28px;height:28px;background:#075e54;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.3);"><div style="width:10px;height:10px;background:white;border-radius:50%;transform:rotate(45deg);"></div></div>`,
-        iconSize: [28, 28],
-        iconAnchor: [14, 28]
+        iconSize: [28, 28], iconAnchor: [14, 28]
       });
       mapMarker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
       map.setView([lat, lng], 16);
     }
 
     function locateMe() {
-      if (!navigator.geolocation) {
-        alert('Geolocation is not supported by your browser.');
-        return;
-      }
+      if (!navigator.geolocation) { alert('Geolocation is not supported.'); return; }
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
           const { latitude, longitude } = pos.coords;
@@ -925,9 +833,7 @@
           selectedLocation = { lat: latitude, lng: longitude, name: address.name, address: address.display_name };
           document.getElementById('map-send-btn').disabled = false;
         },
-        (err) => {
-          console.warn('Geolocation error:', err);
-        },
+        (err) => { console.warn('Geolocation error:', err); },
         { enableHighAccuracy: true, timeout: 10000 }
       );
     }
@@ -958,8 +864,7 @@
             </div>
           `;
           item.onclick = () => {
-            const lat = parseFloat(place.lat);
-            const lon = parseFloat(place.lon);
+            const lat = parseFloat(place.lat), lon = parseFloat(place.lon);
             setMapMarker(lat, lon);
             selectedLocation = { lat, lng: lon, name: place.display_name.split(',')[0], address: place.display_name };
             document.getElementById('map-send-btn').disabled = false;
@@ -977,32 +882,25 @@
     async function reverseGeocode(lat, lng) {
       try {
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-        const data = await res.json();
-        return data;
+        return await res.json();
       } catch (e) {
         return { name: 'Selected Location', display_name: `${lat.toFixed(4)}, ${lng.toFixed(4)}` };
       }
     }
 
-    function sendLocation() {
-      if (!selectedLocation) return;
+    async function sendLocation() {
+      if (!selectedLocation || !currentUser) return;
       const time = formatTime(new Date());
       addLocationMessageToUI('sent', selectedLocation, time);
       scrollToBottom();
       toggleMapPanel();
 
-      if (firebaseReady) {
-        saveMessage({
-          type: 'location',
-          lat: selectedLocation.lat,
-          lng: selectedLocation.lng,
-          name: selectedLocation.name,
-          address: selectedLocation.address,
-          sender: myRole,
-          time: new Date(),
-          read: false
-        });
-      }
+      await saveMessage({
+        type: 'location',
+        lat: selectedLocation.lat, lng: selectedLocation.lng,
+        name: selectedLocation.name, address: selectedLocation.address,
+        read: false
+      });
     }
 
     function addLocationMessageToUI(type, loc, time) {
@@ -1026,22 +924,20 @@
     }
 
     function openInMaps(lat, lng) {
-      const url = `https://www.google.com/maps?q=${lat},${lng}`;
-      window.open(url, '_blank');
+      window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
     }
 
-    // Search on Enter key
+    // Event listeners
+    messageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    });
+
     document.addEventListener('DOMContentLoaded', () => {
       const searchInput = document.getElementById('map-search-input');
       if (searchInput) {
-        searchInput.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') searchLocation();
-        });
+        searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') searchLocation(); });
       }
     });
-
-    // Initialize
-    initChat();
   </script>
 </body>
 </html>
