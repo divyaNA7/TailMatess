@@ -1,446 +1,2045 @@
-</div><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>TailMates - Pet Adoption</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', sans-serif;
-    }
-
-    body {
-      background-color: #f8f9fa;
-      background-image: linear-gradient(120deg, #f3f3f3 25%, transparent 25%),
-                        linear-gradient(240deg, #f3f3f3 25%, transparent 25%);
-      background-size: 30px 30px;
-      color: #333;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: auto;
-      padding: 20px;
-    }
-
-    .navbar {
-      background: #7E0CF5;
-      padding: 20px 30px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      color: white;
-      font-size: 22px;
-      font-weight: bold;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 24px;
-    }
-
-    .nav-links a {
-      text-decoration: none;
-      color: white;
-      font-size: 17px;
-      transition: opacity 0.3s;
-    }
-
-    .nav-links a:hover {
-      opacity: 0.85;
-    }
-
-    .hero {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #dec9ed;
-      padding: 60px;
-      border-radius: 12px;
-      margin-top: 30px;
-      flex-wrap: wrap;
-    }
-
-    .hero-text {
-      max-width: 50%;
-    }
-
-    .hero-text h1 {
-      font-size: 36px;
-      margin-bottom: 15px;
-      color: #4a326a;
-    }
-
-    .hero-text p {
-      font-size: 18px;
-      line-height: 1.6;
-    }
-
-    .hero img {
-      width: 40%;
-      border-radius: 10px;
-    }
-
-    .section {
-      background: white;
-      margin: 40px 0;
-      padding: 60px 50px;
-      border-radius: 12px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-    }
-
-    .section.how-it-works {
-      width: 100%;
-    }
-
-    .section h2 {
-      font-size: 28px;
-      color: #7E0CF5;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    .section p {
-      font-size: 18px;
-      line-height: 1.7;
-      text-align: center;
-      max-width: 1000px;
-      margin: 0 auto 40px;
-      color: #444;
-    }
-
-    .steps, .urgent-cards {
-      display: flex;
-      gap: 20px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .card {
-      flex: 1 1 280px;
-      background-color: #f5ecfb;
-      padding: 24px;
-      border-radius: 10px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      transition: all 0.3s ease;
-    }
-
-    .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
-    }
-
-    .card h3 {
-      margin: 10px 0;
-      color: #7E0CF5;
-      font-size: 20px;
-    }
-
-    .card p {
-      font-size: 16px;
-      line-height: 1.5;
-      color: #555;
-    }
-
-    .card img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-      border-radius: 10px;
-      margin-bottom: 12px;
-    }
-
-    .testimonials {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 25px;
-      padding: 30px 0;
-    }
-
-    .testimonial {
-      background-color: #e8d5ff;
-      padding: 24px 28px;
-      border-radius: 10px;
-      max-width: 800px;
-      text-align: center;
-      font-style: italic;
-      font-size: 18px;
-      line-height: 1.9;
-      color: #4a326a;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    }
-
-
-/* ===========================
-   Slider
-=========================== */
-
-.slider-container{
-    position:relative;
-    width:100%;
-    max-width:850px;
-    margin:60px auto;
-    overflow:hidden;
-    border-radius:20px;
-    box-shadow:0 12px 30px rgba(0,0,0,.15);
-}
-
-.slider{
-    display:flex;
-    transition:transform .8s ease-in-out;
-}
-
-.slide{
-    min-width:100%;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-}
-
-.slide img{
-    width:100%;
-    display:block;
-    border-radius:20px;
-}
-
-    footer {
-      background-color: #7E0CF5;
-      color: white;
-      padding: 50px 30px;
-      margin-top: 60px;
-    }
-
-    footer .container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 30px;
-    }
-
-    footer h3 {
-      margin-bottom: 15px;
-    }
-
-    footer ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    footer a {
-      color: white;
-      text-decoration: none;
-      font-size: 16px;
-      transition: opacity 0.3s;
-    }
-
-    footer a:hover {
-      opacity: 0.85;
-    }
-
-    footer p {
-      line-height: 1.6;
-      font-size: 15px;
-    }
-
-    footer .container p:last-child {
-      text-align: center;
-      width: 100%;
-      margin-top: 20px;
-    }
-
-    
-    
-  </style>
-      <link rel="stylesheet" href="tailbot.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TailMates | Find Your Forever Friend</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Fredoka:wght@400;500;600;700&family=Lilita+One&family=Rubik+Bubbles&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+    <style>
+        :root {
+            --primary: #00f5ff;
+            --primary-dim: rgba(0, 245, 255, 0.15);
+            --secondary: #ff6b6b;
+            --accent: #a855f7;
+            --bg: #0a0a0f;
+            --bg-light: #12121a;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --bg-glass: rgba(255, 255, 255, 0.05);
+            --text: #f0f0f5;
+            --text-dim: #8b8b9a;
+            --border: rgba(255, 255, 255, 0.08);
+            --glow-primary: 0 0 40px rgba(0, 245, 255, 0.3);
+            --glow-secondary: 0 0 40px rgba(255, 107, 107, 0.3);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            cursor: none;
+        }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Space Grotesk', sans-serif; }
+        .cursor {
+            width: 40px; height: 40px;
+            position: fixed; pointer-events: none; z-index: 99999;
+            transition: transform 0.1s ease;
+        }
+        .cursor::before {
+            content: '';
+            position: absolute;
+            top: 2px; left: 50%; transform: translateX(-50%);
+            width: 16px; height: 18px; background: rgba(255, 255, 255, 0.9); border-radius: 50% 50% 45% 45%;
+        }
+        .cursor .pad {
+            position: absolute; width: 10px; height: 12px; background: rgba(255, 255, 255, 0.9); border-radius: 50%;
+        }
+        .cursor .pad-1 { top: 14px; left: 2px; transform: rotate(-20deg); }
+        .cursor .pad-2 { top: 8px; left: 15px; }
+        .cursor .pad-3 { top: 14px; right: 2px; transform: rotate(20deg); }
+        .cursor-follower {
+            width: 60px; height: 60px;
+            position: fixed; pointer-events: none; z-index: 99998;
+            transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0.15;
+        }
+        .cursor-follower::before {
+            content: '';
+            position: absolute; top: 2px; left: 50%; transform: translateX(-50%);
+            width: 22px; height: 24px; border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 50% 50% 45% 45%;
+        }
+        .cursor-follower .pad {
+            position: absolute; width: 14px; height: 16px; border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 50%;
+        }
+        .cursor-follower .pad-1 { top: 20px; left: 2px; transform: rotate(-20deg); }
+        .cursor-follower .pad-2 { top: 12px; left: 20px; }
+        .cursor-follower .pad-3 { top: 20px; right: 2px; transform: rotate(20deg); }
+        .cursor.hover { transform: scale(1.3); }
+        .cursor.hover::before, .cursor.hover .pad { background: var(--primary); }
+        .cursor-follower.hover { transform: scale(1.2); opacity: 0.3; }
+        .cursor-follower.hover::before, .cursor-follower.hover .pad { border-color: var(--primary); }
+        .scroll-progress {
+            position: fixed; top: 0; left: 0; height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent), var(--secondary));
+            z-index: 10000; width: 0%; box-shadow: 0 0 20px var(--primary);
+        }
+        .bg-orbs {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0; overflow: hidden;
+        }
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.4;
+            animation: orbFloat 20s infinite ease-in-out;
+        }
+        .orb-1 { width: 600px; height: 600px; background: var(--primary); top: -200px; left: -200px; animation-delay: 0s; }
+        .orb-2 { width: 500px; height: 500px; background: var(--accent); top: 50%; right: -150px; animation-delay: -5s; }
+        .orb-3 { width: 400px; height: 400px; background: var(--secondary); bottom: -100px; left: 30%; animation-delay: -10s; }
+        .orb-4 { width: 300px; height: 300px; background: #4ade80; top: 30%; left: 60%; animation-delay: -15s; }
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -30px) scale(1.1); }
+            50% { transform: translate(-30px, 50px) scale(0.9); }
+            75% { transform: translate(20px, 20px) scale(1.05); }
+        }
+        .navbar {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+            padding: 1rem 3rem; transition: all 0.4s ease;
+        }
+        .navbar.scrolled {
+            background: rgba(10, 10, 15, 0.8); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-inner {
+            max-width: 1400px; margin: 0 auto;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo {
+            display: flex; align-items: center; gap: 12px; text-decoration: none;
+        }
+        .logo-icon {
+            width: 45px; height: 45px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; color: var(--bg);
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        .logo:hover .logo-icon { transform: rotate(15deg) scale(1.1); box-shadow: 0 0 30px rgba(0, 245, 255, 0.5); }
+        .logo-text h2 { font-size: 1.5rem; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+        .logo-text span { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
+        .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+        .nav-links a {
+            color: var(--text-dim); text-decoration: none; font-size: 0.9rem; font-weight: 500;
+            position: relative; transition: color 0.3s ease; padding: 0.5rem 0;
+        }
+        .nav-links a::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transition: width 0.3s ease; box-shadow: 0 0 10px var(--primary);
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--text); }
+        .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+        .nav-btn {
+            padding: 0.7rem 1.8rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: none; border-radius: 50px; color: var(--bg); font-weight: 600;
+            font-size: 0.85rem; cursor: none; position: relative; overflow: hidden;
+            transition: all 0.3s ease; box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
+        }
+        .nav-btn:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 245, 255, 0.4); }
+        .nav-profile { position: relative; }
+        .profile-trigger {
+            display: flex; align-items: center; gap: 10px;
+            padding: 0.4rem 0.8rem 0.4rem 0.4rem;
+            background: var(--bg-glass); border: 1px solid var(--border);
+            border-radius: 50px; cursor: none; transition: all 0.3s ease;
+        }
+        .profile-trigger:hover { border-color: var(--primary); box-shadow: 0 0 20px rgba(0, 245, 255, 0.1); }
+        .profile-avatar-icon {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex; align-items: center; justify-content: center;
+            color: var(--bg); font-size: 0.9rem;
+        }
+        .profile-name { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+        .profile-dropdown {
+            position: absolute; top: calc(100% + 10px); right: 0;
+            width: 220px; background: var(--bg-glass); border: 1px solid var(--border);
+            border-radius: 16px; backdrop-filter: blur(30px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            padding: 0.8rem 0; opacity: 0; visibility: hidden;
+            transform: translateY(-10px); transition: all 0.3s ease; z-index: 1001;
+        }
+        .profile-dropdown.active { opacity: 1; visibility: visible; transform: translateY(0); }
+        .profile-dropdown a {
+            display: flex; align-items: center; gap: 10px;
+            padding: 0.7rem 1.2rem; color: var(--text-dim); text-decoration: none;
+            font-size: 0.85rem; transition: all 0.2s ease;
+        }
+        .profile-dropdown a:hover { color: var(--primary); background: var(--primary-dim); }
+        .profile-dropdown a i { width: 18px; text-align: center; }
+        .profile-divider { height: 1px; background: var(--border); margin: 0.5rem 0; }
+        .profile-login { color: var(--primary) !important; font-weight: 600; }
+        .profile-login:hover { background: var(--primary-dim) !important; }
+        .profile-login.accent { color: var(--accent) !important; }
+        .profile-login.accent:hover { background: rgba(168, 85, 247, 0.1) !important; }
+        .profile-logout { color: var(--secondary) !important; }
+        .profile-logout:hover { color: var(--secondary) !important; background: rgba(255, 107, 107, 0.1) !important; }
+        .hero {
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            position: relative; padding: 6rem 3rem 4rem; overflow: hidden;
+        }
+        .hero-main {
+            max-width: 1400px; width: 100%; position: relative; z-index: 10;
+        }
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(4rem, 8vw, 7rem);
+            font-weight: 700;
+            color: #f5f0e8;
+            letter-spacing: 2px;
+            line-height: 1;
+            margin-bottom: 0.8rem;
+            text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            animation: titleReveal 1.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            opacity: 1; transform: translateY(0);
+        }
+        @keyframes titleReveal {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .hero-subtitle {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(0.85rem, 1.2vw, 1rem);
+            color: var(--text-dim);
+            font-style: italic;
+            letter-spacing: 3px;
+            animation: titleReveal 1.2s cubic-bezier(0.23, 1, 0.32, 1) 0.2s forwards;
+            opacity: 1;
+        }
+        .hero-center-brand {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .hero-badge-float {
+            position: absolute;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.5rem 1.2rem;
+            background: rgba(201, 169, 110, 0.12);
+            border: 1px solid rgba(201, 169, 110, 0.3);
+            border-radius: 50px;
+            font-size: 0.8rem;
+            color: #e8d5b7;
+            backdrop-filter: blur(12px);
+            font-weight: 500;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            animation: float 6s infinite ease-in-out;
+            z-index: 5;
+        }
+        .hero-badge-float.left { right: calc(50% + 340px); }
+        .hero-badge-float.right { left: calc(50% + 340px); }
+        .hero-badge-float.top { top: 30px; }
+        .hero-badge-float.bottom { bottom: 30px; }
+        .hero-badge-float.left.top { animation-delay: 0s; }
+        .hero-badge-float.left.bottom { animation-delay: -2s; }
+        .hero-badge-float.right.top { animation-delay: -4s; }
+        .hero-badge-float.right.bottom { animation-delay: -1s; }
+        .hero-badge-float:hover {
+            background: rgba(201, 169, 110, 0.2);
+            transform: translateY(-2px);
+        }
+        .hero-badge-float i { color: var(--secondary); font-size: 0.85rem; }
+        @media (max-width: 1100px) {
+            .hero-badge-float { display: none; }
+        }
+        .hero-title-line {
+            width: 80px; height: 2px;
+            background: linear-gradient(90deg, transparent, #c9a96e, transparent);
+            margin: 1rem auto 0;
+            animation: titleReveal 1.2s cubic-bezier(0.23, 1, 0.32, 1) 0.4s forwards;
+            opacity: 1;
+        }
+        .hero-body {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;
+            align-items: center;
+        }
+        .hero-left { position: relative; }
+        .hero-left h2 {
+            font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 700;
+            line-height: 1.1; margin-bottom: 1.5rem;
+            color: #ffffff; text-shadow: 0 2px 20px rgba(0,0,0,0.4);
+        }
+        .hero-left h2 .gradient-text {
+            background: linear-gradient(135deg, #c9a96e, #e8d5b7);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .hero-tag {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 0.5rem 1.2rem; background: rgba(201, 169, 110, 0.15);
+            border: 1px solid rgba(201, 169, 110, 0.35); border-radius: 50px;
+            font-size: 0.85rem; color: #e8d5b7; margin-bottom: 1.5rem; backdrop-filter: blur(12px);
+            font-weight: 500; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .hero-tag i { color: var(--secondary); }
+        .hero-desc {
+            font-size: 1.05rem; color: #c0c0d0; line-height: 1.7;
+            margin-bottom: 2rem; max-width: 480px;
+            text-shadow: 0 1px 10px rgba(0,0,0,0.3);
+        }
+        .hero-buttons { display: flex; gap: 1rem; margin-bottom: 2.5rem; }
+        .btn-primary {
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, #c9a96e, #a08050);
+            border: none; border-radius: 50px; color: var(--bg); font-weight: 700;
+            font-size: 0.95rem; cursor: none; position: relative; overflow: hidden;
+            transition: all 0.3s ease;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 40px rgba(201, 169, 110, 0.3); }
+        .btn-secondary {
+            padding: 1rem 2.5rem; background: transparent; border: 1px solid var(--border);
+            border-radius: 50px; color: var(--text); font-weight: 600; font-size: 0.95rem;
+            cursor: none; position: relative; overflow: hidden; transition: all 0.3s ease;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-secondary:hover { border-color: #c9a96e; color: #c9a96e; }
+        .hero-stats { display: flex; gap: 2.5rem; }
+        .stat { position: relative; }
+        .stat-number {
+            font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 700;
+            color: #e8d5b7; text-shadow: 0 2px 10px rgba(201,169,110,0.2);
+        }
+        .stat-label { font-size: 0.85rem; color: #a0a0b8; margin-top: 0.3rem; font-weight: 500; }
+        .stat::after {
+            content: ''; position: absolute; right: -1.25rem; top: 50%; transform: translateY(-50%);
+            width: 1px; height: 30px; background: var(--border);
+        }
+        .stat:last-child::after { display: none; }
+        .hero-right {
+            position: relative; height: 480px; perspective: 1000px;
+            min-height: 480px;
+        }
+        .hero-card {
+            position: absolute; width: 260px; border-radius: 20px; overflow: hidden;
+            background: rgba(30, 30, 50, 0.92); border: 1px solid rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(24px);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(201, 169, 110, 0.08), inset 0 1px 0 rgba(255,255,255,0.06);
+            will-change: transform;
+        }
+        .hero-card:hover {
+            transform: translateZ(50px) scale(1.05) !important;
+            box-shadow: 0 35px 90px rgba(0, 0, 0, 0.7), 0 0 40px rgba(201, 169, 110, 0.15);
+            border-color: rgba(201, 169, 110, 0.3); z-index: 100 !important;
+        }
+        .hero-card img {
+            width: 100%; height: 180px; object-fit: cover;
+            display: block;
+        }
+        .hero-card-info { padding: 1rem 1.2rem; }
+        .hero-card-info h4 { font-size: 1.05rem; margin-bottom: 0.2rem; color: #ffffff; font-weight: 600; }
+        .hero-card-info p { font-size: 0.85rem; color: #a0a0b8; }
+        .hero-card-badge {
+            position: absolute; top: 0.8rem; right: 0.8rem;
+            padding: 0.35rem 0.9rem; background: rgba(74, 222, 128, 0.25);
+            border: 1px solid rgba(74, 222, 128, 0.45); border-radius: 50px;
+            font-size: 0.75rem; color: #6ee7b7; font-weight: 700;
+            backdrop-filter: blur(12px); text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .card-1 { top: 0; left: 5%; transform: rotateY(-12deg) rotateX(4deg) translateZ(0); z-index: 3; }
+        .card-2 { top: 70px; right: 0; transform: rotateY(8deg) rotateX(-4deg) translateZ(-40px); z-index: 2; }
+        .card-3 { bottom: 20px; left: 15%; transform: rotateY(-4deg) rotateX(8deg) translateZ(-80px); z-index: 1; }
+        .float-element {
+            position: absolute; border-radius: 16px; background: rgba(35, 35, 55, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.18); backdrop-filter: blur(24px);
+            padding: 0.9rem 1.3rem; display: flex; align-items: center; gap: 10px;
+            font-size: 0.85rem; animation: float 6s infinite ease-in-out;
+            box-shadow: 0 12px 45px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255,255,255,0.08);
+            color: #e8e8f0; font-weight: 500;
+        }
+        .float-element i { font-size: 1.1rem; color: #c9a96e; }
+        .float-1 { top: 15%; left: -8%; animation-delay: 0s; }
+        .float-2 { bottom: 30%; right: -5%; animation-delay: -2s; }
+        .float-3 { top: 55%; left: -10%; animation-delay: -4s; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(1deg); }
+        }
+        section { position: relative; z-index: 10; padding: 6rem 3rem; }
+        .section-header {
+            text-align: center; max-width: 700px; margin: 0 auto 4rem;
+        }
+        .section-tag {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 0.5rem 1.2rem; background: var(--primary-dim);
+            border: 1px solid rgba(0, 245, 255, 0.2); border-radius: 50px;
+            font-size: 0.8rem; color: var(--primary); margin-bottom: 1.5rem;
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+        .section-header h2 {
+            font-size: clamp(2rem, 4vw, 3rem); font-weight: 700;
+            margin-bottom: 1rem; line-height: 1.2;
+        }
+        .section-header p { color: var(--text-dim); font-size: 1.05rem; line-height: 1.7; }
+        .about-section { background: var(--bg-light); position: relative; overflow: hidden; }
+        .about-section::before {
+            content: ''; position: absolute; top: -50%; right: -20%;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(0, 245, 255, 0.05), transparent 70%);
+            pointer-events: none;
+        }
+        .about-grid {
+            max-width: 1400px; margin: 0 auto;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+        }
+        .about-visual { position: relative; }
+        .about-main-img {
+            width: 100%; border-radius: 24px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5); border: 1px solid var(--border);
+        }
+        .about-float-card {
+            position: absolute; background: var(--bg-glass); border: 1px solid var(--border);
+            backdrop-filter: blur(20px); border-radius: 16px; padding: 1.2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        .about-float-card.card-top { top: -20px; right: -20px; width: 200px; }
+        .about-float-card.card-bottom { bottom: -20px; left: -20px; width: 220px; }
+        .about-float-card h4 { font-size: 1.5rem; color: var(--primary); margin-bottom: 0.3rem; }
+        .about-float-card p { font-size: 0.8rem; color: var(--text-dim); }
+        .about-content h3 { font-size: 2.2rem; margin-bottom: 1.5rem; line-height: 1.2; }
+        .about-content > p { color: var(--text-dim); line-height: 1.8; margin-bottom: 2rem; }
+        .about-features { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .about-feature { display: flex; gap: 1rem; align-items: flex-start; }
+        .about-feature-icon {
+            width: 45px; height: 45px; min-width: 45px; border-radius: 12px;
+            background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.2);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary); font-size: 1.1rem;
+        }
+        .about-feature h4 { font-size: 1rem; margin-bottom: 0.3rem; }
+        .about-feature p { font-size: 0.85rem; color: var(--text-dim); line-height: 1.5; }
+        .process-section { position: relative; }
+        .process-timeline {
+            max-width: 1200px; margin: 0 auto;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; position: relative;
+        }
+        .process-timeline::before {
+            content: ''; position: absolute; top: 60px; left: 12.5%; right: 12.5%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--accent), var(--secondary));
+            opacity: 0.3;
+        }
+        .process-step { text-align: center; position: relative; }
+        .process-number {
+            width: 80px; height: 80px; margin: 0 auto 1.5rem; border-radius: 50%;
+            background: var(--bg-glass); border: 2px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700;
+            color: var(--primary); position: relative; z-index: 2;
+            transition: all 0.3s ease; box-shadow: 0 0 30px rgba(0, 245, 255, 0.1);
+        }
+        .process-step:hover .process-number {
+            border-color: var(--primary); box-shadow: 0 0 40px rgba(0, 245, 255, 0.3); transform: scale(1.1);
+        }
+        .process-step h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .process-step p { font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; }
+        .adopt-section { background: var(--bg-light); }
+        .adopt-filters {
+            display: flex; justify-content: center; gap: 1rem;
+            margin-bottom: 3rem; flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 0.7rem 1.5rem; background: var(--bg-glass); border: 1px solid var(--border);
+            border-radius: 50px; color: var(--text-dim); font-size: 0.85rem; font-weight: 500;
+            cursor: none; transition: all 0.3s ease; display: flex; align-items: center; gap: 6px;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--primary-dim); border-color: rgba(0, 245, 255, 0.3);
+            color: var(--primary); box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
+        }
+        .adopt-grid {
+            max-width: 1400px; margin: 0 auto;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;
+        }
+        .pet-card {
+            background: var(--bg-glass); border: 1px solid var(--border); border-radius: 24px;
+            overflow: hidden; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative; transform-style: preserve-3d;
+        }
+        .pet-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(0, 245, 255, 0.1);
+            border-color: rgba(0, 245, 255, 0.2);
+        }
+        .pet-card-image { position: relative; height: 240px; overflow: hidden; }
+        .pet-card-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+        .pet-card:hover .pet-card-image img { transform: scale(1.1); }
+        .pet-card-badge {
+            position: absolute; top: 1rem; left: 1rem;
+            padding: 0.4rem 1rem; border-radius: 50px;
+            font-size: 0.75rem; font-weight: 600; backdrop-filter: blur(10px);
+        }
+        .badge-available { background: rgba(74, 222, 128, 0.2); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ade80; }
+        .badge-reserved { background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.3); color: #fbbf24; }
+        .pet-fav {
+            position: absolute; top: 1rem; right: 1rem;
+            width: 40px; height: 40px; border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5); border: 1px solid var(--border);
+            color: var(--text); display: flex; align-items: center; justify-content: center;
+            cursor: none; transition: all 0.3s ease; backdrop-filter: blur(10px);
+        }
+        .pet-fav:hover { background: var(--secondary); border-color: var(--secondary); transform: scale(1.1); }
+        .pet-card-content { padding: 1.5rem; }
+        .pet-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+        .pet-card-header h3 { font-size: 1.1rem; }
+        .pet-age {
+            font-size: 0.8rem; color: var(--text-dim); background: var(--bg);
+            padding: 0.3rem 0.8rem; border-radius: 50px;
+        }
+        .pet-tags { display: flex; gap: 0.5rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+        .pet-tags span {
+            font-size: 0.75rem; padding: 0.3rem 0.8rem;
+            background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1);
+            border-radius: 50px; color: var(--primary);
+        }
+        .pet-card-footer { display: flex; justify-content: space-between; align-items: center; }
+        .pet-location {
+            font-size: 0.85rem; color: var(--text-dim);
+            display: flex; align-items: center; gap: 6px;
+        }
+        .pet-location i { color: var(--secondary); }
+        .meet-btn {
+            padding: 0.6rem 1.2rem; background: transparent; border: 1px solid var(--primary);
+            border-radius: 50px; color: var(--primary); font-size: 0.8rem; font-weight: 600;
+            cursor: none; transition: all 0.3s ease;
+        }
+        .meet-btn:hover { background: var(--primary); color: var(--bg); box-shadow: 0 0 20px rgba(0, 245, 255, 0.3); }
+        .ai-section { position: relative; overflow: hidden; }
+        .ai-section::before {
+            content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 800px; height: 800px;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.1), transparent 70%);
+            pointer-events: none;
+        }
+        .ai-container {
+            max-width: 1400px; margin: 0 auto;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+        }
+        .ai-visual { position: relative; height: 500px; }
+        .ai-circle {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 350px; height: 350px; border-radius: 50%;
+            border: 2px solid rgba(0, 245, 255, 0.1); animation: rotate 20s linear infinite;
+        }
+        .ai-circle::before, .ai-circle::after {
+            content: ''; position: absolute; border-radius: 50%; border: 1px solid rgba(0, 245, 255, 0.05);
+        }
+        .ai-circle::before { top: -30px; left: -30px; right: -30px; bottom: -30px; }
+        .ai-circle::after { top: 30px; left: 30px; right: 30px; bottom: 30px; }
+        @keyframes rotate { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+        .ai-center-img {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 250px; height: 250px; border-radius: 50%; object-fit: cover;
+            border: 3px solid var(--primary); box-shadow: 0 0 60px rgba(0, 245, 255, 0.3);
+        }
+        .ai-orbit-item {
+            position: absolute; width: 60px; height: 60px; border-radius: 50%;
+            background: var(--bg-glass); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; color: var(--primary); backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
+        }
+        .orbit-1 { top: 10%; left: 20%; animation: orbitFloat 4s infinite ease-in-out; }
+        .orbit-2 { top: 20%; right: 15%; animation: orbitFloat 4s infinite ease-in-out 1s; }
+        .orbit-3 { bottom: 20%; left: 15%; animation: orbitFloat 4s infinite ease-in-out 2s; }
+        .orbit-4 { bottom: 15%; right: 20%; animation: orbitFloat 4s infinite ease-in-out 3s; }
+        @keyframes orbitFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        .ai-content h2 { font-size: clamp(2rem, 3vw, 2.8rem); margin-bottom: 1.5rem; line-height: 1.2; }
+        .ai-content > p { color: var(--text-dim); line-height: 1.8; margin-bottom: 2rem; }
+        .ai-features { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem; }
+        .ai-feature {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 1rem; background: var(--bg-glass); border: 1px solid var(--border);
+            border-radius: 16px; transition: all 0.3s ease;
+        }
+        .ai-feature:hover { border-color: rgba(0, 245, 255, 0.2); transform: translateX(5px); }
+        .ai-feature i { font-size: 1.3rem; width: 40px; text-align: center; }
+        .ai-feature span { font-size: 0.9rem; font-weight: 500; }
+        .why-section { background: var(--bg-light); }
+        .why-grid {
+            max-width: 1400px; margin: 0 auto;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem;
+        }
+        .why-card {
+            background: var(--bg-glass); border: 1px solid var(--border); border-radius: 24px;
+            padding: 2.5rem 2rem; text-align: center; transition: all 0.4s ease;
+            position: relative; overflow: hidden;
+        }
+        .why-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transform: scaleX(0); transition: transform 0.4s ease;
+        }
+        .why-card:hover::before { transform: scaleX(1); }
+        .why-card:hover {
+            transform: translateY(-10px); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            border-color: rgba(0, 245, 255, 0.1);
+        }
+        .why-icon {
+            width: 70px; height: 70px; margin: 0 auto 1.5rem; border-radius: 20px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+            position: relative;
+        }
+        .why-icon::after {
+            content: ''; position: absolute; inset: -5px; border-radius: 24px;
+            opacity: 0.2; filter: blur(10px);
+        }
+        .why-icon.red { background: rgba(255, 107, 107, 0.1); color: var(--secondary); }
+        .why-icon.red::after { background: var(--secondary); }
+        .why-icon.green { background: rgba(74, 222, 128, 0.1); color: #4ade80; }
+        .why-icon.green::after { background: #4ade80; }
+        .why-icon.blue { background: rgba(0, 245, 255, 0.1); color: var(--primary); }
+        .why-icon.blue::after { background: var(--primary); }
+        .why-icon.yellow { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
+        .why-icon.yellow::after { background: #fbbf24; }
+        .why-card h3 { font-size: 1.2rem; margin-bottom: 0.8rem; }
+        .why-card p { font-size: 0.9rem; color: var(--text-dim); line-height: 1.6; }
+        .services-grid {
+            max-width: 1400px; margin: 0 auto;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;
+        }
+        .service-card {
+            background: var(--bg-glass); border: 1px solid var(--border); border-radius: 24px;
+            padding: 2.5rem; transition: all 0.4s ease; position: relative; overflow: hidden;
+        }
+        .service-card::after {
+            content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 0;
+            background: linear-gradient(180deg, transparent, rgba(0, 245, 255, 0.05));
+            transition: height 0.4s ease;
+        }
+        .service-card:hover::after { height: 100%; }
+        .service-card:hover {
+            transform: translateY(-5px); border-color: rgba(0, 245, 255, 0.15);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+        .service-icon {
+            width: 60px; height: 60px; border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; margin-bottom: 1.5rem; position: relative; z-index: 2;
+        }
+        .service-icon.red { background: rgba(255, 107, 107, 0.1); color: var(--secondary); }
+        .service-icon.green { background: rgba(74, 222, 128, 0.1); color: #4ade80; }
+        .service-icon.blue { background: rgba(0, 245, 255, 0.1); color: var(--primary); }
+        .service-icon.pink { background: rgba(244, 114, 182, 0.1); color: #f472b6; }
+        .service-icon.yellow { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
+        .service-icon.purple { background: rgba(167, 139, 250, 0.1); color: #a78bfa; }
+        .service-card h3 { font-size: 1.2rem; margin-bottom: 0.8rem; position: relative; z-index: 2; }
+        .service-card p { font-size: 0.9rem; color: var(--text-dim); line-height: 1.6; position: relative; z-index: 2; }
+        .shop-section { background: var(--bg-light); }
+        .shop-grid {
+            max-width: 1400px; margin: 0 auto;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem;
+        }
+        .shop-card {
+            background: var(--bg-glass); border: 1px solid var(--border); border-radius: 24px;
+            overflow: hidden; transition: all 0.4s ease;
+        }
+        .shop-card:hover {
+            transform: translateY(-8px); box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            border-color: rgba(0, 245, 255, 0.15);
+        }
+        .shop-image { position: relative; height: 220px; overflow: hidden; }
+        .shop-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+        .shop-card:hover .shop-image img { transform: scale(1.1); }
+        .shop-tag {
+            position: absolute; top: 1rem; left: 1rem;
+            padding: 0.3rem 0.8rem; border-radius: 50px;
+            font-size: 0.7rem; font-weight: 600; backdrop-filter: blur(10px);
+        }
+        .tag-bestseller { background: rgba(255, 107, 107, 0.2); border: 1px solid rgba(255, 107, 107, 0.3); color: var(--secondary); }
+        .tag-new { background: rgba(244, 114, 182, 0.2); border: 1px solid rgba(244, 114, 182, 0.3); color: #f472b6; }
+        .tag-popular { background: rgba(0, 245, 255, 0.2); border: 1px solid rgba(0, 245, 255, 0.3); color: var(--primary); }
+        .tag-sale { background: rgba(74, 222, 128, 0.2); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ade80; }
+        .shop-content { padding: 1.5rem; }
+        .shop-content h4 { font-size: 1rem; margin-bottom: 0.3rem; }
+        .shop-content > p { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1rem; }
+        .shop-price-row { display: flex; justify-content: space-between; align-items: center; }
+        .shop-price { font-size: 1.2rem; font-weight: 700; color: var(--primary); }
+        .add-cart {
+            width: 40px; height: 40px; border-radius: 50%; background: var(--primary-dim);
+            border: 1px solid rgba(0, 245, 255, 0.2); color: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            cursor: none; transition: all 0.3s ease;
+        }
+        .add-cart:hover { background: var(--primary); color: var(--bg); box-shadow: 0 0 20px rgba(0, 245, 255, 0.3); }
+        .stories-grid {
+            max-width: 1400px; margin: 0 auto;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;
+        }
+        .story-card {
+            background: var(--bg-glass); border: 1px solid var(--border); border-radius: 24px;
+            overflow: hidden; transition: all 0.4s ease;
+        }
+        .story-card:hover { transform: translateY(-8px); box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3); }
+        .story-card img { width: 100%; height: 250px; object-fit: cover; }
+        .story-content { padding: 2rem; }
+        .story-stars { color: #fbbf24; margin-bottom: 0.8rem; font-size: 0.9rem; letter-spacing: 2px; }
+        .story-content h3 { font-size: 1.2rem; margin-bottom: 0.8rem; }
+        .story-content > p { color: var(--text-dim); font-size: 0.9rem; line-height: 1.7; margin-bottom: 1.2rem; }
+        .story-author { font-size: 0.85rem; color: var(--primary); font-weight: 600; }
+        .numbers-section {
+            background: linear-gradient(180deg, var(--bg-light), var(--bg)); position: relative;
+        }
+        .numbers-section::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent); opacity: 0.3;
+        }
+        .numbers-grid {
+            max-width: 1200px; margin: 0 auto;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 3rem; text-align: center;
+        }
+        .number-item { position: relative; }
+        .number-icon {
+            width: 60px; height: 60px; margin: 0 auto 1rem; border-radius: 16px;
+            background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; color: var(--primary);
+        }
+        .number-value {
+            font-family: 'Space Grotesk', sans-serif; font-size: 3rem; font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+        .number-label { font-size: 0.9rem; color: var(--text-dim); }
+        .cta-section { position: relative; overflow: hidden; }
+        .cta-container {
+            max-width: 900px; margin: 0 auto; text-align: center; padding: 4rem;
+            background: var(--bg-glass); border: 1px solid var(--border); border-radius: 32px;
+            backdrop-filter: blur(20px); position: relative; overflow: hidden;
+        }
+        .cta-container::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at center, rgba(0, 245, 255, 0.05), transparent 50%);
+            animation: ctaPulse 4s infinite ease-in-out;
+        }
+        @keyframes ctaPulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+        .cta-pets { font-size: 2.5rem; margin-bottom: 1.5rem; position: relative; z-index: 2; }
+        .cta-container h2 { font-size: clamp(1.8rem, 3vw, 2.5rem); margin-bottom: 1rem; position: relative; z-index: 2; }
+        .cta-container > p { color: var(--text-dim); margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto; position: relative; z-index: 2; }
+        .cta-buttons { display: flex; gap: 1rem; justify-content: center; position: relative; z-index: 2; }
+        footer {
+            background: var(--bg-light); border-top: 1px solid var(--border);
+            padding: 4rem 3rem 2rem; position: relative; z-index: 10;
+        }
+        .footer-grid {
+            max-width: 1400px; margin: 0 auto;
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 4rem; margin-bottom: 3rem;
+        }
+        .footer-brand h3 { font-size: 1.5rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; }
+        .footer-brand h3 i { color: var(--primary); }
+        .footer-brand > p { color: var(--text-dim); font-size: 0.9rem; line-height: 1.7; margin-bottom: 1.5rem; }
+        .footer-newsletter { display: flex; gap: 0.5rem; }
+        .footer-newsletter input {
+            flex: 1; padding: 0.8rem 1.2rem; background: var(--bg-glass);
+            border: 1px solid var(--border); border-radius: 50px; color: var(--text);
+            font-size: 0.85rem; outline: none; transition: all 0.3s ease;
+        }
+        .footer-newsletter input:focus { border-color: var(--primary); box-shadow: 0 0 20px rgba(0, 245, 255, 0.1); }
+        .footer-newsletter button {
+            width: 45px; height: 45px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: none; color: var(--bg); display: flex; align-items: center; justify-content: center;
+            cursor: none; transition: all 0.3s ease;
+        }
+        .footer-newsletter button:hover { transform: scale(1.1); box-shadow: 0 0 20px rgba(0, 245, 255, 0.3); }
+        .footer-col h4 { font-size: 1rem; margin-bottom: 1.5rem; color: var(--text); }
+        .footer-col a {
+            display: block; color: var(--text-dim); text-decoration: none;
+            font-size: 0.9rem; margin-bottom: 0.8rem; transition: all 0.3s ease;
+        }
+        .footer-col a:hover { color: var(--primary); transform: translateX(5px); }
+        .socials { display: flex; gap: 1rem; }
+        .socials a {
+            width: 40px; height: 40px; border-radius: 50%; background: var(--bg-glass);
+            border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+            color: var(--text-dim); text-decoration: none; transition: all 0.3s ease;
+        }
+        .socials a:hover {
+            background: var(--primary-dim); border-color: var(--primary); color: var(--primary);
+            transform: translateY(-3px); box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
+        }
+        .footer-bottom {
+            max-width: 1400px; margin: 0 auto; padding-top: 2rem;
+            border-top: 1px solid var(--border); text-align: center;
+            color: var(--text-dim); font-size: 0.85rem;
+        }
+        .footer-bottom i { color: var(--secondary); }
+        .chat-widget { position: fixed; bottom: 2rem; right: 2rem; z-index: 1000; }
+        .chat-launcher {
+            width: 60px; height: 60px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: none; color: var(--bg); font-size: 1.5rem;
+            cursor: none; position: relative;
+            box-shadow: 0 0 30px rgba(0, 245, 255, 0.4);
+            transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
+        }
+        .chat-launcher:hover { transform: scale(1.1); box-shadow: 0 0 40px rgba(0, 245, 255, 0.6); }
+        .chat-launcher::before {
+            content: ''; position: absolute; inset: -5px; border-radius: 50%;
+            border: 2px solid var(--primary); animation: chatPulse 2s infinite;
+        }
+        @keyframes chatPulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+        .chat-panel {
+            position: absolute; bottom: 80px; right: 0; width: 380px; height: 500px;
+            background: var(--bg-glass); border: 1px solid var(--border); border-radius: 24px;
+            backdrop-filter: blur(30px); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            display: none; flex-direction: column; overflow: hidden;
+        }
+        .chat-panel.active { display: flex; }
+        .chat-header {
+            padding: 1.2rem; background: var(--primary-dim);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .chat-header-info { display: flex; align-items: center; gap: 10px; }
+        .chat-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex; align-items: center; justify-content: center;
+            color: var(--bg); font-size: 1rem;
+        }
+        .chat-header-info div strong { display: block; font-size: 0.9rem; }
+        .chat-header-info div span { font-size: 0.75rem; color: var(--text-dim); }
+        .chat-close { background: none; border: none; color: var(--text-dim); font-size: 1.5rem; cursor: none; transition: color 0.3s ease; }
+        .chat-close:hover { color: var(--secondary); }
+        .chat-messages {
+            flex: 1; padding: 1.2rem; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 1rem;
+        }
+        .chat-message { display: flex; gap: 10px; align-items: flex-start; }
+        .chat-message.user { flex-direction: row-reverse; }
+        .chat-bubble { max-width: 70%; padding: 0.8rem 1rem; border-radius: 16px; font-size: 0.85rem; line-height: 1.5; }
+        .chat-message.bot .chat-bubble { background: var(--bg-glass); border: 1px solid var(--border); color: var(--text); border-top-left-radius: 4px; }
+        .chat-message.user .chat-bubble { background: linear-gradient(135deg, var(--primary), var(--accent)); color: var(--bg); border-top-right-radius: 4px; }
+        .chat-quick { padding: 0 1.2rem 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .chat-quick button {
+            padding: 0.5rem 1rem; background: var(--bg-glass); border: 1px solid var(--border);
+            border-radius: 50px; color: var(--text-dim); font-size: 0.75rem;
+            cursor: none; transition: all 0.3s ease;
+        }
+        .chat-quick button:hover { border-color: var(--primary); color: var(--primary); }
+        .chat-input { padding: 1rem 1.2rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem; }
+        .chat-input input {
+            flex: 1; padding: 0.8rem 1.2rem; background: var(--bg-glass);
+            border: 1px solid var(--border); border-radius: 50px;
+            color: var(--text); font-size: 0.85rem; outline: none;
+        }
+        .chat-input input:focus { border-color: var(--primary); }
+        .chat-input button {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: none; color: var(--bg); display: flex; align-items: center; justify-content: center;
+            cursor: none; transition: all 0.3s ease;
+        }
+        .chat-input button:hover { transform: scale(1.1); box-shadow: 0 0 20px rgba(0, 245, 255, 0.3); }
+        /* Reveal animations removed - content always visible */
+        @media (max-width: 1024px) {
+            .hero-content, .about-grid, .ai-container { grid-template-columns: 1fr; }
+            .hero-right { height: 400px; }
+            .why-grid, .numbers-grid { grid-template-columns: repeat(2, 1fr); }
+            .services-grid, .shop-grid, .stories-grid { grid-template-columns: repeat(2, 1fr); }
+            .process-timeline { grid-template-columns: repeat(2, 1fr); }
+            .process-timeline::before { display: none; }
+            .footer-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .nav-profile { position: relative; }
+        .profile-trigger {
+            display: flex; align-items: center; gap: 10px;
+            padding: 0.4rem 0.8rem 0.4rem 0.4rem;
+            background: var(--bg-glass); border: 1px solid var(--border);
+            border-radius: 50px; cursor: none; transition: all 0.3s ease;
+        }
+        .profile-trigger:hover { border-color: var(--primary); box-shadow: 0 0 20px rgba(0, 245, 255, 0.1); }
+        .profile-avatar-icon {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex; align-items: center; justify-content: center;
+            color: var(--bg); font-size: 0.9rem;
+        }
+        .profile-name { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+        .profile-dropdown {
+            position: absolute; top: calc(100% + 10px); right: 0;
+            width: 220px; background: var(--bg-glass); border: 1px solid var(--border);
+            border-radius: 16px; backdrop-filter: blur(30px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            padding: 0.8rem 0; opacity: 0; visibility: hidden;
+            transform: translateY(-10px); transition: all 0.3s ease; z-index: 1001;
+        }
+        .profile-dropdown.active { opacity: 1; visibility: visible; transform: translateY(0); }
+        .profile-dropdown a {
+            display: flex; align-items: center; gap: 10px;
+            padding: 0.7rem 1.2rem; color: var(--text-dim); text-decoration: none;
+            font-size: 0.85rem; transition: all 0.2s ease;
+        }
+        .profile-dropdown a:hover { color: var(--primary); background: var(--primary-dim); }
+        .profile-dropdown a i { width: 18px; text-align: center; }
+        .profile-divider { height: 1px; background: var(--border); margin: 0.5rem 0; }
+        .profile-login { color: var(--primary) !important; font-weight: 600; }
+        .profile-login:hover { background: var(--primary-dim) !important; }
+        .profile-login.accent { color: var(--accent) !important; }
+        .profile-login.accent:hover { background: rgba(168, 85, 247, 0.1) !important; }
+        .profile-logout { color: var(--secondary) !important; }
+        .profile-logout:hover { color: var(--secondary) !important; background: rgba(255, 107, 107, 0.1) !important; }
+        .hero { padding: 6rem 1.5rem 3rem; }
+            .hero-buttons { flex-direction: column; }
+            .hero-stats { flex-direction: column; gap: 1.5rem; }
+            .stat::after { display: none; }
+            .about-features, .ai-features { grid-template-columns: 1fr; }
+            .why-grid, .numbers-grid, .services-grid, .shop-grid, .stories-grid, .process-timeline, .footer-grid { grid-template-columns: 1fr; }
+            .cta-buttons { flex-direction: column; }
+            .chat-panel { width: calc(100vw - 2rem); right: -1rem; }
+            section { padding: 4rem 1.5rem; }
+            .cursor, .cursor-follower { display: none; }
+            body { cursor: auto; }
+        }
+    </style>
+<base target="_blank">
 </head>
 <body>
 
-  <!-- Navbar -->
-  <div class="navbar">
-    <div>TailMates</div>
-    <div class="nav-links">
-      <a href="index">Home</a>
-      <a href="Adopt">Adopt</a>
-      <a href="register">Register</a>
-      <a href="message">Message</a>
-      <a href="PawMate">PawMate</a>
-      <a href="services">Services</a>
-      <a href="shop">Shop</a>
-      <a href="login">Login</a>
-    </div>
-  </div>
+<!-- Custom Paw Cursor -->
+<div class="cursor" id="cursor">
+    <div class="pad pad-1"></div>
+    <div class="pad pad-2"></div>
+    <div class="pad pad-3"></div>
+</div>
+<div class="cursor-follower" id="cursorFollower">
+    <div class="pad pad-1"></div>
+    <div class="pad pad-2"></div>
+    <div class="pad pad-3"></div>
+</div>
 
-  <!-- Main Container -->
-  <div class="container">
+<!-- Scroll Progress -->
+<div class="scroll-progress" id="scrollProgress"></div>
 
-    <!-- Hero Section -->
-    <div class="hero">
-      <div class="hero-text">
-        <h1>Find Your Perfect Companion Today</h1>
-        <p>TailMates revolutionizes the pet adoption experience by connecting loving homes with pets in need. Whether you’re looking to adopt or have a stray to share, our streamlined platform makes it easy to find a match.</p>
-      </div>
-      <img src="https://cdni.iconscout.com/illustration/premium/thumb/online-pet-shopping-6036825-5010161.png" alt="Pet Adoption">
-    </div>
+<!-- Background Effects -->
+<div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+</div>
 
-    <!-- How It Works -->
-    <div class="section how-it-works">
-      <h2>How It Works</h2>
-      <p>At TailMates, we believe that adopting a pet should be intuitive, supportive, and heartwarming. We've simplified the process into three easy steps that ensure both the pet and adopter find their perfect match, guided by compassion and care.</p>
-      <div class="steps">
-        <div class="card">
-          <h3>1. Browse</h3>
-          <p>Explore a diverse range of dogs, cats, and other pets waiting for a second chance. Use smart filters to narrow your search by breed, location, age, and even behavior traits.</p>
-        </div>
-        <div class="card">
-          <h3>2. Connect</h3>
-          <p>Reach out to shelters, caregivers, or individuals directly. Ask questions, schedule meetups, and ensure your potential pet fits perfectly into your lifestyle and home.</p>
-        </div>
-        <div class="card">
-          <h3>3. Adopt</h3>
-          <p>Complete your profile and verification, and we’ll walk you through each step. From adoption forms to follow-up care tips, we’re here every paw-step of the way.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Urgent Adoptions -->
-    <div class="section">
-      <h2>Urgent Adoptions</h2>
-      <div class="urgent-cards">
-        <div class="card">
-          <img src="https://placedog.net/400/300?id=10" alt="Pet 1">
-          <h3>Bella</h3>
-          <p>Rescued from the highway, needs a home ASAP.</p>
-        </div>
-        <div class="card">
-          <img src="https://dbw3zep4prcju.cloudfront.net/animal/925c6e97-0df2-485e-88ed-1767bbf66c53/image/bebbebe7-8054-4da3-bf74-6a36d4343185.jpg?versionId=aicKL9Y88zV31sj8E2zL.e.IZXOKs6kY&bust=1744853723" alt="Pet 2">
-          <h3>Snowy</h3>
-          <p>Blind in one eye, but full of love and joy.</p>
-        </div>
-        <div class="card">
-          <img src="https://placedog.net/400/300?id=15" alt="Pet 3">
-          <h3>Leo</h3>
-          <p>Recovering from an injury, looking for comfort and care.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Success Stories -->
-    <div class="section">
-      <h2>Success Stories</h2>
-      <div class="testimonials">
-        <div class="testimonial">“Adopting Tuffy from TailMates was the best decision we ever made. He’s our bundle of joy now!” – Riya & Aman</div>
-        <div class="testimonial">“I found my furry best friend through TailMates. Thank you for making it so easy!” – Neha</div>
-        <div class="testimonial">“We were nervous about adoption at first, but TailMates gave us all the support we needed. We’re now proud pet parents!” – Arjun & Deepa</div>
-        <div class="testimonial">“TailMates helped me find Luna, my adorable tabby. I’m grateful for the guidance, love, and community!” – Meera</div>
-      </div>
-    </div>
-
-    <!-- Slider -->
-    <div class="slider-container">
-      <div class="slider">
-        <div class="slide">
-          <img src="love-turtles.jpg">
-        </div>
-        <div class="slide">
-          <img src="cat-human.jpg">
-        </div>
-        <div class="slide">
-          <img src="paw-hang.jpg">
-        </div>
-        <div class="slide">
-          <img src="rabbit.jpg">
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Footer -->
-  <footer>
-    <div class="container">
-      <div>
-        <h3>About TailMates</h3>
-        <p>TailMates is a community-driven platform dedicated to rescuing and rehoming stray and abandoned pets. We connect adopters, caregivers, and volunteers to create a safe haven for animals in need.</p>
-      </div>
-      <div>
-        <h3>Quick Links</h3>
-        <ul>
-          <li><a href="#">Home</a></li>
-          <li><a href="#">Adopt</a></li>
-          <li><a href="#">Services</a></li>
-          <li><a href="#">Shop</a></li>
+<!-- Navigation -->
+<nav class="navbar" id="navbar">
+    <div class="nav-inner">
+        <a href="#" class="logo">
+            <div class="logo-icon"><i class="fa-solid fa-paw"></i></div>
+            <div class="logo-text">
+                <h2>TailMates</h2>
+                <span>Every Paw Deserves Home</span>
+            </div>
+        </a>
+        <ul class="nav-links">
+            <li><a href="#home" class="active">Home</a></li>
+            <li><a href="#adopt">Adopt</a></li>
+            <li><a href="#pawmate">PawMate AI</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#shop">Shop</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="register.html">Register a Pet</a></li>
         </ul>
-      </div>
-
-</div>
-      <div>
-        <h3>Contact Us</h3>
-        <p>Email: support@tailmates.org</p>
-        <p>Phone: +91 9876543210</p>
-        <p>Address: 123 Pet Street, Mumbai, India</p>
-      </div>
-      <p>© 2026 TailMates. All Rights Reserved.</p>
+        <div class="nav-profile" id="navProfile">
+            <div class="profile-trigger" id="profileTrigger">
+                <div class="profile-avatar-icon"><i class="fa-solid fa-user"></i></div>
+                <span class="profile-name">Profile</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; color: var(--text-dim);"></i>
+            </div>
+            <div class="profile-dropdown" id="profileDropdown">
+                <!-- Logged Out State -->
+                <div id="profileDropdownLoggedOut">
+                    <div style="padding: 0.7rem 1.2rem; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
+                        <i class="fa-solid fa-user" style="margin-right: 6px;"></i> Account
+                    </div>
+                    <div class="profile-divider"></div>
+                    <a href="#" class="profile-login"><i class="fa-solid fa-right-to-bracket"></i> Log In</a>
+                    <a href="#" class="profile-login" style="color: var(--accent) !important;"><i class="fa-solid fa-user-plus"></i> Create Account</a>
+                </div>
+                <!-- Logged In State -->
+                <div id="profileDropdownLoggedIn" style="display: none;">
+                    <div style="padding: 0.7rem 1.2rem; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
+                        <i class="fa-solid fa-user" style="margin-right: 6px;"></i> Profile
+                    </div>
+                    <div class="profile-divider"></div>
+                    <a href="#"><i class="fa-regular fa-user"></i> My Profile</a>
+                    <a href="#"><i class="fa-solid fa-heart"></i> Saved Pets</a>
+                    <a href="#"><i class="fa-solid fa-clipboard-list"></i> My Applications</a>
+                    <a href="#"><i class="fa-solid fa-paw"></i> My Registered Pets</a>
+                    <a href="#"><i class="fa-solid fa-gear"></i> Settings</a>
+                    <div class="profile-divider"></div>
+                    <a href="#" class="profile-logout"><i class="fa-solid fa-right-from-bracket"></i> Log Out</a>
+                </div>
+            </div>
+        </div>
     </div>
-  </footer>
-<!-- ================= TailBot ================= -->
+</nav>
 
-<div id="tailbot-btn">
-    <div id="tailbot-bubble">
-        Need assistance? Ask TailBot!
+<!-- Hero Section -->
+<section class="hero" id="home">
+    <div class="hero-main">
+        <div class="hero-center-brand">
+            <div class="hero-badge-float left top"><i class="fa-solid fa-shield-heart"></i> Verified Shelters</div>
+            <div class="hero-badge-float left bottom"><i class="fa-solid fa-truck-fast"></i> Safe Transport</div>
+            <div class="hero-badge-float right top"><i class="fa-solid fa-stethoscope"></i> Health Checked</div>
+            <div class="hero-badge-float right bottom"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Matching</div>
+            <h1 class="hero-title">TailMates</h1>
+            <p class="hero-subtitle">Where rescued souls meet forever hearts</p>
+            <div class="hero-title-line"></div>
+        </div>
+        <div class="hero-body">
+            <div class="hero-left">
+                <div class="hero-tag reveal">
+                    <i class="fa-solid fa-shield-heart"></i>
+                    Trusted by 8,000+ Happy Families
+                </div>
+                <h2 class="reveal">
+                    Find Your Perfect<br>
+                    <span class="gradient-text">Furry Friend</span>
+                </h2>
+                <p class="hero-desc reveal">
+                    Adopt loving companions from verified shelters. Dogs, Cats, Rabbits, Hamsters, Hedgehogs, Chameleons and many more waiting for their forever family.
+                </p>
+                <div class="hero-buttons reveal">
+                    <button class="btn-primary" onclick="document.getElementById('adopt').scrollIntoView({behavior:'smooth'})">
+                        <i class="fa-solid fa-heart"></i> Start Adopting
+                    </button>
+                    <button class="btn-secondary" onclick="document.getElementById('pawmate').scrollIntoView({behavior:'smooth'})">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> PawMate AI
+                    </button>
+                </div>
+                <div class="hero-stats reveal">
+                    <div class="stat">
+                        <div class="stat-number" data-target="8200">0</div>
+                        <div class="stat-label">Adoptions</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number" data-target="470">0</div>
+                        <div class="stat-label">Shelters</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number" data-target="35">0</div>
+                        <div class="stat-label">Species</div>
+                    </div>
+                </div>
+                </div>
+            <div class="hero-right reveal">
+                <div class="hero-card card-1">
+                    <img src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=600&q=80" alt="Golden Retriever">
+                    <div class="hero-card-badge">Available</div>
+                    <div class="hero-card-info">
+                        <h4>Golden Retriever</h4>
+                        <p>2 years old - Mumbai</p>
+                    </div>
+                </div>
+                <div class="hero-card card-2">
+                    <img src="https://images.unsplash.com/photo-1519052537078-e6302a4968d4?auto=format&fit=crop&w=600&q=80" alt="British Shorthair">
+                    <div class="hero-card-badge">Available</div>
+                    <div class="hero-card-info">
+                        <h4>British Shorthair</h4>
+                        <p>1 year old - Delhi</p>
+                    </div>
+                </div>
+                <div class="hero-card card-3">
+                    <img src="https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=600&q=80" alt="Snow Bunny">
+                    <div class="hero-card-badge">Available</div>
+                    <div class="hero-card-info">
+                        <h4>Snow Bunny</h4>
+                        <p>8 months - Bangalore</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <img src="cc06df9fcfb2cc518dddd7487c600b6f-removebg-preview.png">
+</section>
+
+<!-- About / What We Provide Section -->
+<section class="about-section" id="about">
+    <div class="about-grid">
+        <div class="about-visual reveal">
+            <img src="https://images.unsplash.com/photo-1450778869180-41d0601e046e?auto=format&fit=crop&w=800&q=80" alt="Happy pets" class="about-main-img">
+            <div class="about-float-card card-top">
+                <h4>8,200+</h4>
+                <p>Successful Adoptions</p>
+            </div>
+            <div class="about-float-card card-bottom">
+                <h4>470+</h4>
+                <p>Partner Shelters</p>
+            </div>
+        </div>
+        <div class="about-content reveal">
+            <span class="section-tag"><i class="fa-solid fa-circle-info"></i> About TailMates</span>
+            <h3>India's Most Trusted Pet Adoption Platform</h3>
+            <p>TailMates is more than just a pet adoption website. We are a comprehensive ecosystem connecting rescued animals with loving families. Our platform partners with verified shelters across India to ensure every pet finds a safe, caring home.</p>
+            <div class="about-features">
+                <div class="about-feature">
+                    <div class="about-feature-icon"><i class="fa-solid fa-shield-dog"></i></div>
+                    <div>
+                        <h4>Verified Shelters</h4>
+                        <p>Every shelter is thoroughly vetted before joining our network</p>
+                    </div>
+                </div>
+                <div class="about-feature">
+                    <div class="about-feature-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+                    <div>
+                        <h4>Health Records</h4>
+                        <p>Complete medical history and vaccination records for every pet</p>
+                    </div>
+                </div>
+                <div class="about-feature">
+                    <div class="about-feature-icon"><i class="fa-solid fa-brain"></i></div>
+                    <div>
+                        <h4>AI Matching</h4>
+                        <p>Smart algorithms match pets with compatible families</p>
+                    </div>
+                </div>
+                <div class="about-feature">
+                    <div class="about-feature-icon"><i class="fa-solid fa-truck-medical"></i></div>
+                    <div>
+                        <h4>Safe Transport</h4>
+                        <p>Door-to-door delivery with verified transport partners</p>
+                    </div>
+                </div>
+                <div class="about-feature">
+                    <div class="about-feature-icon"><i class="fa-solid fa-user-doctor"></i></div>
+                    <div>
+                        <h4>Vet Network</h4>
+                        <p>Access to 500+ trusted veterinarians across India</p>
+                    </div>
+                </div>
+                <div class="about-feature">
+                    <div class="about-feature-icon"><i class="fa-solid fa-headset"></i></div>
+                    <div>
+                        <h4>Lifetime Support</h4>
+                        <p>24/7 assistance for all your pet parenting needs</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Process Section -->
+<section class="process-section">
+    <div class="section-header reveal">
+        <span class="section-tag"><i class="fa-solid fa-route"></i> How It Works</span>
+        <h2>Your Journey to a New Best Friend</h2>
+        <p>We've simplified the adoption process into four easy steps. From browsing to bringing your pet home, we're with you every step of the way.</p>
+    </div>
+    <div class="process-timeline">
+        <div class="process-step reveal">
+            <div class="process-number">01</div>
+            <h3>Browse Pets</h3>
+            <p>Explore hundreds of verified pets from trusted shelters across India. Filter by breed, age, location, and temperament.</p>
+        </div>
+        <div class="process-step reveal">
+            <div class="process-number">02</div>
+            <h3>AI Matching</h3>
+            <p>Use our PawMate AI to find the perfect companion based on your lifestyle, home size, and personality preferences.</p>
+        </div>
+        <div class="process-step reveal">
+            <div class="process-number">03</div>
+            <h3>Meet & Bond</h3>
+            <p>Schedule a virtual or in-person meeting with your potential new family member. Build that special connection.</p>
+        </div>
+        <div class="process-step reveal">
+            <div class="process-number">04</div>
+            <h3>Bring Home</h3>
+            <p>Complete the adoption process with our guided paperwork and safe transport to bring your pet home.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Adopt Section -->
+<section class="adopt-section" id="adopt">
+    <div class="section-header reveal">
+        <span class="section-tag"><i class="fa-solid fa-paw"></i> Meet Our Pets</span>
+        <h2>Every Animal Has A Story.<br>Find Yours!</h2>
+        <p>Browse through hundreds of verified pets waiting for their forever home. Your new best friend is just a click away.</p>
+    </div>
+    <div class="adopt-filters reveal">
+        <button class="filter-btn active" data-filter="all">All Pets</button>
+        <button class="filter-btn" data-filter="dog"><i class="fa-solid fa-dog"></i> Dogs</button>
+        <button class="filter-btn" data-filter="cat"><i class="fa-solid fa-cat"></i> Cats</button>
+        <button class="filter-btn" data-filter="small"><i class="fa-solid fa-carrot"></i> Small Pets</button>
+        <button class="filter-btn" data-filter="exotic"><i class="fa-solid fa-dragon"></i> Exotic</button>
+    </div>
+    <div class="adopt-grid">
+        <div class="pet-card reveal" data-category="dog">
+            <div class="pet-card-image">
+                <img src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=800&q=80" alt="Golden Retriever">
+                <div class="pet-card-badge badge-available">Available</div>
+                <button class="pet-fav"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="pet-card-content">
+                <div class="pet-card-header">
+                    <h3>Golden Retriever</h3>
+                    <span class="pet-age">2 yrs</span>
+                </div>
+                <div class="pet-tags"><span>Playful</span><span>Friendly</span><span>Big</span></div>
+                <div class="pet-card-footer">
+                    <span class="pet-location"><i class="fa-solid fa-location-dot"></i> Mumbai</span>
+                    <button class="meet-btn">Meet Me</button>
+                </div>
+            </div>
+        </div>
+        <div class="pet-card reveal" data-category="cat">
+            <div class="pet-card-image">
+                <img src="https://images.unsplash.com/photo-1519052537078-e6302a4968d4?auto=format&fit=crop&w=800&q=80" alt="British Shorthair">
+                <div class="pet-card-badge badge-available">Available</div>
+                <button class="pet-fav"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="pet-card-content">
+                <div class="pet-card-header">
+                    <h3>British Shorthair</h3>
+                    <span class="pet-age">1 yr</span>
+                </div>
+                <div class="pet-tags"><span>Calm</span><span>Indoor</span><span>Quiet</span></div>
+                <div class="pet-card-footer">
+                    <span class="pet-location"><i class="fa-solid fa-location-dot"></i> Delhi</span>
+                    <button class="meet-btn">Meet Me</button>
+                </div>
+            </div>
+        </div>
+        <div class="pet-card reveal" data-category="small">
+            <div class="pet-card-image">
+                <img src="https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=800&q=80" alt="Snow Bunny">
+                <div class="pet-card-badge badge-available">Available</div>
+                <button class="pet-fav"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="pet-card-content">
+                <div class="pet-card-header">
+                    <h3>Snow Bunny</h3>
+                    <span class="pet-age">8 mos</span>
+                </div>
+                <div class="pet-tags"><span>Tiny</span><span>Curious</span><span>Soft</span></div>
+                <div class="pet-card-footer">
+                    <span class="pet-location"><i class="fa-solid fa-location-dot"></i> Bangalore</span>
+                    <button class="meet-btn">Meet Me</button>
+                </div>
+            </div>
+        </div>
+        <div class="pet-card reveal" data-category="small">
+            <div class="pet-card-image">
+                <img src="https://images.unsplash.com/photo-1548695602-40c177c4e24d?auto=format&fit=crop&w=800&q=80" alt="Hedgehog">
+                <div class="pet-card-badge badge-available">Available</div>
+                <button class="pet-fav"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="pet-card-content">
+                <div class="pet-card-header">
+                    <h3>Hedgehog</h3>
+                    <span class="pet-age">1 yr</span>
+                </div>
+                <div class="pet-tags"><span>Quiet</span><span>Nocturnal</span><span>Cute</span></div>
+                <div class="pet-card-footer">
+                    <span class="pet-location"><i class="fa-solid fa-location-dot"></i> Pune</span>
+                    <button class="meet-btn">Meet Me</button>
+                </div>
+            </div>
+        </div>
+        <div class="pet-card reveal" data-category="small">
+            <div class="pet-card-image">
+                <img src="https://images.unsplash.com/photo-1425082661705-1834bfd09dca?auto=format&fit=crop&w=800&q=80" alt="Hamster">
+                <div class="pet-card-badge badge-reserved">Reserved</div>
+                <button class="pet-fav"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="pet-card-content">
+                <div class="pet-card-header">
+                    <h3>Hamster</h3>
+                    <span class="pet-age">6 mos</span>
+                </div>
+                <div class="pet-tags"><span>Small</span><span>Active</span><span>Cute</span></div>
+                <div class="pet-card-footer">
+                    <span class="pet-location"><i class="fa-solid fa-location-dot"></i> Chennai</span>
+                    <button class="meet-btn">Meet Me</button>
+                </div>
+            </div>
+        </div>
+        <div class="pet-card reveal" data-category="exotic">
+            <div class="pet-card-image">
+                <img src="https://images.unsplash.com/photo-1526336024174-e58f5cdd8e13?auto=format&fit=crop&w=800&q=80" alt="Chameleon">
+                <div class="pet-card-badge badge-available">Available</div>
+                <button class="pet-fav"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="pet-card-content">
+                <div class="pet-card-header">
+                    <h3>Chameleon</h3>
+                    <span class="pet-age">2 yrs</span>
+                </div>
+                <div class="pet-tags"><span>Exotic</span><span>Calm</span><span>Colorful</span></div>
+                <div class="pet-card-footer">
+                    <span class="pet-location"><i class="fa-solid fa-location-dot"></i> Hyderabad</span>
+                    <button class="meet-btn">Meet Me</button>
+                </div>
+            </div>
+        </div>
+        <div class="pet-card reveal" data-category="dog">
+            <div class="pet-card-image">
+                <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=800&q=80" alt="Beagle">
+                <div class="pet-card-badge badge-available">Available</div>
+                <button class="pet-fav"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="pet-card-content">
+                <div class="pet-card-header">
+                    <h3>Beagle Pup</h3>
+                    <span class="pet-age">4 mos</span>
+                </div>
+                <div class="pet-tags"><span>Curious</span><span>Happy</span><span>Small</span></div>
+                <div class="pet-card-footer">
+                    <span class="pet-location"><i class="fa-solid fa-location-dot"></i> Kolkata</span>
+                    <button class="meet-btn">Meet Me</button>
+                </div>
+            </div>
+        </div>
+        <div class="pet-card reveal" data-category="cat">
+            <div class="pet-card-image">
+                <img src="https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=800&q=80" alt="Persian Cat">
+                <div class="pet-card-badge badge-available">Available</div>
+                <button class="pet-fav"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="pet-card-content">
+                <div class="pet-card-header">
+                    <h3>Persian Cat</h3>
+                    <span class="pet-age">3 yrs</span>
+                </div>
+                <div class="pet-tags"><span>Fluffy</span><span>Gentle</span><span>Lap Cat</span></div>
+                <div class="pet-card-footer">
+                    <span class="pet-location"><i class="fa-solid fa-location-dot"></i> Jaipur</span>
+                    <button class="meet-btn">Meet Me</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="text-align: center; margin-top: 3rem;">
+        <button class="btn-primary">View All Pets <i class="fa-solid fa-arrow-right"></i></button>
+    </div>
+</section>
+
+<!-- AI Section -->
+<section class="ai-section" id="pawmate">
+    <div class="ai-container">
+        <div class="ai-visual reveal">
+            <div class="ai-circle"></div>
+            <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=500&q=80" alt="AI Match" class="ai-center-img">
+            <div class="ai-orbit-item orbit-1"><i class="fa-solid fa-house"></i></div>
+            <div class="ai-orbit-item orbit-2"><i class="fa-solid fa-heart"></i></div>
+            <div class="ai-orbit-item orbit-3"><i class="fa-solid fa-shield-dog"></i></div>
+            <div class="ai-orbit-item orbit-4"><i class="fa-solid fa-paw"></i></div>
+        </div>
+        <div class="ai-content reveal">
+            <span class="section-tag"><i class="fa-solid fa-microchip"></i> AI Powered Matching</span>
+            <h2>Find The Perfect Companion For Your Lifestyle!</h2>
+            <p>Our AI doesn't just recommend pets. It understands your lifestyle, home size, working hours, personality and previous pet experience to match you with the companion most likely to thrive with you.</p>
+            <div class="ai-features">
+                <div class="ai-feature">
+                    <i class="fa-solid fa-house" style="color: #FF6B6B;"></i>
+                    <span>Home Compatibility</span>
+                </div>
+                <div class="ai-feature">
+                    <i class="fa-solid fa-heart" style="color: #F472B6;"></i>
+                    <span>Personality Match</span>
+                </div>
+                <div class="ai-feature">
+                    <i class="fa-solid fa-shield-dog" style="color: #60A5FA;"></i>
+                    <span>Verified Shelters</span>
+                </div>
+                <div class="ai-feature">
+                    <i class="fa-solid fa-paw" style="color: #FBBF24;"></i>
+                    <span>Behaviour Analysis</span>
+                </div>
+            </div>
+            <button class="btn-primary">Start AI Match <i class="fa-solid fa-wand-magic-sparkles"></i></button>
+        </div>
+    </div>
+</section>
+
+<!-- Why Section -->
+<section class="why-section">
+    <div class="section-header reveal">
+        <span class="section-tag"><i class="fa-solid fa-gem"></i> Why TailMates</span>
+        <h2>More Than Adoption.<br>It's A New Beginning!</h2>
+    </div>
+    <div class="why-grid">
+        <div class="why-card reveal">
+            <div class="why-icon red"><i class="fa-solid fa-heart"></i></div>
+            <h3>Save A Life</h3>
+            <p>Every adoption gives a rescued animal another chance at happiness and a loving home.</p>
+        </div>
+        <div class="why-card reveal">
+            <div class="why-icon green"><i class="fa-solid fa-stethoscope"></i></div>
+            <h3>Medical Checked</h3>
+            <p>Health records, vaccinations and complete medical history available for every pet.</p>
+        </div>
+        <div class="why-card reveal">
+            <div class="why-icon blue"><i class="fa-solid fa-badge-check"></i></div>
+            <h3>Verified Shelters</h3>
+            <p>Every rescue centre is carefully verified before joining the TailMates family.</p>
+        </div>
+        <div class="why-card reveal">
+            <div class="why-icon yellow"><i class="fa-solid fa-headset"></i></div>
+            <h3>24/7 Support</h3>
+            <p>Need help after adoption? Our team is always here to support you and your pet.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Services Section -->
+<section class="services" id="services">
+    <div class="section-header reveal">
+        <span class="section-tag"><i class="fa-solid fa-layer-group"></i> Everything You Need</span>
+        <h2>Beyond Adoption.<br>We've Got You Covered!</h2>
+        <p>TailMates helps you before, during and after adoption with our complete range of services.</p>
+    </div>
+    <div class="services-grid">
+        <div class="service-card reveal">
+            <div class="service-icon red"><i class="fa-solid fa-brain"></i></div>
+            <h3>AI Matchmaking</h3>
+            <p>Get matched with pets based on your lifestyle, home, and personality using advanced algorithms.</p>
+        </div>
+        <div class="service-card reveal">
+            <div class="service-icon green"><i class="fa-solid fa-truck-fast"></i></div>
+            <h3>Safe Transport</h3>
+            <p>Verified transportation partners deliver your companion safely to your home anywhere in India.</p>
+        </div>
+        <div class="service-card reveal">
+            <div class="service-icon blue"><i class="fa-solid fa-user-doctor"></i></div>
+            <h3>Vet Network</h3>
+            <p>Connect with trusted veterinarians and clinics near your location for ongoing care.</p>
+        </div>
+        <div class="service-card reveal">
+            <div class="service-icon pink"><i class="fa-solid fa-book-open"></i></div>
+            <h3>Care Guides</h3>
+            <p>Everything you need to raise a healthy, happy, and well-trained pet from day one.</p>
+        </div>
+        <div class="service-card reveal">
+            <div class="service-icon yellow"><i class="fa-solid fa-robot"></i></div>
+            <h3>24/7 TailBot</h3>
+            <p>Ask anything about feeding, training, or healthcare anytime through our AI assistant.</p>
+        </div>
+        <div class="service-card reveal">
+            <div class="service-icon purple"><i class="fa-solid fa-shield-heart"></i></div>
+            <h3>Lifetime Support</h3>
+            <p>We're always with you after adoption, for life. No question is too small.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Shop Section -->
+<section class="shop-section" id="shop">
+    <div class="section-header reveal">
+        <span class="section-tag"><i class="fa-solid fa-bag-shopping"></i> Pet Shop</span>
+        <h2>Everything Your Pet Needs.<br>Delivered With Love!</h2>
+        <p>Premium food, toys, accessories and essentials for your furry, feathery, and scaly friends.</p>
+    </div>
+    <div class="shop-grid">
+        <div class="shop-card reveal">
+            <div class="shop-image">
+                <img src="https://images.unsplash.com/photo-1589924691995-400dc9ecc119?auto=format&fit=crop&w=600&q=80" alt="Pet Food">
+                <span class="shop-tag tag-bestseller">Bestseller</span>
+            </div>
+            <div class="shop-content">
+                <h4>Premium Dog Food</h4>
+                <p>Grain-free, protein-rich nutrition</p>
+                <div class="shop-price-row">
+                    <span class="shop-price">Rs. 1,299</span>
+                    <button class="add-cart"><i class="fa-solid fa-cart-plus"></i></button>
+                </div>
+            </div>
+        </div>
+        <div class="shop-card reveal">
+            <div class="shop-image">
+                <img src="https://images.unsplash.com/photo-1545249390-6bdfa286032f?auto=format&fit=crop&w=600&q=80" alt="Cat Toys">
+                <span class="shop-tag tag-new">New</span>
+            </div>
+            <div class="shop-content">
+                <h4>Interactive Cat Toys</h4>
+                <p>Keep your cat entertained for hours</p>
+                <div class="shop-price-row">
+                    <span class="shop-price">Rs. 499</span>
+                    <button class="add-cart"><i class="fa-solid fa-cart-plus"></i></button>
+                </div>
+            </div>
+        </div>
+        <div class="shop-card reveal">
+            <div class="shop-image">
+                <img src="https://images.unsplash.com/photo-1591946614720-90a587da4a36?auto=format&fit=crop&w=600&q=80" alt="Pet Bed">
+                <span class="shop-tag tag-popular">Popular</span>
+            </div>
+            <div class="shop-content">
+                <h4>Cozy Pet Bed</h4>
+                <p>Ultra-soft memory foam bed</p>
+                <div class="shop-price-row">
+                    <span class="shop-price">Rs. 2,499</span>
+                    <button class="add-cart"><i class="fa-solid fa-cart-plus"></i></button>
+                </div>
+            </div>
+        </div>
+        <div class="shop-card reveal">
+            <div class="shop-image">
+                <img src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=600&q=80" alt="Pet Leash">
+                <span class="shop-tag tag-sale">Sale</span>
+            </div>
+            <div class="shop-content">
+                <h4>Reflective Leash Set</h4>
+                <p>Safe walks day and night</p>
+                <div class="shop-price-row">
+                    <span class="shop-price">Rs. 899</span>
+                    <button class="add-cart"><i class="fa-solid fa-cart-plus"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="text-align: center; margin-top: 3rem;">
+        <button class="btn-primary">Visit Shop <i class="fa-solid fa-store"></i></button>
+    </div>
+</section>
+
+<!-- Stories Section -->
+<section class="stories" id="stories">
+    <div class="section-header reveal">
+        <span class="section-tag"><i class="fa-solid fa-star"></i> Happy Families</span>
+        <h2>Thousands Of Forever Homes!</h2>
+    </div>
+    <div class="stories-grid">
+        <div class="story-card reveal">
+            <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80" alt="Bella">
+            <div class="story-content">
+                <div class="story-stars"><i class="fa-solid fa-star" style="color: #fbbf24;"></i><i class="fa-solid fa-star" style="color: #fbbf24;"></i><i class="fa-solid fa-star" style="color: #fbbf24;"></i><i class="fa-solid fa-star" style="color: #fbbf24;"></i><i class="fa-solid fa-star" style="color: #fbbf24;"></i></div>
+                <h3>Bella Found Her Family</h3>
+                <p>"She transformed our home in just a week. TailMates made the process so easy and joyful!"</p>
+                <span class="story-author">— The Sharma Family</span>
+            </div>
+        </div>
+        <div class="story-card reveal">
+            <img src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=900&q=80" alt="Max">
+            <div class="story-content">
+                <div class="story-stars"><i class="fa-solid fa-star" style="color: #fbbf24;"></i><i class="fa-solid fa-star" style="color: #fbbf24;"></i><i class="fa-solid fa-star" style="color: #fbbf24;"></i><i class="fa-solid fa-star" style="color: #fbbf24;"></i><i class="fa-solid fa-star" style="color: #fbbf24;"></i></div>
+                <h3>Max's New Beginning</h3>
+                <p>"A rescue that rescued us. We can't imagine life without him now."</p>
+                <span class="story-author">— Priya & Rahul</span>
+            </div>
+        </div>
+        <div class="story-card reveal">
+            <img src="https://images.unsplash.com/photo-1519052537078-e6302a4968d4?auto=format&fit=crop&w=900&q=80" alt="Luna">
+            <div class="story-content">
+                <div class="story-stars"><i class="fa-solid fa-star" style="color: #fbbf24;"></i><i class="fa-solid fa-star" style="color: #fbbf24;"></i><i class="fa-solid fa-star" style="color: #fbbf24;"></i><i class="fa-solid fa-star" style="color: #fbbf24;"></i><i class="fa-solid fa-star" style="color: #fbbf24;"></i></div>
+                <h3>Luna's Forever Home</h3>
+                <p>"Our quiet evenings became full of love and purrs. Best decision ever!"</p>
+                <span class="story-author">— The Gupta Family</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Numbers Section -->
+<section class="numbers-section">
+    <div class="numbers-grid">
+        <div class="number-item reveal">
+            <div class="number-icon"><i class="fa-solid fa-house-chimney"></i></div>
+            <div class="number-value" data-target="8200">0</div>
+            <div class="number-label">Successful Adoptions</div>
+        </div>
+        <div class="number-item reveal">
+            <div class="number-icon"><i class="fa-solid fa-hospital"></i></div>
+            <div class="number-value" data-target="480">0</div>
+            <div class="number-label">Partner Shelters</div>
+        </div>
+        <div class="number-item reveal">
+            <div class="number-icon"><i class="fa-solid fa-users"></i></div>
+            <div class="number-value" data-target="35000">0</div>
+            <div class="number-label">Monthly Visitors</div>
+        </div>
+        <div class="number-item reveal">
+            <div class="number-icon"><i class="fa-solid fa-face-smile"></i></div>
+            <div class="number-value" data-target="97">0</div>
+            <div class="number-label">Happy Families %</div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="cta-container reveal">
+        <div class="cta-pets">
+            <i class="fa-solid fa-dog" style="color: var(--primary);"></i>
+            <i class="fa-solid fa-cat" style="color: var(--accent);"></i>
+            <i class="fa-solid fa-carrot" style="color: var(--secondary);"></i>
+            <i class="fa-solid fa-dragon" style="color: #4ade80;"></i>
+        </div>
+        <h2>Someone Is Waiting For You Right Now!</h2>
+        <p>Thousands of loving companions are hoping to meet their forever family. Start your journey today and change a life forever.</p>
+        <div class="cta-buttons">
+            <button class="btn-primary">Start Adopting <i class="fa-solid fa-heart"></i></button>
+            <button class="btn-secondary">Explore PawMate AI <i class="fa-solid fa-wand-magic-sparkles"></i></button>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer id="contact">
+    <div class="footer-grid">
+        <div class="footer-brand">
+            <h3><i class="fa-solid fa-paw"></i> TailMates</h3>
+            <p>Connecting loving families with rescued companions. Every paw deserves a forever home. Join our mission to make India a better place for animals.</p>
+            <div class="footer-newsletter">
+                <input type="email" placeholder="Enter your email">
+                <button><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+        <div class="footer-col">
+            <h4>Explore</h4>
+            <a href="#home">Home</a>
+            <a href="#adopt">Adopt</a>
+            <a href="#pawmate">PawMate AI</a>
+            <a href="#services">Services</a>
+            <a href="#shop">Shop</a>
+            <a href="#about">About Us</a>
+            <a href="register.html">Register a Pet</a>
+        </div>
+        <div class="footer-col">
+            <h4>Support</h4>
+            <a href="#">Help Center</a>
+            <a href="#">Contact Us</a>
+            <a href="#">FAQ</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+        </div>
+        <div class="footer-col">
+            <h4>Follow Us</h4>
+            <div class="socials">
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-x-twitter"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <i class="fa-solid fa-paw"></i> &copy; 2026 TailMates — Designed with <i class="fa-solid fa-heart"></i> for every rescued companion. <i class="fa-solid fa-paw"></i>
+    </div>
+</footer>
+
+<!-- Chat Widget -->
+<div class="chat-widget">
+    <div class="chat-panel" id="chatPanel">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="chat-avatar"><i class="fa-solid fa-paw"></i></div>
+                <div>
+                    <strong>TailBot</strong>
+                    <span>TailMates companion assistant</span>
+                </div>
+            </div>
+            <button class="chat-close" id="chatClose">&times;</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-message bot">
+                <div class="chat-bubble">
+                    Hey there! I'm TailBot. I can help you discover pets, understand adoption, or find a companion that fits your lifestyle!
+                </div>
+            </div>
+        </div>
+        <div class="chat-quick">
+            <button data-message="Show me dogs">Dogs</button>
+            <button data-message="Show me cats">Cats</button>
+            <button data-message="Help me find my match">Match Me</button>
+        </div>
+        <form class="chat-input" id="chatForm">
+            <input id="chatInput" type="text" autocomplete="off" placeholder="Ask TailBot anything...">
+            <button type="submit"><i class="fa-solid fa-arrow-up"></i></button>
+        </form>
+    </div>
+    <button class="chat-launcher" id="chatLauncher">
+        <i class="fa-solid fa-paw"></i>
+    </button>
 </div>
 
-<div id="tailbot-window">
-<div id="tailbot-header">
-<div class="tailbot-title">
-<span>TailBot</span>
-<small>Your TailMates Assistant</small>
-</div>
-<button id="close-chat">&times;</button>
-</div>
+<script>
+    // Custom Cursor
+    const cursor = document.getElementById('cursor');
+    const cursorFollower = document.getElementById('cursorFollower');
+    let mouseX = 0, mouseY = 0, followerX = 0, followerY = 0;
 
-<div id="tailbot-messages">
-<div class="bot-message">
-  I'm <strong>TailBot</strong>.<br><br>
-Welcome to <strong>TailMates</strong>. Ask me about -
-</div>
-</div>
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        cursor.style.left = mouseX - 6 + 'px';
+        cursor.style.top = mouseY - 6 + 'px';
+    });
 
-<div id="quick-buttons">
-<button data-question="How do I adopt a pet?">Adopt</button>
-<button data-question="How do I register my pet?">Register</button>
-<button data-question="What services do you provide?">Services</button>
-<button data-question="What can I buy pet food?">Shop</button>
-<button data-question="What is TailMates?">About</button>
-</div>
-
-<div id="tailbot-input-area">
-<input id="user-input" type="text" placeholder="Ask TailBot...">
-<button id="send-btn">➤</button>
-</div>
-</div>
-  
-  <script>
-const slider = document.querySelector(".slider");
-const slides = document.querySelectorAll(".slide");
-let currentSlide = 0;
-function showSlide(index){
-    slider.style.transform =
-    `translateX(-${index * 100}%)`;
-}
-function nextSlide(){
-    currentSlide++;
-    if(currentSlide >= slides.length){
-        currentSlide = 0;
+    function animateFollower() {
+        followerX += (mouseX - followerX) * 0.1;
+        followerY += (mouseY - followerY) * 0.1;
+        cursorFollower.style.left = followerX - 20 + 'px';
+        cursorFollower.style.top = followerY - 20 + 'px';
+        requestAnimationFrame(animateFollower);
     }
-    showSlide(currentSlide);
-}
-setInterval(nextSlide,6000);
-    </script>
+    animateFollower();
 
-<script src="tailbot.js"></script>
+    // Cursor hover effect
+    const hoverElements = document.querySelectorAll('a, button, .pet-card, .service-card, .why-card, .story-card, .shop-card');
+    hoverElements.forEach(el => {
+        el.addEventListener('mouseenter', () => {
+            cursor.classList.add('hover');
+            cursorFollower.classList.add('hover');
+        });
+        el.addEventListener('mouseleave', () => {
+            cursor.classList.remove('hover');
+            cursorFollower.classList.remove('hover');
+        });
+    });
+
+    // Scroll Progress
+    const scrollProgress = document.getElementById('scrollProgress');
+    window.addEventListener('scroll', () => {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollPercent = (scrollTop / docHeight) * 100;
+        scrollProgress.style.width = scrollPercent + '%';
+    });
+
+    // Navbar scroll effect
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    // Active nav link
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-links a');
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop - 100;
+            if (window.scrollY >= sectionTop) {
+                current = section.getAttribute('id');
+            }
+        });
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === '#' + current) {
+                link.classList.add('active');
+            }
+        });
+    });
+
+    // Reveal on scroll - REMOVED to keep all content visible
+
+    // Counter animation
+    const counters = document.querySelectorAll('.stat-number, .number-value');
+    const counterObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const counter = entry.target;
+                const target = parseInt(counter.getAttribute('data-target'));
+                const duration = 2000;
+                const step = target / (duration / 16);
+                let current = 0;
+                const updateCounter = () => {
+                    current += step;
+                    if (current < target) {
+                        counter.textContent = Math.floor(current).toLocaleString();
+                        requestAnimationFrame(updateCounter);
+                    } else {
+                        counter.textContent = target.toLocaleString() + (counter.classList.contains('number-value') && target === 97 ? '%' : '+');
+                    }
+                };
+                updateCounter();
+                counterObserver.unobserve(counter);
+            }
+        });
+    }, { threshold: 0.5 });
+    counters.forEach(counter => counterObserver.observe(counter));
+
+    // Filter functionality
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const petCards = document.querySelectorAll('.pet-card');
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const filter = btn.getAttribute('data-filter');
+            petCards.forEach(card => {
+                if (filter === 'all' || card.getAttribute('data-category') === filter) {
+                    card.style.display = 'block';
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 50);
+                } else {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    setTimeout(() => {
+                        card.style.display = 'none';
+                    }, 300);
+                }
+            });
+        });
+    });
+
+    // Favorite button toggle
+    document.querySelectorAll('.pet-fav').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const icon = btn.querySelector('i');
+            if (icon.classList.contains('fa-regular')) {
+                icon.classList.remove('fa-regular');
+                icon.classList.add('fa-solid');
+                btn.style.background = 'var(--secondary)';
+                btn.style.borderColor = 'var(--secondary)';
+            } else {
+                icon.classList.remove('fa-solid');
+                icon.classList.add('fa-regular');
+                btn.style.background = 'rgba(0, 0, 0, 0.5)';
+                btn.style.borderColor = 'var(--border)';
+            }
+        });
+    });
+
+    // Chat Widget
+    const chatLauncher = document.getElementById('chatLauncher');
+    const chatPanel = document.getElementById('chatPanel');
+    const chatClose = document.getElementById('chatClose');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const chatMessages = document.getElementById('chatMessages');
+
+    chatLauncher.addEventListener('click', () => {
+        chatPanel.classList.toggle('active');
+    });
+
+    chatClose.addEventListener('click', () => {
+        chatPanel.classList.remove('active');
+    });
+
+    function addMessage(text, isUser = false) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-message ' + (isUser ? 'user' : 'bot');
+        msgDiv.innerHTML = '<div class="chat-bubble">' + text + '</div>';
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = chatInput.value.trim();
+        if (text) {
+            addMessage(text, true);
+            chatInput.value = '';
+            setTimeout(() => {
+                const responses = [
+                    "I'd love to help you find the perfect pet! What type of companion are you looking for?",
+                    "That's a great question! Our PawMate AI can analyze your lifestyle to suggest the best matches.",
+                    "We have many wonderful pets waiting for homes. Would you like to browse dogs, cats, or small pets?",
+                    "All our pets come with complete health records and are from verified shelters. You can trust the process!"
+                ];
+                addMessage(responses[Math.floor(Math.random() * responses.length)]);
+            }, 1000);
+        }
+    });
+
+    document.querySelectorAll('.chat-quick button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            addMessage(btn.getAttribute('data-message'), true);
+            setTimeout(() => {
+                const msg = btn.getAttribute('data-message');
+                let response = '';
+                if (msg.includes('dogs')) response = "We have over 120 dogs waiting for homes! From playful Labradors to loyal Indies. Browse our dog section to find your match.";
+                else if (msg.includes('cats')) response = "Our cat family has 80+ beautiful felines! From calm British Shorthairs to energetic tabbies. Check them out!";
+                else response = "Let's find your perfect match! I'll need to know about your living situation, work schedule, and experience with pets. Ready to start?";
+                addMessage(response);
+            }, 1000);
+        });
+    });
+
+    // 3D Tilt effect for hero cards
+    const heroCards = document.querySelectorAll('.hero-card');
+    const heroRight = document.querySelector('.hero-right');
+    if (heroRight && heroCards.length === 3) {
+        heroRight.addEventListener('mousemove', (e) => {
+            const rect = heroRight.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width - 0.5;
+            const y = (e.clientY - rect.top) / rect.height - 0.5;
+            heroCards[0].style.transform = `rotateY(${-12 + x * 15}deg) rotateX(${4 - y * 15}deg) translateZ(0)`;
+            heroCards[1].style.transform = `rotateY(${8 + x * 15}deg) rotateX(${-4 - y * 15}deg) translateZ(-40px)`;
+            heroCards[2].style.transform = `rotateY(${-4 + x * 15}deg) rotateX(${8 - y * 15}deg) translateZ(-80px)`;
+        });
+        heroRight.addEventListener('mouseleave', () => {
+            heroCards[0].style.transform = 'rotateY(-12deg) rotateX(4deg) translateZ(0)';
+            heroCards[1].style.transform = 'rotateY(8deg) rotateX(-4deg) translateZ(-40px)';
+            heroCards[2].style.transform = 'rotateY(-4deg) rotateX(8deg) translateZ(-80px)';
+        });
+    }
+
+    // GSAP Animations
+    if (typeof gsap !== 'undefined') {
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Hero entrance
+        gsap.from('.hero-center-brand', {
+            y: 20,
+            duration: 1,
+            ease: 'power3.out',
+            delay: 0.2
+        });
+
+        gsap.from('.hero-left > *', {
+            y: 30,
+            duration: 0.9,
+            stagger: 0.12,
+            ease: 'power3.out',
+            delay: 0.5
+        });
+
+        gsap.from('.hero-card', {
+            y: 40,
+            rotationY: 15,
+            duration: 1.1,
+            stagger: 0.18,
+            ease: 'power3.out',
+            delay: 0.6
+        });
+
+        // Parallax for orbs
+        gsap.to('.orb-1', {
+            yPercent: -30,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: 'body',
+                start: 'top top',
+                end: 'bottom bottom',
+                scrub: 1
+            }
+        });
+
+        gsap.to('.orb-2', {
+            yPercent: 20,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: 'body',
+                start: 'top top',
+                end: 'bottom bottom',
+                scrub: 1
+            }
+        });
+    }
+
+    // Add to cart animation
+    document.querySelectorAll('.add-cart').forEach(btn => {
+        btn.addEventListener('click', () => {
+            btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+            btn.style.background = '#4ade80';
+            btn.style.borderColor = '#4ade80';
+            btn.style.color = '#000';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fa-solid fa-cart-plus"></i>';
+                btn.style.background = '';
+                btn.style.borderColor = '';
+                btn.style.color = '';
+            }, 1500);
+        });
+    });
+
+    // Meet button popup
+    document.querySelectorAll('.meet-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            alert('Meeting request sent! The shelter will contact you shortly to schedule a visit.');
+        });
+    });
+
+    // Profile Dropdown Toggle
+    const profileTrigger = document.getElementById('profileTrigger');
+    const profileDropdown = document.getElementById('profileDropdown');
+    const profileDropdownLoggedOut = document.getElementById('profileDropdownLoggedOut');
+    const profileDropdownLoggedIn = document.getElementById('profileDropdownLoggedIn');
+    const profileName = document.querySelector('.profile-name');
+    const profileAvatarIcon = document.querySelector('.profile-avatar-icon');
+
+    // Login state (set to false for demo; in production this comes from your auth system)
+    let isLoggedIn = false;
+
+    function updateProfileDropdown() {
+        if (isLoggedIn) {
+            profileDropdownLoggedOut.style.display = 'none';
+            profileDropdownLoggedIn.style.display = 'block';
+            profileName.textContent = 'Profile';
+            profileAvatarIcon.innerHTML = '<i class="fa-solid fa-user"></i>';
+        } else {
+            profileDropdownLoggedOut.style.display = 'block';
+            profileDropdownLoggedIn.style.display = 'none';
+            profileName.textContent = 'Account';
+            profileAvatarIcon.innerHTML = '<i class="fa-regular fa-user"></i>';
+        }
+    }
+
+    // Initialize dropdown state
+    updateProfileDropdown();
+
+    if (profileTrigger && profileDropdown) {
+        profileTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileDropdown.classList.toggle('active');
+        });
+        document.addEventListener('click', (e) => {
+            if (!profileTrigger.contains(e.target) && !profileDropdown.contains(e.target)) {
+                profileDropdown.classList.remove('active');
+            }
+        });
+    }
+
+    // Toggle login state for demo (click Log In / Log Out to switch)
+    document.querySelectorAll('.profile-login').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            isLoggedIn = true;
+            updateProfileDropdown();
+        });
+    });
+
+    document.querySelectorAll('.profile-logout').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            isLoggedIn = false;
+            updateProfileDropdown();
+            profileDropdown.classList.remove('active');
+        });
+    });
+
+    // Smooth scroll for nav links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+</script>
 </body>
 </html>
