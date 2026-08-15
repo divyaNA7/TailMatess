@@ -60,7 +60,19 @@
     .icon-btn svg { width: 1.25rem; height: 1.25rem; }
 
     /* Pet bar */
-    
+    .pet-bar {
+      background: #e1f5e1;
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid rgba(7,94,84,0.08);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .pet-bar img { width: 1.75rem; height: 1.75rem; border-radius: 0.375rem; object-fit: cover; }
+    .pet-bar-text { font-size: 0.75rem; color: var(--wa-green); font-weight: 500; }
+    .pet-bar-text span { font-weight: 700; }
+    .pet-badge { font-size: 0.65rem; background: var(--wa-green); color: white; padding: 0.15rem 0.5rem; border-radius: 1rem; font-weight: 600; margin-left: auto; }
+
     /* Messages */
     .messages-area {
       flex: 1;
@@ -131,28 +143,19 @@
     .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
 
     /* Input */
-    <div class="input-area">
-  <!-- CAMERA -->
-  <button class="input-icon camera-btn" onclick="document.getElementById('camera-input').click()" title="Take photo">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-  </button>
-  <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none" onchange="handleCameraCapture(event)">
-
-  <!-- LOCATION -->
-  <button class="input-icon" onclick="toggleMapPanel()" title="Share location">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-  </button>
-
-  <!-- TEXT -->
-  <div class="input-field-wrap">
-    <input type="text" class="input-field" id="message-input" placeholder="Type a message" autocomplete="off">
-  </div>
-
-  <!-- SEND -->
-  <button class="send-btn" id="send-btn" onclick="sendMessage()" title="Send">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-  </button>
-</div>
+    .input-area {
+      background: var(--wa-input-bg);
+      padding: 0.5rem 0.75rem;
+      display: flex;
+      align-items: flex-end;
+      gap: 0.5rem;
+    }
+    .input-icon { padding: 0.5rem; background: none; border: none; border-radius: 50%; cursor: pointer; color: var(--wa-meta); flex-shrink: 0; transition: background 0.2s; }
+    .input-icon:hover { background: rgba(0,0,0,0.05); }
+    .input-icon svg { width: 1.5rem; height: 1.5rem; }
+    .input-field-wrap { flex: 1; background: white; border-radius: 1.5rem; padding: 0.6rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .input-field { width: 100%; border: none; outline: none; font-size: 0.9rem; color: var(--wa-text); background: transparent; }
+    .input-field::placeholder { color: var(--wa-meta); }
 
     /*Send button*/
     .send-btn {
@@ -265,7 +268,7 @@
 
     @keyframes msgIn { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
     @keyframes typingBounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-5px); } }
-   
+    @keyframes pulseRed { 0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); } 50% { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); } }
 
     @media (max-width: 640px) { .back-btn { display: block; } }
 
@@ -524,28 +527,27 @@
       <div class="date-separator"><span>Today</span></div>
     </div>
 
-<div class="input-area">
-  <!-- CAMERA -->
-  <button class="input-icon camera-btn" onclick="document.getElementById('camera-input').click()" title="Take photo">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-  </button>
-  <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none" onchange="handleCameraCapture(event)">
-
-  <!-- LOCATION -->
-  <button class="input-icon" onclick="toggleMapPanel()" title="Share location">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-  </button>
-
-  <!-- TEXT -->
-  <div class="input-field-wrap">
-    <input type="text" class="input-field" id="message-input" placeholder="Type a message" autocomplete="off">
+    <div class="input-area">
+      <button class="input-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </button>
+      <button class="input-icon" onclick="toggleMapPanel()" title="Share location">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      </button>
+      <button class="input-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+      </button>
+      <div class="input-field-wrap">
+        <input type="text" class="input-field" id="message-input" placeholder="Type a message" autocomplete="off">
+      </div>
+      <button class="mic-btn" id="mic-btn" onclick="startRecording()" title="Record voice message">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+      </button>
+      <button class="send-btn" onclick="sendMessage()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+      </button>
+    </div>
   </div>
-
-  <!-- SEND -->
-  <button class="send-btn" id="send-btn" onclick="sendMessage()" title="Send">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-  </button>
-</div>
 
   <!-- Firebase -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
