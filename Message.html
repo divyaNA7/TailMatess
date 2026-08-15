@@ -48,6 +48,12 @@
     .header-left { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
     .back-btn { display: none; padding: 0.4rem; background: none; border: none; border-radius: 50%; cursor: pointer; color: white; }
     .back-btn:hover { background: rgba(255,255,255,0.1); }
+    <!-- In the .header-left div, BEFORE the avatar -->
+<button class="back-btn" onclick="window.location.href='message.html'" title="All chats" style="display:block;">
+  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <path d="M15 19l-7-7 7-7"/>
+  </svg>
+</button>
     .header-avatar { width: 2.5rem; height: 2.5rem; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.3); flex-shrink: 0; }
     .header-info { min-width: 0; }
     .header-info h2 { font-size: 0.95rem; font-weight: 600; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -477,27 +483,147 @@
     // ==========================================
     // AUTH STATE - connects to YOUR login page
     // ==========================================
-    auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        currentUser = user;
-        document.getElementById('not-logged').style.display = 'none';
-        document.getElementById('input-area').style.display = 'flex';
-        document.getElementById('chat-messages').style.display = 'flex';
+// ==========================================
+// AUTH STATE
+// ==========================================
+auth.onAuthStateChanged(async (user) => {
+  if (!user) {
+    currentUser = null;
+    if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+    showNotLoggedIn();
+    return;
+  }
 
-        await initChat();
-      } else {
-        currentUser = null;
-        if (unsubMessages) { unsubMessages(); unsubMessages = null; }
-        document.getElementById('not-logged').style.display = 'flex';
-        document.getElementById('input-area').style.display = 'none';
-        document.getElementById('chat-messages').style.display = 'none';
+  currentUser = user;
+  document.getElementById('not-logged').style.display = 'none';
+  document.getElementById('input-area').style.display = 'flex';
+  document.getElementById('chat-messages').style.display = 'flex';
+
+  // Check if we have a valid lister in URL
+  if (!otherUserId || otherUserId === 'lister_demo') {
+    // No specific chat requested — show inbox inside message.html
+    await loadMyConversations();
+  } else {
+    // Normal single-chat mode
+    await initSingleChat();
+  }
+});
+
+// ==========================================
+// MODE 1: SHOW "MY CHATS" INBOX (no lister in URL)
+// ==========================================
+async function loadMyConversations() {
+  document.title = 'My Chats | TailMates';
+  document.getElementById('header-name').textContent = 'My Chats';
+  document.getElementById('header-status').textContent = 'All conversations';
+  document.getElementById('pet-bar').style.display = 'none';
+  document.getElementById('input-area').style.display = 'none';
+
+  const chatMessages = document.getElementById('chat-messages');
+  chatMessages.innerHTML = '<div class="date-separator"><span>Your Conversations</span></div>';
+
+  db.collection('conversations')
+    .where('participants', 'array-contains', currentUser.uid)
+    .orderBy('lastMessageTime', 'desc')
+    .onSnapshot(async (snapshot) => {
+      if (snapshot.empty) {
+        chatMessages.innerHTML += `
+          <div style="text-align:center;padding:3rem 1rem;color:var(--wa-meta);">
+            <p style="font-size:1rem;margin-bottom:0.5rem;">No chats yet</p>
+            <p style="font-size:0.85rem;">Go to the adopt page and click "Chat" on a pet to start messaging.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Clear old list (keep separator)
+      const oldItems = chatMessages.querySelectorAll('.inbox-item');
+      oldItems.forEach(el => el.remove());
+
+      for (const doc of snapshot.docs) {
+        const conv = doc.data();
+        const otherUid = conv.participants.find(id => id !== currentUser.uid);
+
+        let otherName = 'User';
+        let otherAvatar = `https://ui-avatars.com/api/?name=User&background=random`;
+        try {
+          const userDoc = await db.collection('users').doc(otherUid).get();
+          if (userDoc.exists) {
+            const data = userDoc.data();
+            otherName = data.name || 'User';
+            otherAvatar = data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherName)}&background=random`;
+          }
+        } catch (e) {}
+
+        const time = conv.lastMessageTime
+          ? conv.lastMessageTime.toDate().toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })
+          : '';
+
+        const item = document.createElement('div');
+        item.className = 'msg-row inbox-item';
+        item.style.cursor = 'pointer';
+        item.style.justifyContent = 'flex-start';
+        item.onclick = () => {
+          const params = new URLSearchParams({
+            pet: conv.petId,
+            name: conv.petName,
+            breed: '',
+            img: conv.petImage || '',
+            lister: otherUid,
+            match: '88'
+          });
+          window.location.href = `message.html?${params.toString()}`;
+        };
+
+        item.innerHTML = `
+          <div class="msg-bubble" style="background:white;max-width:100%;width:100%;display:flex;align-items:center;gap:0.75rem;padding:0.75rem;">
+            <img src="${otherAvatar}" style="width:2.5rem;height:2.5rem;border-radius:50%;object-fit:cover;flex-shrink:0;">
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:600;font-size:0.9rem;color:var(--wa-text);display:flex;justify-content:space-between;">
+                <span>${otherName} • ${conv.petName}</span>
+                <span style="font-weight:400;font-size:0.7rem;color:var(--wa-meta);">${time}</span>
+              </div>
+              <div style="font-size:0.8rem;color:var(--wa-meta);margin-top:0.125rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                ${conv.lastMessage || 'Start chatting'}
+              </div>
+            </div>
+          </div>
+        `;
+        chatMessages.appendChild(item);
       }
     });
+}
 
-    function logoutUser() {
-      if (confirm('Logout?')) auth.signOut();
-    }
+// ==========================================
+// MODE 2: SINGLE CHAT (lister provided in URL)
+// ==========================================
+async function initSingleChat() {
+  const headerName = document.getElementById('header-name');
+  const petNameEl = document.getElementById('pet-name');
+  const matchScoreEl = document.getElementById('match-score');
+  const petBarImg = document.getElementById('pet-bar-img');
+  const headerAvatar = document.getElementById('header-avatar');
+  const petBar = document.getElementById('pet-bar');
 
+  if (petBar) petBar.style.display = 'flex';
+  if (headerName) headerName.textContent = `${petName} (${petBreed})`;
+  if (petNameEl) petNameEl.textContent = petName;
+  if (matchScoreEl) matchScoreEl.textContent = `${matchScore}%`;
+  if (petBarImg) petBarImg.src = petImg;
+  if (headerAvatar) headerAvatar.src = petImg;
+  document.title = `Chat - ${petName} | TailMates`;
+
+  await getOrCreateConversation();
+  await loadOtherUserProfile();
+  loadMessagesFromFirebase();
+}
+
+function showNotLoggedIn() {
+  document.getElementById('not-logged').style.display = 'flex';
+  document.getElementById('input-area').style.display = 'none';
+  document.getElementById('chat-messages').style.display = 'none';
+  document.getElementById('pet-bar').style.display = 'none';
+}
     // ==========================================
     // CONVERSATION SETUP
     // ==========================================
