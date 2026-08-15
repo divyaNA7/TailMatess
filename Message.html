@@ -157,6 +157,49 @@
     .input-field { width: 100%; border: none; outline: none; font-size: 0.9rem; color: var(--wa-text); background: transparent; }
     .input-field::placeholder { color: var(--wa-meta); }
 
+    .send-btn {
+      width: 2.5rem; height: 2.5rem;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s;
+      background: var(--wa-green);
+      color: white;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    }
+    .send-btn:hover { background: var(--wa-green-dark); }
+
+    .camera-btn { color: var(--wa-meta); }
+    .camera-btn:hover { background: rgba(0,0,0,0.05); color: var(--wa-green); }
+
+    /* Image message bubble */
+    .image-bubble {
+      max-width: 280px;
+      padding: 0.25rem 0.25rem 0.5rem !important;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .image-bubble img {
+      width: 100%;
+      max-height: 240px;
+      object-fit: cover;
+      border-radius: 0.375rem;
+      display: block;
+      background: #e5e7eb;
+    }
+    .image-bubble .msg-meta {
+      position: static;
+      justify-content: flex-end;
+      padding: 0 0.5rem;
+      margin-top: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.15rem;
+    }
 
     /* Meetup Panel */
     .meetup-panel {
@@ -224,11 +267,10 @@
 
     @keyframes msgIn { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
     @keyframes typingBounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-5px); } }
-    @keyframes pulseRed { 0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); } 50% { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); } }
 
     @media (max-width: 640px) { .back-btn { display: block; } }
 
-        /* Map Panel */
+    /* Map Panel */
     .map-panel {
       position: fixed;
       top: 0;
@@ -370,7 +412,7 @@
     @media (max-width: 640px) {
       .map-panel { max-width: 100%; }
     }
-</style>
+  </style>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body class="chat-bg">
@@ -423,12 +465,9 @@
         </div>
         <button class="confirm-btn2" onclick="confirmMeetup()">Confirm Meetup</button>
       </div>
-    
     </div>
   </div>
 
-  <!-- Chat -->
-  
   <!-- Map Panel Overlay -->
   <div class="panel-overlay" id="map-overlay" onclick="toggleMapPanel()"></div>
 
@@ -467,7 +506,10 @@
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
         </button>
         <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=100&h=100&fit=crop" class="header-avatar" alt="Pet" id="header-avatar">
-      
+        <div class="header-info">
+          <h2 id="header-name">Bruno (Golden Retriever)</h2>
+          <div class="header-status">Online</div>
+        </div>
       </div>
       <div class="header-actions">
         <button class="icon-btn" onclick="toggleMeetupPanel()" title="Schedule Meetup">
@@ -479,35 +521,43 @@
       </div>
     </div>
 
+    <div class="pet-bar" id="pet-bar">
+      <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=100&h=100&fit=crop" alt="Pet" id="pet-bar-img">
+      <div class="pet-bar-text">Chatting about <span id="pet-name">Bruno</span></div>
+      <span class="pet-badge" id="match-score">92%</span>
+    </div>
+
     <div class="messages-area" id="chat-messages">
       <div class="date-separator"><span>Today</span></div>
     </div>
 
     <div class="input-area">
-      <button class="input-icon">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <!-- CAMERA -->
+      <button class="input-icon camera-btn" onclick="document.getElementById('camera-input').click()" title="Take photo">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
       </button>
+      <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none" onchange="handleCameraCapture(event)">
+
+      <!-- LOCATION -->
       <button class="input-icon" onclick="toggleMapPanel()" title="Share location">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
       </button>
-      <button class="input-icon">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-      </button>
+
+      <!-- TEXT -->
       <div class="input-field-wrap">
         <input type="text" class="input-field" id="message-input" placeholder="Type a message" autocomplete="off">
       </div>
-      <button class="mic-btn" id="mic-btn" onclick="startRecording()" title="Record voice message">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
-      </button>
-      <button class="send-btn" onclick="sendMessage()">
+
+      <!-- SEND -->
+      <button class="send-btn" id="send-btn" onclick="sendMessage()" title="Send">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
       </button>
     </div>
   </div>
 
   <!-- Firebase -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -515,16 +565,15 @@
     // ==========================================
     // FIREBASE CONFIG
     // ==========================================
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBifu5Te7paXOFUFrDUtogIPpi5H0xR7rY",
-  authDomain: "tailmatess.firebaseapp.com",
-  projectId: "tailmatess",
-  storageBucket: "tailmatess.firebasestorage.app",
-  messagingSenderId: "445299543083",
-  appId: "1:445299543083:web:e7be85a3eae32f8ba5ee6e",
-  measurementId: "G-ZLQG062LVE"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyBifu5Te7paXOFUFrDUtogIPpi5H0xR7rY",
+      authDomain: "tailmatess.firebaseapp.com",
+      projectId: "tailmatess",
+      storageBucket: "tailmatess.firebasestorage.app",
+      messagingSenderId: "445299543083",
+      appId: "1:445299543083:web:e7be85a3eae32f8ba5ee6e",
+      measurementId: "G-ZLQG062LVE"
+    };
     let db, auth, currentUser, conversationId, unsubMessages;
     let firebaseReady = false;
 
@@ -544,6 +593,7 @@ const firebaseConfig = {
     const petId = urlParams.get('pet') || 'bruno-001';
     const petName = urlParams.get('name') || 'Bruno';
     const petBreed = urlParams.get('breed') || 'Golden Retriever';
+    const petImg = urlParams.get('img') || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=100&h=100&fit=crop';
     const listerId = urlParams.get('lister') || 'lister_demo';
     const adopterId = urlParams.get('adopter') || 'adopter_demo';
     const matchScore = urlParams.get('match') || '92';
@@ -551,7 +601,7 @@ const firebaseConfig = {
 
     let selectedSpot = null;
     let selectedTime = null;
-    
+
     // ==========================================
     // CHAT MESSAGING
     // ==========================================
@@ -563,15 +613,23 @@ const firebaseConfig = {
       { type: 'received', text: "Hi! I saw you were interested in Buddy. He is a 2-year-old Golden Retriever, very friendly with kids and other dogs.", time: '10:30 AM' },
       { type: 'sent', text: "Yes, he looks adorable! Is he vaccinated?", time: '10:32 AM', read: true },
       { type: 'received', text: "Absolutely. All vaccinations are up to date including rabies. I have the vet records ready.", time: '10:33 AM' },
-      { type: 'sent', text: "That\'s great to hear. Would it be okay to meet him this weekend?", time: '10:35 AM', read: true },
-      { type: 'received', text: "Sure! I\'m free on Saturday afternoon or Sunday morning. What works for you?", time: '10:36 AM' },
+      { type: 'sent', text: "That's great to hear. Would it be okay to meet him this weekend?", time: '10:35 AM', read: true },
+      { type: 'received', text: "Sure! I'm free on Saturday afternoon or Sunday morning. What works for you?", time: '10:36 AM' },
     ];
 
     function initChat() {
       // Set header info
-      document.getElementById('header-name').textContent = `${petName} (${petBreed})`;
-      document.getElementById('pet-name').textContent = petName;
-      document.getElementById('match-score').textContent = `${matchScore}%`;
+      const headerName = document.getElementById('header-name');
+      const petNameEl = document.getElementById('pet-name');
+      const matchScoreEl = document.getElementById('match-score');
+      const petBarImg = document.getElementById('pet-bar-img');
+      const headerAvatar = document.getElementById('header-avatar');
+
+      if (headerName) headerName.textContent = `${petName} (${petBreed})`;
+      if (petNameEl) petNameEl.textContent = petName;
+      if (matchScoreEl) matchScoreEl.textContent = `${matchScore}%`;
+      if (petBarImg) petBarImg.src = petImg;
+      if (headerAvatar) headerAvatar.src = petImg;
       document.title = `Chat - ${petName} | TailMates`;
 
       // Load messages
@@ -595,23 +653,10 @@ const firebaseConfig = {
       scrollToBottom();
 
       if (firebaseReady) {
-        saveMessage({ text, type: 'text', sender: myRole, time: new Date() });
+        saveMessage({ text, type: 'text', sender: myRole, time: new Date(), read: false });
       }
-
-      // Simulate reply
-      setTimeout(() => {
-        showTyping();
-        setTimeout(() => {
-          removeTyping();
-          const reply = getAutoReply(text);
-          addMessageToUI('received', reply, formatTime(new Date()), false);
-          scrollToBottom();
-        }, 1500);
-      }, 600);
     }
 
-   
-    
     function addMessageToUI(type, text, time, read) {
       const row = document.createElement('div');
       row.className = `msg-row ${type}`;
@@ -628,8 +673,6 @@ const firebaseConfig = {
       scrollToBottom();
     }
 
-  
-  
     function showTyping() {
       if (document.getElementById('typing-indicator')) return;
       const row = document.createElement('div');
@@ -663,21 +706,50 @@ const firebaseConfig = {
       return div.innerHTML;
     }
 
-    function getAutoReply(text) {
-      const lower = text.toLowerCase();
-      if (lower.includes('meet') || lower.includes('weekend') || lower.includes('saturday') || lower.includes('sunday')) {
-        return "Perfect! I\'ve sent you the meetup options. You can tap the 📍 icon in the header to schedule it officially.";
-      }
-      if (lower.includes('vaccin') || lower.includes('health') || lower.includes('medical')) {
-        return "Bruno is in excellent health. He was last checked by the vet just last month.";
-      }
-      if (lower.includes('food') || lower.includes('eat') || lower.includes('diet')) {
-        return "He eats Royal Canin Golden Retriever adult food, twice a day. Very disciplined eater!";
-      }
-      if (lower.includes('price') || lower.includes('cost') || lower.includes('fee') || lower.includes('money')) {
-        return "There is no adoption fee. I just want Bruno to go to a loving home. A small donation to an animal shelter would be appreciated though.";
-      }
-      return "That sounds good! Let me know if you have any other questions about Bruno.";
+    // ==========================================
+    // CAMERA CAPTURE & SEND
+    // ==========================================
+    function handleCameraCapture(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageUrl = e.target.result;
+        const time = formatTime(new Date());
+
+        addImageMessageToUI('sent', imageUrl, time);
+        scrollToBottom();
+
+        if (firebaseReady) {
+          saveMessage({
+            type: 'image',
+            imageUrl: imageUrl,
+            text: '',
+            sender: myRole,
+            time: new Date(),
+            read: false
+          });
+        }
+        event.target.value = '';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function addImageMessageToUI(type, imageUrl, time) {
+      const row = document.createElement('div');
+      row.className = `msg-row ${type}`;
+      row.innerHTML = `
+        <div class="msg-bubble image-bubble" onclick="window.open('${imageUrl}', '_blank')">
+          <img src="${imageUrl}" alt="Photo">
+          <div class="msg-meta">
+            <span class="msg-time">${time}</span>
+            ${type === 'sent' ? `<span class="msg-read">✓✓</span>` : ''}
+          </div>
+        </div>
+      `;
+      chatMessages.appendChild(row);
+      scrollToBottom();
     }
 
     // ==========================================
@@ -696,7 +768,6 @@ const firebaseConfig = {
       el.classList.add('selected');
       selectedSpot = { name, area };
       document.getElementById('datetime-section').style.display = 'block';
-      // Set default date to tomorrow
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       document.getElementById('meetup-date').valueAsDate = tomorrow;
@@ -717,7 +788,6 @@ const firebaseConfig = {
       const dateObj = new Date(dateVal);
       const dateStr = dateObj.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
 
-      // Add system message
       const systemRow = document.createElement('div');
       systemRow.className = 'system-row';
       systemRow.innerHTML = `
@@ -729,8 +799,7 @@ const firebaseConfig = {
       chatMessages.appendChild(systemRow);
       scrollToBottom();
 
-      // Add confirmation message
-      addMessageToUI('received', `Great! I\'ve noted the meetup at ${selectedSpot.name} on ${dateStr} at ${selectedTime}. See you there! 🐕`, formatTime(new Date()), false);
+      addMessageToUI('received', `Great! I've noted the meetup at ${selectedSpot.name} on ${dateStr} at ${selectedTime}. See you there! 🐕`, formatTime(new Date()), false);
 
       toggleMeetupPanel();
       selectedSpot = null;
@@ -752,10 +821,10 @@ const firebaseConfig = {
           const m = doc.data();
           const type = m.sender === myRole ? 'sent' : 'received';
           const time = m.time ? m.time.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-          if (m.type === 'voice') {
-            addVoiceMessageToUI(type, m.duration || '0:00', time);
-          } else if (m.type === 'location') {
+          if (m.type === 'location') {
             addLocationMessageToUI(type, { lat: m.lat, lng: m.lng, name: m.name, address: m.address }, time);
+          } else if (m.type === 'image') {
+            addImageMessageToUI(type, m.imageUrl, time);
           } else {
             addMessageToUI(type, m.text, time, m.read);
           }
@@ -783,14 +852,12 @@ const firebaseConfig = {
       }
     });
 
-
     // ==========================================
     // MAP / LOCATION SHARING
     // ==========================================
     let map = null;
     let mapMarker = null;
     let selectedLocation = null;
-    let searchController = null;
 
     function toggleMapPanel() {
       const panel = document.getElementById('map-panel');
@@ -813,7 +880,7 @@ const firebaseConfig = {
         map.invalidateSize();
         return;
       }
-      const defaultLat = 19.0760; // Mumbai
+      const defaultLat = 19.0760;
       const defaultLng = 72.8777;
       map = L.map('leaflet-map').setView([defaultLat, defaultLng], 13);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -821,7 +888,6 @@ const firebaseConfig = {
         maxZoom: 19
       }).addTo(map);
 
-      // Click to drop pin
       map.on('click', async (e) => {
         const { lat, lng } = e.latlng;
         setMapMarker(lat, lng);
@@ -830,7 +896,6 @@ const firebaseConfig = {
         document.getElementById('map-send-btn').disabled = false;
       });
 
-      // Try to locate user
       locateMe();
     }
 
@@ -862,7 +927,6 @@ const firebaseConfig = {
         },
         (err) => {
           console.warn('Geolocation error:', err);
-          // Stay on default view
         },
         { enableHighAccuracy: true, timeout: 10000 }
       );
@@ -935,19 +999,10 @@ const firebaseConfig = {
           name: selectedLocation.name,
           address: selectedLocation.address,
           sender: myRole,
-          time: new Date()
+          time: new Date(),
+          read: false
         });
       }
-
-      // Simulate reply
-      setTimeout(() => {
-        showTyping();
-        setTimeout(() => {
-          removeTyping();
-          addMessageToUI('received', `Got your location! I\'ll meet you near ${selectedLocation.name}.`, formatTime(new Date()), false);
-          scrollToBottom();
-        }, 1500);
-      }, 600);
     }
 
     function addLocationMessageToUI(type, loc, time) {
@@ -990,4 +1045,3 @@ const firebaseConfig = {
   </script>
 </body>
 </html>
-
