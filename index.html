@@ -2041,5 +2041,163 @@
         });
     });
 </script>
+<!-- INLINE PAGE VIEWER: Loads external pages inside the same tab -->
+<div class="page-viewer-overlay" id="pageViewer">
+    <div class="page-viewer-header">
+        <h3 id="pageViewerTitle">TailMates</h3>
+        <button class="page-viewer-close" onclick="closePage()">
+            <i class="fa-solid fa-arrow-left"></i> Back to Home
+        </button>
+    </div>
+    <div class="page-viewer-loader" id="pageLoader">
+        <div class="spinner"></div>
+        <span>Loading...</span>
+    </div>
+    <iframe class="page-viewer-iframe" id="pageIframe" onload="pageLoaded()"></iframe>
+</div>
+
+<style>
+.page-viewer-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #0a0a0f;
+    z-index: 99990;
+    display: none;
+    flex-direction: column;
+}
+.page-viewer-overlay.active { display: flex; }
+.page-viewer-header {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 60px;
+    background: #12121a;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    z-index: 99991;
+    backdrop-filter: blur(20px);
+}
+.page-viewer-header h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.2rem;
+    color: #f0f0f5;
+}
+.page-viewer-close {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #f0f0f5;
+    padding: 10px 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.page-viewer-close:hover {
+    background: rgba(0,245,255,0.15);
+    border-color: #00f5ff;
+    color: #00f5ff;
+    transform: translateY(-2px);
+}
+.page-viewer-iframe {
+    width: 100%; height: 100%;
+    border: none;
+    margin-top: 60px;
+    background: #0a0a0f;
+}
+.page-viewer-loader {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 99992;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+.page-viewer-loader.active { display: flex; }
+.page-viewer-loader .spinner {
+    width: 50px; height: 50px;
+    border: 3px solid rgba(255,255,255,0.08);
+    border-top-color: #00f5ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+.page-viewer-loader span {
+    color: #8b8b9a;
+    font-size: 0.9rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<script>
+(function() {
+    const externalPages = ['Adopt.html', 'PawMate.html', 'services.html', 'shop.html', 'register.html'];
+    const pageTitles = {
+        'Adopt.html': 'Adopt a Pet',
+        'PawMate.html': 'PawMate AI',
+        'services.html': 'Our Services',
+        'shop.html': 'Shop',
+        'register.html': 'Register a Pet'
+    };
+
+    window.loadPage = function(url) {
+        const viewer = document.getElementById('pageViewer');
+        const iframe = document.getElementById('pageIframe');
+        const loader = document.getElementById('pageLoader');
+        
+        loader.classList.add('active');
+        viewer.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        document.getElementById('pageViewerTitle').textContent = pageTitles[url] || 'TailMates';
+        iframe.src = url;
+    };
+
+    window.closePage = function() {
+        const viewer = document.getElementById('pageViewer');
+        const iframe = document.getElementById('pageIframe');
+        const loader = document.getElementById('pageLoader');
+        
+        viewer.classList.remove('active');
+        loader.classList.remove('active');
+        iframe.src = 'about:blank';
+        document.body.style.overflow = '';
+    };
+
+    window.pageLoaded = function() {
+        document.getElementById('pageLoader').classList.remove('active');
+    };
+
+    // Intercept <a href="..."> clicks
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a');
+        if (link) {
+            const href = link.getAttribute('href');
+            if (href && externalPages.includes(href)) {
+                e.preventDefault();
+                window.loadPage(href);
+            }
+        }
+    });
+
+    // Override button onclick handlers that use window.location.href
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('button[onclick*="window.location.href"]').forEach(function(btn) {
+            const onclick = btn.getAttribute('onclick');
+            const match = onclick.match(/window\.location\.href=['"]([^'"]+)['"]/);
+            if (match && externalPages.includes(match[1])) {
+                btn.setAttribute('onclick', "loadPage('" + match[1] + "')");
+            }
+        });
+    });
+})();
+</script>
 </body>
 </html>
