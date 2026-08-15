@@ -119,34 +119,6 @@
     .msg-read { font-size: 0.7rem; color: var(--wa-blue); line-height: 1; }
     .msg-read.pending { color: var(--wa-meta); }
 
-    /* Voice message bubble */
-    .voice-bubble { max-width: 80%; padding: 0.5rem 0.75rem; }
-    .voice-inner { display: flex; align-items: center; gap: 0.5rem; min-width: 220px; }
-    .voice-play-btn {
-      width: 2rem; height: 2rem;
-      background: var(--wa-green);
-      border-radius: 50%;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      flex-shrink: 0;
-      transition: background 0.2s;
-    }
-    .voice-play-btn:hover { background: var(--wa-green-dark); }
-    .voice-waveform { flex: 1; display: flex; align-items: flex-end; gap: 2px; height: 28px; }
-    .voice-waveform .bar {
-      flex: 1;
-      background: rgba(7, 94, 84, 0.35);
-      border-radius: 1px;
-      min-width: 2px;
-      transition: background 0.15s;
-    }
-    .voice-waveform .bar.active { background: var(--wa-green); }
-    .voice-time { font-size: 0.7rem; color: var(--wa-meta); white-space: nowrap; }
-
     /* System message */
     .system-row { display: flex; justify-content: center; margin: 0.5rem 0; }
     .system-bubble {
@@ -185,66 +157,6 @@
     .input-field { width: 100%; border: none; outline: none; font-size: 0.9rem; color: var(--wa-text); background: transparent; }
     .input-field::placeholder { color: var(--wa-meta); }
 
-    .mic-btn, .send-btn {
-      width: 2.5rem; height: 2.5rem;
-      border-radius: 50%;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: all 0.2s;
-    }
-    .mic-btn { background: var(--wa-input-bg); color: var(--wa-meta); }
-    .mic-btn:hover { background: #e5e7eb; color: var(--wa-green); }
-    .mic-btn.recording { background: #fee2e2; color: #dc2626; animation: pulseRed 1s infinite; }
-    .send-btn { background: var(--wa-green); color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.15); }
-    .send-btn:hover { background: var(--wa-green-dark); }
-    .mic-btn svg, .send-btn svg { width: 1.25rem; height: 1.25rem; }
-
-    /* Recording Overlay */
-    .record-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 50;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(4px);
-    }
-    .record-overlay.active { display: flex; }
-    .record-card {
-      background: white;
-      border-radius: 1.5rem;
-      padding: 2rem;
-      width: 90%;
-      max-width: 360px;
-      text-align: center;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-    }
-    .record-pulse {
-      width: 72px; height: 72px;
-      background: #dc2626;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 1rem;
-      animation: pulseRed 1.2s infinite;
-    }
-    .record-pulse svg { width: 32px; height: 32px; color: white; }
-    .record-title { font-size: 1.1rem; font-weight: 700; color: #1f2937; margin-bottom: 0.25rem; }
-    .record-timer { font-size: 2rem; font-family: 'SF Mono', monospace; color: #dc2626; font-weight: 700; margin-bottom: 1.5rem; }
-    .record-wave { display: flex; align-items: flex-end; justify-content: center; gap: 3px; height: 48px; margin-bottom: 1.5rem; }
-    .record-wave .bar { width: 4px; background: #fca5a5; border-radius: 2px; transition: height 0.1s; }
-    .record-actions { display: flex; gap: 0.75rem; }
-    .record-actions button { flex: 1; padding: 0.75rem; border-radius: 0.75rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
-    .btn-cancel { background: #f3f4f6; color: #4b5563; }
-    .btn-cancel:hover { background: #e5e7eb; }
-    .btn-send-voice { background: var(--wa-green); color: white; }
-    .btn-send-voice:hover { background: var(--wa-green-dark); }
 
     /* Meetup Panel */
     .meetup-panel {
@@ -463,22 +375,6 @@
 </head>
 <body class="chat-bg">
 
-  <!-- Recording Overlay -->
-  <div class="record-overlay" id="record-overlay">
-    <div class="record-card">
-      <div class="record-pulse">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
-      </div>
-      <p class="record-title">Recording voice message...</p>
-      <p class="record-timer" id="record-timer">00:00</p>
-      <div class="record-wave" id="record-wave"></div>
-      <div class="record-actions">
-        <button class="btn-cancel" onclick="cancelRecording()">Delete</button>
-        <button class="btn-send-voice" onclick="stopRecording()">Send</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Meetup Panel Overlay -->
   <div class="panel-overlay" id="panel-overlay" onclick="toggleMeetupPanel()"></div>
 
@@ -655,126 +551,7 @@ const firebaseConfig = {
 
     let selectedSpot = null;
     let selectedTime = null;
-
-    // Voice recording state
-    let mediaRecorder = null;
-    let audioChunks = [];
-    let recordStartTime = null;
-    let recordTimerInterval = null;
-    let recordedAudioBlob = null;
-    let recordedAudioUrl = null;
-    let isRecording = false;
-
-    // ==========================================
-    // VOICE RECORDING
-    // ==========================================
-    async function startRecording() {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert("Voice recording is not supported in this browser.");
-        return;
-      }
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
-        mediaRecorder = new MediaRecorder(stream, { mimeType });
-        audioChunks = [];
-        isRecording = true;
-
-        mediaRecorder.ondataavailable = (e) => {
-          if (e.data && e.data.size > 0) audioChunks.push(e.data);
-        };
-
-        mediaRecorder.onstop = () => {
-          recordedAudioBlob = new Blob(audioChunks, { type: mimeType });
-          recordedAudioUrl = URL.createObjectURL(recordedAudioBlob);
-          // Stop all tracks to release the mic
-          stream.getTracks().forEach(t => t.stop());
-        };
-
-        mediaRecorder.onerror = (e) => {
-          console.error("MediaRecorder error:", e);
-          stopRecordingUI();
-        };
-
-        mediaRecorder.start(100); // collect data every 100ms
-        showRecordingUI();
-      } catch (err) {
-        console.error("Microphone access denied or error:", err);
-        alert("Could not access microphone. Please allow microphone permissions.");
-      }
-    }
-
-    function showRecordingUI() {
-      document.getElementById('record-overlay').classList.add('active');
-      document.getElementById('mic-btn').classList.add('recording');
-      recordStartTime = Date.now();
-      updateRecordTimer();
-      recordTimerInterval = setInterval(updateRecordTimer, 1000);
-      animateRecordWave();
-    }
-
-    function stopRecordingUI() {
-      document.getElementById('record-overlay').classList.remove('active');
-      document.getElementById('mic-btn').classList.remove('recording');
-      clearInterval(recordTimerInterval);
-      recordStartTime = null;
-      isRecording = false;
-    }
-
-    function updateRecordTimer() {
-      if (!recordStartTime) return;
-      const elapsed = Math.floor((Date.now() - recordStartTime) / 1000);
-      const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
-      const secs = String(elapsed % 60).padStart(2, '0');
-      const el = document.getElementById('record-timer');
-      if (el) el.textContent = `${mins}:${secs}`;
-    }
-
-    function animateRecordWave() {
-      const container = document.getElementById('record-wave');
-      if (!container) return;
-      container.innerHTML = '';
-      const barCount = 20;
-      const bars = [];
-      for (let i = 0; i < barCount; i++) {
-        const bar = document.createElement('div');
-        bar.className = 'bar';
-        bar.style.height = '8px';
-        container.appendChild(bar);
-        bars.push(bar);
-      }
-      const interval = setInterval(() => {
-        if (!isRecording) { clearInterval(interval); return; }
-        bars.forEach(bar => {
-          const h = Math.floor(Math.random() * 40) + 4;
-          bar.style.height = h + 'px';
-        });
-      }, 120);
-    }
-
-    function stopRecording() {
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-      }
-      stopRecordingUI();
-      if (recordedAudioBlob && recordedAudioBlob.size > 0) {
-        sendVoiceMessage(recordedAudioBlob);
-      }
-      recordedAudioBlob = null;
-      recordedAudioUrl = null;
-    }
-
-    function cancelRecording() {
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-      }
-      // Discard the blob
-      recordedAudioBlob = null;
-      recordedAudioUrl = null;
-      audioChunks = [];
-      stopRecordingUI();
-    }
-
+    
     // ==========================================
     // CHAT MESSAGING
     // ==========================================
@@ -833,37 +610,8 @@ const firebaseConfig = {
       }, 600);
     }
 
-    function sendVoiceMessage(blob) {
-      const duration = estimateDuration(blob);
-      const time = formatTime(new Date());
-      addVoiceMessageToUI('sent', duration, time);
-      scrollToBottom();
-
-      if (firebaseReady) {
-        // In real app, upload blob to Firebase Storage, then save URL
-        saveMessage({ type: 'voice', duration, sender: myRole, time: new Date() });
-      }
-
-      // Simulate reply
-      setTimeout(() => {
-        showTyping();
-        setTimeout(() => {
-          removeTyping();
-          addMessageToUI('received', "Thanks for the voice note! I\'ll listen to it shortly.", formatTime(new Date()), false);
-          scrollToBottom();
-        }, 1500);
-      }, 800);
-    }
-
-    function estimateDuration(blob) {
-      // Rough estimate: ~0.16KB per second for compressed voice
-      const sizeKB = blob.size / 1024;
-      const secs = Math.max(1, Math.round(sizeKB / 1.6));
-      const m = Math.floor(secs / 60);
-      const s = secs % 60;
-      return `${m}:${String(s).padStart(2, '0')}`;
-    }
-
+   
+    
     function addMessageToUI(type, text, time, read) {
       const row = document.createElement('div');
       row.className = `msg-row ${type}`;
@@ -880,49 +628,8 @@ const firebaseConfig = {
       scrollToBottom();
     }
 
-    function addVoiceMessageToUI(type, duration, time) {
-      const row = document.createElement('div');
-      row.className = `msg-row ${type}`;
-      const bars = Array.from({ length: 24 }, () => Math.floor(Math.random() * 20) + 4);
-      row.innerHTML = `
-        <div class="msg-bubble voice-bubble">
-          <div class="voice-inner">
-            <button class="voice-play-btn" onclick="playVoice(this)">
-              <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            </button>
-            <div class="voice-waveform">
-              ${bars.map((h, i) => `<div class="bar" style="height:${h}px"></div>`).join('')}
-            </div>
-            <span class="voice-time">${duration}</span>
-          </div>
-          <div class="msg-meta" style="position:static;justify-content:flex-end;margin-top:0.25rem;">
-            <span class="msg-time">${time}</span>
-            ${type === 'sent' ? `<span class="msg-read">✓✓</span>` : ''}
-          </div>
-        </div>
-      `;
-      chatMessages.appendChild(row);
-    }
-
-    function playVoice(btn) {
-      // Toggle play icon
-      const isPlaying = btn.dataset.playing === 'true';
-      btn.dataset.playing = isPlaying ? 'false' : 'true';
-      btn.innerHTML = isPlaying
-        ? '<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'
-        : '<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
-      // Animate waveform bars
-      const bars = btn.parentElement.querySelectorAll('.voice-waveform .bar');
-      bars.forEach(b => b.classList.toggle('active', !isPlaying));
-      if (!isPlaying) {
-        setTimeout(() => {
-          btn.dataset.playing = 'false';
-          btn.innerHTML = '<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
-          bars.forEach(b => b.classList.remove('active'));
-        }, 3000);
-      }
-    }
-
+  
+  
     function showTyping() {
       if (document.getElementById('typing-indicator')) return;
       const row = document.createElement('div');
