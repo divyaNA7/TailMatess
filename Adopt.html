@@ -1,122 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Adopt a Pet</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f9f9f9;
-      margin: 0;
-      padding: 0;
-    }
-
-    .navbar {
-      background-color: #7E0CF5;
-      padding: 20px 30px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      color: white;
-      font-size: 22px;
-      font-weight: bold;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 24px;
-    }
-
-    .nav-links a {
-      color: white;
-      text-decoration: none;
-      font-size: 17px;
-      transition: opacity 0.3s;
-    }
-
-    .nav-links a:hover {
-      opacity: 0.85;
-    }
-
-    .loading {
-      text-align: center;
-      padding: 60px 20px;
-      color: #666;
-      font-size: 18px;
-    }
-
-    .pet-list {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 30px;
-      padding: 40px 20px;
-    }
-
-    .pet-card {
-      background-color: white;
-      width: 280px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      overflow: hidden;
-      text-align: center;
-      transition: transform 0.3s;
-    }
-
-    .pet-card:hover {
-      transform: translateY(-6px);
-    }
-      .pet-card img {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-    }
-
-    .pet-card h3 {
-      margin: 15px 0 5px;
-      color: #333;
-    }
-
-    .pet-card p {
-      margin: 4px 0;
-      color: #666;
-      font-size: 14px;
-    }
-
-    .adopt-btn {
-      margin: 15px 0 20px;
-      padding: 10px 20px;
-      background-color: #7E0CF5;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background-color 0.3s ease;
-    }
-
-    .adopt-btn:hover {
-      background-color: #e05a50;
-    }
-
-    .error-box {
-      text-align: center;
-      padding: 60px 20px;
-    }
-    .error-box h3 { color: #c0392b; }
-    .error-box code {
-      background: #ffeaea;
-      color: #c0392b;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 13px;
-    }
-    
+    body { font-family: 'Segoe UI', sans-serif; background: #f9f9f9; margin: 0; padding: 0; }
+    .navbar { background: #7E0CF5; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; color: white; font-size: 22px; font-weight: bold; }
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a { color: white; text-decoration: none; font-size: 17px; }
+    .status { text-align: center; padding: 60px 20px; color: #666; font-size: 18px; }
+    .pet-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; padding: 40px 20px; }
+    .pet-card { background: white; width: 280px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; text-align: center; transition: transform 0.3s; }
+    .pet-card:hover { transform: translateY(-6px); }
+    .pet-card .img-box { width: 100%; height: 200px; background: linear-gradient(135deg,#7E0CF5,#a855f7); display: flex; align-items: center; justify-content: center; }
+    .pet-card .img-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pet-card .img-box .emoji { font-size: 4rem; }
+    .pet-card h3 { margin: 15px 0 5px; color: #333; }
+    .pet-card p { margin: 4px 0; color: #666; font-size: 14px; }
+    .adopt-btn { margin: 15px 0 20px; padding: 10px 20px; background: #7E0CF5; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
+    .adopt-btn:hover { background: #e05a50; }
   </style>
+<base target="_blank">
 </head>
 <body>
 
-  <!-- Navbar -->
   <div class="navbar">
     <div>TailMates</div>
     <div class="nav-links">
@@ -129,81 +36,90 @@
     </div>
   </div>
 
-  <!-- Loading state -->
-  <div id="loadingState" class="loading">Loading pets...</div>
+  <div id="status" class="status">Loading pets...</div>
+  <div id="petList" class="pet-list"></div>
 
-<!-- Error state (hidden by default) -->
-  <div id="errorState" class="error-box" style="display:none;">
-    <h3>⚠️ Failed to load pets</h3>
-    <p>Could not connect to Firebase.</p>
-    <code id="errorUrl"></code>
-  </div>
-  
- <!-- Pet cards will appear here -->
-  <div id="petList" class="pet-list" style="display:none;"></div>
+  <script>
+    var URL = "https://tailmatess-default-rtdb.asia-southeast1.firebasedatabase.app/.json";
 
- <script>
-    
-  const FIREBASE_DB_URL = "https://tailmatess-default-rtdb.asia-southeast1.firebasedatabase.app/.json";
-   
-    let allPets = [];
-    // FETCH PETS FROM FIREBASE
-    async function loadPetsFromFirebase() {
-      try {
-        const response = await fetch(FIREBASE_DB_URL);
-        if (!response.ok) throw new Error("HTTP " + response.status);
+    fetch(URL)
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(data) {
+        var pets = [];
+        for (var key in data) {
+          if (data.hasOwnProperty(key) && data[key] !== null) {
+            pets.push(data[key]);
+          }
+        }
 
-        const data = await response.json();
+        var container = document.getElementById("petList");
+        document.getElementById("status").style.display = "none";
 
-        // Firebase returns { "1": {...}, "2": {...} } — convert to array
-        allPets = Object.values(data);
+        for (var i = 0; i < pets.length; i++) {
+          var pet = pets[i];
 
-        // Hide loading, show pets
-        document.getElementById("loadingState").style.display = "none";
-        document.getElementById("petList").style.display = "flex";
+          // Skip if pet data is null or missing
+          if (!pet || typeof pet !== "object") continue;
 
-        // Render the cards
-        renderPets(allPets);
+          var age = pet.age_months ? (pet.age_months / 12).toFixed(1) : "?";
+          var cost = pet.avg_monthly_cost_inr ? "Rs." + pet.avg_monthly_cost_inr.toLocaleString() : "";
 
-      } catch (err) {
-        console.error("Failed to load pets:", err);
-        document.getElementById("loadingState").style.display = "none";
-        document.getElementById("errorState").style.display = "block";
-        document.getElementById("errorUrl").textContent = FIREBASE_DB_URL;
-      }
-    }
-   
-    // RENDER PET CARDS
-    function renderPets(pets) {
-      const container = document.getElementById("petList");
-      container.innerHTML = "";
+          var card = document.createElement("div");
+          card.className = "pet-card";
 
-      pets.forEach(pet => {
-        const ageYears = (pet.age_months / 12).toFixed(1);
+          var imgBox = document.createElement("div");
+          imgBox.className = "img-box";
 
-        const card = document.createElement("div");
-        card.className = "pet-card";
+          var img = document.createElement("img");
+          img.src = pet.image_url || "";
+          img.alt = pet.name || "";
+          img.onerror = function() {
+            this.style.display = "none";
+            var emoji = document.createElement("span");
+            emoji.className = "emoji";
+            emoji.textContent = "❤";
+            this.parentElement.appendChild(emoji);
+          };
 
-        card.innerHTML = `
-          <img src="${pet.image_url}" alt="${pet.name}" 
-               onerror="this.src='https://via.placeholder.com/280x200?text=No+Image'">
-          <h3>${pet.name}</h3>
-          <p><strong>${pet.breed}</strong></p>
-          <p>${pet.species} · ${ageYears} yrs · ${pet.weight_kg} kg</p>
-          <p>Care: ${pet.care_level} · ₹${pet.avg_monthly_cost_inr}/mo</p>
-          <button class="adopt-btn" onclick="adoptPet('${pet.name}')">Adopt Me</button>
-        `;
+          imgBox.appendChild(img);
 
-        container.appendChild(card);
+          var name = document.createElement("h3");
+          name.textContent = pet.name || "Unknown";
+
+          var breed = document.createElement("p");
+          breed.innerHTML = "<strong>" + (pet.breed || "") + "</strong>";
+
+          var info = document.createElement("p");
+          info.textContent = (pet.species || "") + " - " + age + " yrs - " + (pet.weight_kg || "?") + " kg";
+
+          var care = document.createElement("p");
+          care.textContent = "Care: " + (pet.care_level || "?") + " - " + cost + "/mo";
+
+          var btn = document.createElement("button");
+          btn.className = "adopt-btn";
+          btn.textContent = "Adopt Me";
+          btn.onclick = (function(petName) {
+            return function() {
+              alert("Interested in adopting " + petName + "!");
+            };
+          })(pet.name || "this pet");
+
+          card.appendChild(imgBox);
+          card.appendChild(name);
+          card.appendChild(breed);
+          card.appendChild(info);
+          card.appendChild(care);
+          card.appendChild(btn);
+
+          container.appendChild(card);
+        }
+      })
+      .catch(function(err) {
+        document.getElementById("status").innerHTML = '<p style="color:#c0392b">Error: ' + err.message + '</p>';
+        console.error(err);
       });
-    }
-
-    function adoptPet(name) {
-      alert("Thank you for your interest in adopting " + name + "!\n\nThis would open an adoption form.");
-    }
-
-    // Start loading when page opens
-    loadPetsFromFirebase();
   </script>
 
 </body>
