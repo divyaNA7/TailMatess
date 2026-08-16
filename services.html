@@ -2,130 +2,637 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Our Services</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Services | TailMates</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <style>
+        :root {
+            --primary: #00f5ff;
+            --primary-dim: rgba(0, 245, 255, 0.15);
+            --secondary: #ff6b6b;
+            --accent: #a855f7;
+            --bg: #0a0a0f;
+            --bg-light: #12121a;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --bg-glass: rgba(255, 255, 255, 0.05);
+            --text: #f0f0f5;
+            --text-dim: #8b8b9a;
+            --border: rgba(255, 255, 255, 0.08);
+            --glow-primary: 0 0 40px rgba(0, 245, 255, 0.3);
+            --glow-secondary: 0 0 40px rgba(255, 107, 107, 0.3);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f6f6f6;
-            padding: 0;
-            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            cursor: none;
+        }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Space Grotesk', sans-serif; }
+
+        /* Custom Cursor */
+        .cursor {
+            width: 40px; height: 40px;
+            position: fixed; pointer-events: none; z-index: 99999;
+            transition: transform 0.1s ease;
+        }
+        .cursor::before {
+            content: '';
+            position: absolute;
+            top: 2px; left: 50%; transform: translateX(-50%);
+            width: 16px; height: 18px; background: rgba(255, 255, 255, 0.9); border-radius: 50% 50% 45% 45%;
+        }
+        .cursor .pad {
+            position: absolute; width: 10px; height: 12px; background: rgba(255, 255, 255, 0.9); border-radius: 50%;
+        }
+        .cursor .pad-1 { top: 14px; left: 2px; transform: rotate(-20deg); }
+        .cursor .pad-2 { top: 8px; left: 15px; }
+        .cursor .pad-3 { top: 14px; right: 2px; transform: rotate(20deg); }
+        .cursor-follower {
+            width: 60px; height: 60px;
+            position: fixed; pointer-events: none; z-index: 99998;
+            transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0.15;
+        }
+        .cursor-follower::before {
+            content: '';
+            position: absolute; top: 2px; left: 50%; transform: translateX(-50%);
+            width: 22px; height: 24px; border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 50% 50% 45% 45%;
+        }
+        .cursor-follower .pad {
+            position: absolute; width: 14px; height: 16px; border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 50%;
+        }
+        .cursor-follower .pad-1 { top: 20px; left: 2px; transform: rotate(-20deg); }
+        .cursor-follower .pad-2 { top: 12px; left: 20px; }
+        .cursor-follower .pad-3 { top: 20px; right: 2px; transform: rotate(20deg); }
+        .cursor.hover { transform: scale(1.3); }
+        .cursor.hover::before, .cursor.hover .pad { background: var(--primary); }
+        .cursor-follower.hover { transform: scale(1.2); opacity: 0.3; }
+        .cursor-follower.hover::before, .cursor-follower.hover .pad { border-color: var(--primary); }
+
+        /* Scroll Progress */
+        .scroll-progress {
+            position: fixed; top: 0; left: 0; height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent), var(--secondary));
+            z-index: 10000; width: 0%; box-shadow: 0 0 20px var(--primary);
         }
 
+        /* Background Orbs */
+        .bg-orbs {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0; overflow: hidden;
+        }
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.4;
+            animation: orbFloat 20s infinite ease-in-out;
+        }
+        .orb-1 { width: 600px; height: 600px; background: var(--primary); top: -200px; left: -200px; animation-delay: 0s; }
+        .orb-2 { width: 500px; height: 500px; background: var(--accent); top: 50%; right: -150px; animation-delay: -5s; }
+        .orb-3 { width: 400px; height: 400px; background: var(--secondary); bottom: -100px; left: 30%; animation-delay: -10s; }
+        .orb-4 { width: 300px; height: 300px; background: #4ade80; top: 30%; left: 60%; animation-delay: -15s; }
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -30px) scale(1.1); }
+            50% { transform: translate(-30px, 50px) scale(0.9); }
+            75% { transform: translate(20px, 20px) scale(1.05); }
+        }
+
+        /* Navbar - EXACT MATCH to index.html */
         .navbar {
-            background: #7E0CF5;
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-            font-size: 22px;
-            font-weight: bold;
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+            padding: 1rem 3rem; transition: all 0.4s ease;
         }
-
-        .nav-links {
-            display: flex;
-            gap: 24px;
+        .navbar.scrolled {
+            background: rgba(10, 10, 15, 0.8); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
         }
-
+        .nav-inner {
+            max-width: 1400px; margin: 0 auto;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo {
+            display: flex; align-items: center; gap: 12px; text-decoration: none;
+        }
+        .logo-icon {
+            width: 45px; height: 45px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; color: var(--bg);
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        .logo:hover .logo-icon { transform: rotate(15deg) scale(1.1); box-shadow: 0 0 30px rgba(0, 245, 255, 0.5); }
+        .logo-text h2 { font-size: 1.5rem; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+        .logo-text span { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
+        .nav-links { display: flex; gap: 2.5rem; list-style: none; }
         .nav-links a {
-            text-decoration: none;
-            color: white;
-            font-size: 17px;
-            transition: opacity 0.3s;
+            color: var(--text-dim); text-decoration: none; font-size: 0.9rem; font-weight: 500;
+            position: relative; transition: color 0.3s ease; padding: 0.5rem 0;
         }
-
-        .nav-links a:hover {
-            opacity: 0.85;
+        .nav-links a::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transition: width 0.3s ease; box-shadow: 0 0 10px var(--primary);
         }
-
-        h2 {
-            color: #333;
-            text-align: center;
-            margin: 30px 0;
-            font-size: 28px;
+        .nav-links a:hover, .nav-links a.active { color: var(--text); }
+        .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+        .nav-profile { position: relative; }
+        .profile-trigger {
+            display: flex; align-items: center; gap: 10px;
+            padding: 0.4rem 0.8rem 0.4rem 0.4rem;
+            background: var(--bg-glass); border: 1px solid var(--border);
+            border-radius: 50px; cursor: none; transition: all 0.3s ease;
         }
+        .profile-trigger:hover { border-color: var(--primary); box-shadow: 0 0 20px rgba(0, 245, 255, 0.1); }
+        .profile-avatar-icon {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex; align-items: center; justify-content: center;
+            color: var(--bg); font-size: 0.9rem;
+        }
+        .profile-name { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+        .profile-dropdown {
+            position: absolute; top: calc(100% + 10px); right: 0;
+            width: 220px; background: var(--bg-glass); border: 1px solid var(--border);
+            border-radius: 16px; backdrop-filter: blur(30px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            padding: 0.8rem 0; opacity: 0; visibility: hidden;
+            transform: translateY(-10px); transition: all 0.3s ease; z-index: 1001;
+        }
+        .profile-dropdown.active { opacity: 1; visibility: visible; transform: translateY(0); }
+        .profile-dropdown a {
+            display: flex; align-items: center; gap: 10px;
+            padding: 0.7rem 1.2rem; color: var(--text-dim); text-decoration: none;
+            font-size: 0.85rem; transition: all 0.2s ease;
+        }
+        .profile-dropdown a:hover { color: var(--primary); background: var(--primary-dim); }
+        .profile-dropdown a i { width: 18px; text-align: center; }
+        .profile-divider { height: 1px; background: var(--border); margin: 0.5rem 0; }
+        .profile-login { color: var(--primary) !important; font-weight: 600; }
+        .profile-login:hover { background: var(--primary-dim) !important; }
+        .profile-logout { color: var(--secondary) !important; }
+        .profile-logout:hover { color: var(--secondary) !important; background: rgba(255, 107, 107, 0.1) !important; }
 
-        .card-container {
+        /* Services Page Specific Styles */
+        .services-hero {
+            min-height: 50vh;
             display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
+            align-items: center;
             justify-content: center;
-            padding: 0 20px;
+            position: relative;
+            padding: 8rem 3rem 4rem;
+            overflow: hidden;
         }
-
-        .card {
-            background-color: #dec9ed;
-            padding: 20px;
-            width: 260px;
-            border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        .services-hero-content {
             text-align: center;
-            transition: transform 0.2s;
-            text-decoration: none;
-            color: #333;
+            max-width: 800px;
+            position: relative;
+            z-index: 10;
+        }
+        .section-tag {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 0.5rem 1.2rem; background: var(--primary-dim);
+            border: 1px solid rgba(0, 245, 255, 0.2); border-radius: 50px;
+            font-size: 0.8rem; color: var(--primary); margin-bottom: 1.5rem;
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+        .services-hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--text), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .services-hero p {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            line-height: 1.7;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
-        .card:hover {
-            transform: scale(1.05);
-            background-color: #f0f8ff;
+        /* Services Grid - Cool Cards */
+        .services-section {
+            padding: 2rem 3rem 6rem;
+            position: relative;
+            z-index: 10;
+        }
+        .services-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+        .service-card {
+            background: var(--bg-glass);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+            cursor: none;
+            transform-style: preserve-3d;
+        }
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 0;
+            background: linear-gradient(180deg, transparent, rgba(0, 245, 255, 0.05));
+            transition: height 0.5s ease;
+            z-index: 0;
+        }
+        .service-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transform: scaleX(0);
+            transition: transform 0.5s ease;
+            transform-origin: left;
+        }
+        .service-card:hover::before { height: 100%; }
+        .service-card:hover::after { transform: scaleX(1); }
+        .service-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: rgba(0, 245, 255, 0.2);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(0, 245, 255, 0.08);
+        }
+        .service-icon-wrap {
+            width: 70px; height: 70px;
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 2;
+            transition: all 0.4s ease;
+        }
+        .service-card:hover .service-icon-wrap {
+            transform: scale(1.1) rotate(-5deg);
+        }
+        .service-icon-wrap.groom {
+            background: rgba(0, 245, 255, 0.1);
+            color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
+        }
+        .service-icon-wrap.foster {
+            background: rgba(255, 107, 107, 0.1);
+            color: var(--secondary);
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.1);
+        }
+        .service-icon-wrap.vet {
+            background: rgba(168, 85, 247, 0.1);
+            color: var(--accent);
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.1);
+        }
+        .service-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.8rem;
+            position: relative;
+            z-index: 2;
+            color: var(--text);
+        }
+        .service-card p {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+            line-height: 1.7;
+            position: relative;
+            z-index: 2;
+        }
+        .service-card .coming-soon {
+            display: inline-block;
+            margin-top: 1.2rem;
+            padding: 0.4rem 1rem;
+            background: var(--primary-dim);
+            border: 1px solid rgba(0, 245, 255, 0.2);
+            border-radius: 50px;
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 2;
         }
 
-        .card h3 {
-            margin-bottom: 10px;
-            font-size: 22px;
+        /* Floating particles around cards */
+        .particle {
+            position: absolute;
+            width: 4px; height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.6s ease;
+        }
+        .service-card:hover .particle {
+            opacity: 0.6;
+            animation: particleFloat 3s infinite ease-in-out;
+        }
+        @keyframes particleFloat {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(10px, -20px); }
         }
 
-        .card p {
-            font-size: 16px;
-            color: #555;
-            line-height: 1.6;
+        /* Back link */
+        .back-link-wrap {
+            text-align: center;
+            margin-top: 4rem;
+            position: relative;
+            z-index: 10;
         }
-
         .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 1rem 2.5rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            color: var(--text);
+            font-weight: 600;
+            font-size: 0.95rem;
             text-decoration: none;
-            color: #7E0CF5;
+            transition: all 0.3s ease;
+        }
+        .back-link:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 30px rgba(0, 245, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        .back-link i { transition: transform 0.3s ease; }
+        .back-link:hover i { transform: translateX(-4px); }
+
+        /* Footer mini */
+        .mini-footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            position: relative;
+            z-index: 10;
+        }
+        .mini-footer i { color: var(--secondary); }
+
+        @media (max-width: 1024px) {
+            .services-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .services-hero { padding: 6rem 1.5rem 3rem; }
+            .services-section { padding: 2rem 1.5rem 4rem; }
+            .services-grid { grid-template-columns: 1fr; }
+            .cursor, .cursor-follower { display: none; }
+            body { cursor: auto; }
         }
     </style>
 </head>
 <body>
 
-  <!-- Navbar -->
-  <div class="navbar">
-    <div>TailMates</div>
-    <div class="nav-links">
-      <a href="index">Home</a>
-      <a href="Adopt">Adopt</a>
-      <a href="register">Register</a>
-      <a href="services">Services</a>
-      <a href="shop">Shop</a>
-      <a href="login">Login</a>
+<!-- Custom Paw Cursor -->
+<div class="cursor" id="cursor">
+    <div class="pad pad-1"></div>
+    <div class="pad pad-2"></div>
+    <div class="pad pad-3"></div>
+</div>
+<div class="cursor-follower" id="cursorFollower">
+    <div class="pad pad-1"></div>
+    <div class="pad pad-2"></div>
+    <div class="pad pad-3"></div>
+</div>
+
+<!-- Scroll Progress -->
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<!-- Background Effects -->
+<div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+</div>
+
+<!-- Navigation -->
+<nav class="navbar" id="navbar">
+    <div class="nav-inner">
+        <a href="index.html" class="logo">
+            <div class="logo-icon"><i class="fa-solid fa-paw"></i></div>
+            <div class="logo-text">
+                <h2>TailMates</h2>
+                <span>Every Paw Deserves Home</span>
+            </div>
+        </a>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="Adopt.html">Adopt</a></li>
+            <li><a href="PawMate.html">PawMate AI</a></li>
+            <li><a href="services.html" class="active">Services</a></li>
+            <li><a href="shop.html">Shop</a></li>
+            <li><a href="index.html#about">About</a></li>
+            <li><a href="register.html">Register a Pet</a></li>
+        </ul>
+        <div class="nav-profile" id="navProfile">
+            <div class="profile-trigger" id="profileTrigger">
+                <div class="profile-avatar-icon"><i class="fa-solid fa-user"></i></div>
+                <span class="profile-name">Profile</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; color: var(--text-dim);"></i>
+            </div>
+            <div class="profile-dropdown" id="profileDropdown">
+                <div id="profileDropdownLoggedOut">
+                    <div style="padding: 0.7rem 1.2rem; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
+                        <i class="fa-solid fa-user" style="margin-right: 6px;"></i> Account
+                    </div>
+                    <div class="profile-divider"></div>
+                    <a href="login.html" class="profile-login"><i class="fa-solid fa-right-to-bracket"></i> Log In</a>
+                    <a href="createacc.html" class="profile-login" style="color: var(--accent) !important;"><i class="fa-solid fa-user-plus"></i> Create Account</a>
+                </div>
+                <div id="profileDropdownLoggedIn" style="display: none;">
+                    <div style="padding: 0.7rem 1.2rem; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
+                        <i class="fa-solid fa-user" style="margin-right: 6px;"></i> Profile
+                    </div>
+                    <div class="profile-divider"></div>
+                    <a href="#"><i class="fa-regular fa-user"></i> My Profile</a>
+                    <a href="#"><i class="fa-solid fa-heart"></i> Saved Pets</a>
+                    <a href="#"><i class="fa-solid fa-clipboard-list"></i> My Applications</a>
+                    <a href="#"><i class="fa-solid fa-paw"></i> My Registered Pets</a>
+                    <a href="#"><i class="fa-solid fa-gear"></i> Settings</a>
+                    <div class="profile-divider"></div>
+                    <a href="#" class="profile-logout"><i class="fa-solid fa-right-from-bracket"></i> Log Out</a>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
+</nav>
 
-    <!-- Our Services Section -->
-    <h2>Our Services</h2>
+<!-- Services Hero -->
+<section class="services-hero">
+    <div class="services-hero-content">
+        <span class="section-tag"><i class="fa-solid fa-layer-group"></i> What We Offer</span>
+        <h1>Our Services</h1>
+        <p>Comprehensive care solutions for your beloved companions. From grooming to virtual vet consultations, we've got everything covered.</p>
+    </div>
+</section>
 
-    <div class="card-container">
-        <a href="pet-grooming.html" class="card">
+<!-- Services Cards -->
+<section class="services-section">
+    <div class="services-grid">
+        <div class="service-card">
+            <div class="particle" style="top: 20%; left: 80%;"></div>
+            <div class="particle" style="top: 60%; left: 10%; animation-delay: -1s;"></div>
+            <div class="service-icon-wrap groom">
+                <i class="fa-solid fa-scissors"></i>
+            </div>
             <h3>Pet Grooming</h3>
-            <p>Book professional grooming for your pet at home.</p>
-        </a>
+            <p>Book professional grooming for your pet at home. Expert stylists, premium products, and a stress-free experience for your furry friend.</p>
+            <span class="coming-soon">Coming Soon</span>
+        </div>
 
-        <a href="foster-info.html" class="card">
+        <div class="service-card">
+            <div class="particle" style="top: 30%; left: 70%; animation-delay: -0.5s;"></div>
+            <div class="particle" style="top: 70%; left: 20%; animation-delay: -1.5s;"></div>
+            <div class="service-icon-wrap foster">
+                <i class="fa-solid fa-house-chimney-user"></i>
+            </div>
             <h3>Foster Information</h3>
-            <p>Learn about fostering pets and how to get involved.</p>
-        </a>
+            <p>Learn about fostering pets and how to get involved. Open your home temporarily and make a huge difference in a pet's life.</p>
+            <span class="coming-soon">Coming Soon</span>
+        </div>
 
-        <a href="vet-online.html" class="card">
+        <div class="service-card">
+            <div class="particle" style="top: 15%; left: 75%; animation-delay: -2s;"></div>
+            <div class="particle" style="top: 65%; left: 15%; animation-delay: -0.8s;"></div>
+            <div class="service-icon-wrap vet">
+                <i class="fa-solid fa-user-doctor"></i>
+            </div>
             <h3>Vet Online</h3>
-            <p>Consult a certified veterinarian online for your pet's health.</p>
-        </a>
+            <p>Consult a certified veterinarian online for your pet's health. 24/7 access to expert advice, prescriptions, and follow-up care.</p>
+            <span class="coming-soon">Coming Soon</span>
+        </div>
     </div>
 
-    <a href="index.html" class="back-link">← Back to Home</a>
+    <div class="back-link-wrap">
+        <a href="index.html" class="back-link">
+            <i class="fa-solid fa-arrow-left"></i> Back to Home
+        </a>
+    </div>
+</section>
+
+<!-- Mini Footer -->
+<div class="mini-footer">
+    <i class="fa-solid fa-paw"></i> &copy; 2026 TailMates — Designed with <i class="fa-solid fa-heart"></i> for every rescued companion. <i class="fa-solid fa-paw"></i>
+</div>
+
+<script>
+    // Custom Cursor
+    const cursor = document.getElementById('cursor');
+    const cursorFollower = document.getElementById('cursorFollower');
+    let mouseX = 0, mouseY = 0, followerX = 0, followerY = 0;
+
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        cursor.style.left = mouseX - 6 + 'px';
+        cursor.style.top = mouseY - 6 + 'px';
+    });
+
+    function animateFollower() {
+        followerX += (mouseX - followerX) * 0.1;
+        followerY += (mouseY - followerY) * 0.1;
+        cursorFollower.style.left = followerX - 20 + 'px';
+        cursorFollower.style.top = followerY - 20 + 'px';
+        requestAnimationFrame(animateFollower);
+    }
+    animateFollower();
+
+    // Cursor hover effect
+    const hoverElements = document.querySelectorAll('a, button, .service-card, .profile-trigger');
+    hoverElements.forEach(el => {
+        el.addEventListener('mouseenter', () => {
+            cursor.classList.add('hover');
+            cursorFollower.classList.add('hover');
+        });
+        el.addEventListener('mouseleave', () => {
+            cursor.classList.remove('hover');
+            cursorFollower.classList.remove('hover');
+        });
+    });
+
+    // Scroll Progress
+    const scrollProgress = document.getElementById('scrollProgress');
+    window.addEventListener('scroll', () => {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollPercent = (scrollTop / docHeight) * 100;
+        scrollProgress.style.width = scrollPercent + '%';
+    });
+
+    // Navbar scroll effect
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    // Profile Dropdown Toggle
+    const profileTrigger = document.getElementById('profileTrigger');
+    const profileDropdown = document.getElementById('profileDropdown');
+
+    if (profileTrigger && profileDropdown) {
+        profileTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileDropdown.classList.toggle('active');
+        });
+        document.addEventListener('click', (e) => {
+            if (!profileTrigger.contains(e.target) && !profileDropdown.contains(e.target)) {
+                profileDropdown.classList.remove('active');
+            }
+        });
+    }
+
+    // 3D Tilt effect for service cards
+    const serviceCards = document.querySelectorAll('.service-card');
+    serviceCards.forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width - 0.5;
+            const y = (e.clientY - rect.top) / rect.height - 0.5;
+            card.style.transform = `translateY(-10px) scale(1.02) rotateY(${x * 10}deg) rotateX(${-y * 10}deg)`;
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0) scale(1) rotateY(0) rotateX(0)';
+        });
+    });
+
+    // Entrance animation
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.service-card').forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        card.style.transition = `all 0.6s cubic-bezier(0.23, 1, 0.32, 1) ${index * 0.15}s`;
+        observer.observe(card);
+    });
+</script>
 
 </body>
 </html>
