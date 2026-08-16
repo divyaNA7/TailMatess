@@ -111,8 +111,13 @@
     </div>
   </div>
 
-  <!-- Pet Listing -->
-  <div class="pet-list" id="petList">Loading pets...</div>
+  <!-- In your card template -->
+  <div class="card-image">
+    <img src="${pet.image_url}" alt="${pet.name}" 
+         style="width:100%;height:100%;object-fit:cover;display:block;"
+         onerror="this.style.display='none';this.parentElement.innerHTML='🐾';">
+  </div>
+  
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -131,46 +136,40 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const petList = document.getElementById("petList");
 
-async function loadPets() {
-  try {
-    const snapshot = await getDocs(collection(db, "pets"));
+const FIREBASE_DB_URL = "https://tailmatess-default-rtdb.asia-southeast1.firebasedatabase.app//pets.json"; 
 
-    petList.innerHTML = "";
+let allPets = [];
 
-    if (snapshot.empty) {
-      petList.innerHTML = "<h2>No pets found.</h2>";
-      return;
+async function loadPetsFromFirebase() {
+    try {
+        const response = await fetch(FIREBASE_DB_URL);
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        
+        const data = await response.json();
+        
+        // Firebase returns { "1": {...}, "2": {...} } — convert to array
+        allPets = Object.values(data);
+        
+        // Now render
+        renderPets(allPets);
+        updateStats(allPets);
+        
+    } catch (err) {
+        console.error("Failed to load pets:", err);
+        document.getElementById("petGrid").innerHTML = 
+            `<div style="text-align:center;padding:60px 20px;">
+                <div style="font-size:3rem;margin-bottom:16px;">⚠️</div>
+                <h3>Failed to load pets</h3>
+                <p style="color:#78716c;">Could not connect to Firebase. Check your database URL.</p>
+                <code style="background:#fee2e2;color:#991b1b;padding:8px 12px;border-radius:6px;font-size:0.8rem;">${FIREBASE_DB_URL}</code>
+            </div>`;
     }
-
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-
-      const card = document.createElement("div");
-      card.className = "pet-card";
-
-      card.innerHTML = `
-        <img src="${data.image}" alt="${data.name}">
-        <h3>${data.name}</h3>
-        <p><strong>Breed:</strong> ${data.breed}</p>
-        <p><strong>Age:</strong> ${data.age}</p>
-        <p><strong>Gender:</strong> ${data.gender}</p>
-        <p><strong>City:</strong> ${data.city}</p>
-        <p><strong>Contact:</strong> ${data.contact}</p>
-        <button class="adopt-btn">Adopt</button>
-      `;
-
-      petList.appendChild(card);
-    });
-
-  } catch (err) {
-    console.error(err);
-    petList.innerHTML = "<h2>" + err.message + "</h2>";
-  }
 }
-
-loadPets();
+    
+// Start loading when page opens
+loadPetsFromFirebase();
+  
     
   </script>
  </body>
