@@ -3,698 +3,1502 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TailMates Matchmaker</title>
+  <title>PawMate AI | TailMates</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
   <style>
+    :root {
+      --primary: #00f5ff;
+      --primary-dim: rgba(0, 245, 255, 0.15);
+      --secondary: #ff6b6b;
+      --accent: #a855f7;
+      --bg: #0a0a0f;
+      --bg-light: #12121a;
+      --bg-card: rgba(255, 255, 255, 0.03);
+      --bg-glass: rgba(255, 255, 255, 0.05);
+      --text: #f0f0f5;
+      --text-dim: #8b8b9a;
+      --border: rgba(255, 255, 255, 0.08);
+      --glow-primary: 0 0 40px rgba(0, 245, 255, 0.3);
+      --glow-secondary: 0 0 40px rgba(255, 107, 107, 0.3);
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: #f0cffa;
-      color: #1a1a1a;
-      line-height: 1.5;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      cursor: none;
+      min-height: 100vh;
     }
-    .pm {
-      max-width: 600px;
+    h1, h2, h3, h4, h5, h6 { font-family: 'Space Grotesk', sans-serif; }
+
+    /* Custom Paw Cursor */
+    .cursor {
+      width: 40px; height: 40px;
+      position: fixed; pointer-events: none; z-index: 99999;
+      transition: transform 0.1s ease;
+    }
+    .cursor::before {
+      content: '';
+      position: absolute;
+      top: 2px; left: 50%; transform: translateX(-50%);
+      width: 16px; height: 18px; background: rgba(255, 255, 255, 0.9); border-radius: 50% 50% 45% 45%;
+    }
+    .cursor .pad {
+      position: absolute; width: 10px; height: 12px; background: rgba(255, 255, 255, 0.9); border-radius: 50%;
+    }
+    .cursor .pad-1 { top: 14px; left: 2px; transform: rotate(-20deg); }
+    .cursor .pad-2 { top: 8px; left: 15px; }
+    .cursor .pad-3 { top: 14px; right: 2px; transform: rotate(20deg); }
+    .cursor-follower {
+      width: 60px; height: 60px;
+      position: fixed; pointer-events: none; z-index: 99998;
+      transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0.15;
+    }
+    .cursor-follower::before {
+      content: '';
+      position: absolute; top: 2px; left: 50%; transform: translateX(-50%);
+      width: 22px; height: 24px; border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 50% 50% 45% 45%;
+    }
+    .cursor-follower .pad {
+      position: absolute; width: 14px; height: 16px; border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 50%;
+    }
+    .cursor-follower .pad-1 { top: 20px; left: 2px; transform: rotate(-20deg); }
+    .cursor-follower .pad-2 { top: 12px; left: 20px; }
+    .cursor-follower .pad-3 { top: 20px; right: 2px; transform: rotate(20deg); }
+    .cursor.hover { transform: scale(1.3); }
+    .cursor.hover::before, .cursor.hover .pad { background: var(--primary); }
+    .cursor-follower.hover { transform: scale(1.2); opacity: 0.3; }
+    .cursor-follower.hover::before, .cursor-follower.hover .pad { border-color: var(--primary); }
+
+    /* Scroll Progress */
+    .scroll-progress {
+      position: fixed; top: 0; left: 0; height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent), var(--secondary));
+      z-index: 10000; width: 0%; box-shadow: 0 0 20px var(--primary);
+    }
+
+    /* Background Orbs */
+    .bg-orbs {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .orb {
+      position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.4;
+      animation: orbFloat 20s infinite ease-in-out;
+    }
+    .orb-1 { width: 600px; height: 600px; background: var(--primary); top: -200px; left: -200px; animation-delay: 0s; }
+    .orb-2 { width: 500px; height: 500px; background: var(--accent); top: 50%; right: -150px; animation-delay: -5s; }
+    .orb-3 { width: 400px; height: 400px; background: var(--secondary); bottom: -100px; left: 30%; animation-delay: -10s; }
+    .orb-4 { width: 300px; height: 300px; background: #4ade80; top: 30%; left: 60%; animation-delay: -15s; }
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(50px, -30px) scale(1.1); }
+      50% { transform: translate(-30px, 50px) scale(0.9); }
+      75% { transform: translate(20px, 20px) scale(1.05); }
+    }
+
+    /* Navbar */
+    .navbar {
+      position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+      padding: 1rem 3rem; transition: all 0.4s ease;
+      background: rgba(10, 10, 15, 0.8); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1400px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 12px; text-decoration: none;
+    }
+    .logo-icon {
+      width: 45px; height: 45px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; color: var(--bg);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+    .logo:hover .logo-icon { transform: rotate(15deg) scale(1.1); box-shadow: 0 0 30px rgba(0, 245, 255, 0.5); }
+    .logo-text h2 { font-size: 1.5rem; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+    .logo-text span { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      color: var(--text-dim); text-decoration: none; font-size: 0.9rem; font-weight: 500;
+      position: relative; transition: color 0.3s ease; padding: 0.5rem 0;
+    }
+    .nav-links a::after {
+      content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width 0.3s ease; box-shadow: 0 0 10px var(--primary);
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--text); }
+    .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+    .nav-profile { position: relative; }
+    .profile-trigger {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0.4rem 0.8rem 0.4rem 0.4rem;
+      background: var(--bg-glass); border: 1px solid var(--border);
+      border-radius: 50px; cursor: none; transition: all 0.3s ease;
+    }
+    .profile-trigger:hover { border-color: var(--primary); box-shadow: 0 0 20px rgba(0, 245, 255, 0.1); }
+    .profile-avatar-icon {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      color: var(--bg); font-size: 0.9rem;
+    }
+    .profile-name { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+    .profile-dropdown {
+      position: absolute; top: calc(100% + 10px); right: 0;
+      width: 220px; background: var(--bg-glass); border: 1px solid var(--border);
+      border-radius: 16px; backdrop-filter: blur(30px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      padding: 0.8rem 0; opacity: 0; visibility: hidden;
+      transform: translateY(-10px); transition: all 0.3s ease; z-index: 1001;
+    }
+    .profile-dropdown.active { opacity: 1; visibility: visible; transform: translateY(0); }
+    .profile-dropdown a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0.7rem 1.2rem; color: var(--text-dim); text-decoration: none;
+      font-size: 0.85rem; transition: all 0.2s ease;
+    }
+    .profile-dropdown a:hover { color: var(--primary); background: var(--primary-dim); }
+    .profile-dropdown a i { width: 18px; text-align: center; }
+    .profile-divider { height: 1px; background: var(--border); margin: 0.5rem 0; }
+    .profile-login { color: var(--primary) !important; font-weight: 600; }
+    .profile-login:hover { background: var(--primary-dim) !important; }
+    .profile-logout { color: var(--secondary) !important; }
+    .profile-logout:hover { color: var(--secondary) !important; background: rgba(255, 107, 107, 0.1) !important; }
+
+    /* Main Content */
+    .pm-wrap {
+      position: relative; z-index: 10;
+      max-width: 720px;
       margin: 0 auto;
-      padding: 24px 16px;
+      padding: 8rem 1.5rem 4rem;
+      min-height: 100vh;
     }
-    .pm h2 {
+    .pm-header {
       text-align: center;
-      font-size: 22px;
-      font-weight: 600;
-      margin-bottom: 4px;
+      margin-bottom: 2.5rem;
+      animation: fadeInDown 0.8s ease;
     }
-    .pm > p.h {
-      text-align: center;
-      font-size: 14px;
-      color: #6b7280;
-      margin-bottom: 20px;
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
+    .pm-header h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .pm-header > p {
+      color: var(--text-dim);
+      font-size: 1rem;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    /* Dots */
     .dots {
       display: flex;
-      gap: 6px;
+      gap: 8px;
       justify-content: center;
-      margin-bottom: 20px;
+      margin-bottom: 2rem;
     }
     .dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #d1d5db;
-      transition: all 0.3s ease;
+      background: var(--border);
+      transition: all 0.4s ease;
     }
     .dot.a {
-      background: #1a1a1a;
-      width: 24px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      width: 28px;
       border-radius: 4px;
+      box-shadow: 0 0 10px rgba(0, 245, 255, 0.4);
     }
     .dot.d {
-      background: #1a1a1a;
+      background: var(--primary);
+      box-shadow: 0 0 8px rgba(0, 245, 255, 0.3);
     }
+
+    /* Card */
     .card {
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 16px;
-      animation: slideIn 0.35s ease;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2rem;
+      backdrop-filter: blur(20px);
+      animation: slideIn 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     }
     @keyframes slideIn {
-      from { opacity: 0; transform: translateX(16px); }
+      from { opacity: 0; transform: translateX(30px); }
       to   { opacity: 1; transform: translateX(0); }
     }
     .qn {
-      font-size: 11px;
-      color: #9ca3af;
+      font-size: 0.75rem;
+      color: var(--primary);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 6px;
+      letter-spacing: 2px;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
     }
     .qt {
-      font-size: 17px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.4rem;
       font-weight: 600;
-      margin-bottom: 16px;
-      line-height: 1.4;
+      margin-bottom: 1.5rem;
+      line-height: 1.3;
+      color: var(--text);
     }
     .opts {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
     }
     .opt {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 12px 14px;
-      border: 1.5px solid #e5e7eb;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.2s ease;
+      gap: 14px;
+      padding: 14px 18px;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      cursor: none;
+      transition: all 0.3s ease;
       background: transparent;
-      font-size: 14px;
-      color: inherit;
+      font-size: 0.95rem;
+      color: var(--text);
       text-align: left;
       width: 100%;
       font-family: inherit;
+      position: relative;
+      overflow: hidden;
+    }
+    .opt::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--primary-dim), rgba(168, 85, 247, 0.1));
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
     .opt:hover {
-      border-color: #9ca3af;
-      background: #f3f4f6;
+      border-color: rgba(0, 245, 255, 0.3);
+      transform: translateX(4px);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.05);
     }
+    .opt:hover::before { opacity: 1; }
     .opt.sel {
-      border-color: #1a1a1a;
-      background: #f3f4f6;
+      border-color: var(--primary);
+      background: var(--primary-dim);
+      box-shadow: 0 0 25px rgba(0, 245, 255, 0.1);
     }
+    .opt.sel::before { opacity: 1; }
+    .opt > * { position: relative; z-index: 2; }
     .rd {
-      width: 18px;
-      height: 18px;
-      border: 2px solid #d1d5db;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--text-dim);
       border-radius: 50%;
       flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
     }
     .sel .rd {
-      border-color: #1a1a1a;
-      background: #1a1a1a;
+      border-color: var(--primary);
+      background: var(--primary);
+      box-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
     }
     .sel .rd::after {
       content: '';
       width: 6px;
       height: 6px;
-      background: #fff;
+      background: var(--bg);
       border-radius: 50%;
       display: block;
     }
     .cb {
-      width: 18px;
-      height: 18px;
-      border: 2px solid #d1d5db;
-      border-radius: 4px;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--text-dim);
+      border-radius: 5px;
       flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
     }
     .sel .cb {
-      border-color: #1a1a1a;
-      background: #1a1a1a;
+      border-color: var(--primary);
+      background: var(--primary);
+      box-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
     }
     .sel .cb::after {
       content: '';
-      width: 4px;
-      height: 8px;
-      border: solid #fff;
+      width: 5px;
+      height: 9px;
+      border: solid var(--bg);
       border-width: 0 2px 2px 0;
       transform: rotate(45deg);
       margin-bottom: 1px;
       display: block;
     }
+    .opt-label {
+      font-weight: 500;
+      display: block;
+    }
+    .opt-desc {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-top: 2px;
+      display: block;
+    }
+
     .btns {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 16px;
+      margin-top: 1.5rem;
     }
     .btn {
-      padding: 9px 20px;
-      border-radius: 10px;
-      font-size: 14px;
+      padding: 0.8rem 1.8rem;
+      border-radius: 50px;
+      font-size: 0.9rem;
       font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
+      cursor: none;
+      transition: all 0.3s ease;
       border: none;
       font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
     .btn-p {
-      background: #1a1a1a;
-      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: var(--bg);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
     }
-    .btn-p:hover { opacity: 0.85; }
+    .btn-p:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(0, 245, 255, 0.4);
+    }
     .btn-p:disabled {
-      opacity: 0.35;
+      opacity: 0.3;
       cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
     }
     .btn-g {
       background: transparent;
-      color: #6b7280;
-      border: 1px solid #e5e7eb;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
     }
-    .btn-g:hover { background: #f3f4f6; }
+    .btn-g:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-dim);
+    }
+
     .tgrid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 6px;
+      gap: 8px;
     }
     .tgrid .opt {
-      padding: 9px 10px;
-      font-size: 13px;
+      padding: 10px 12px;
+      font-size: 0.85rem;
     }
     .hint {
-      font-size: 12px;
-      color: #9ca3af;
-      margin-top: 10px;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-top: 12px;
       text-align: center;
     }
+
+    /* Results */
     .res {
-      animation: fadeIn 0.5s ease;
+      animation: fadeIn 0.6s ease;
     }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(20px); }
       to   { opacity: 1; transform: translateY(0); }
     }
     .rh {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 2rem;
     }
     .rh h3 {
-      font-size: 20px;
-      font-weight: 600;
-      margin-bottom: 4px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
     .rh p {
-      font-size: 14px;
-      color: #6b7280;
+      font-size: 0.95rem;
+      color: var(--text-dim);
     }
     .mc {
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 10px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 12px;
       display: flex;
-      gap: 14px;
+      gap: 16px;
       align-items: flex-start;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
     }
     .mc:hover {
-      border-color: #9ca3af;
-      background: #fafafa;
+      border-color: rgba(0, 245, 255, 0.2);
+      transform: translateX(5px);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
     }
     .rk {
-      width: 32px;
-      height: 32px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 0.85rem;
+      font-weight: 700;
       flex-shrink: 0;
-      margin-top: 1px;
+      margin-top: 2px;
+      font-family: 'Space Grotesk', sans-serif;
     }
     .g1 {
-      background: #fef3c7;
-      color: #d97706;
-      border: 1.5px solid #f59e0b;
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(251, 191, 36, 0.05));
+      color: #fbbf24;
+      border: 1.5px solid rgba(251, 191, 36, 0.4);
+      box-shadow: 0 0 15px rgba(251, 191, 36, 0.15);
     }
     .g2 {
-      background: #f3f4f6;
-      color: #4b5563;
-      border: 1.5px solid #9ca3af;
+      background: linear-gradient(135deg, rgba(148, 163, 184, 0.2), rgba(148, 163, 184, 0.05));
+      color: #94a3b8;
+      border: 1.5px solid rgba(148, 163, 184, 0.4);
     }
     .g3 {
-      background: #fee2e2;
-      color: #dc2626;
-      border: 1.5px solid #ef4444;
+      background: linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(251, 146, 60, 0.05));
+      color: #fb923c;
+      border: 1.5px solid rgba(251, 146, 60, 0.4);
     }
     .gx {
-      background: #f3f4f6;
-      color: #9ca3af;
-      border: 1.5px solid #d1d5db;
+      background: var(--bg-card);
+      color: var(--text-dim);
+      border: 1.5px solid var(--border);
     }
     .inf { flex: 1; }
     .pn {
-      font-size: 15px;
+      font-size: 1.05rem;
       font-weight: 600;
-      margin-bottom: 2px;
+      margin-bottom: 3px;
+      color: var(--text);
     }
     .pb {
-      font-size: 12px;
-      color: #6b7280;
-      margin-bottom: 6px;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-bottom: 8px;
     }
     .tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 5px;
+      gap: 6px;
     }
     .tag {
-      font-size: 10px;
-      padding: 2px 7px;
-      border-radius: 5px;
-      background: #f3f4f6;
-      color: #6b7280;
+      font-size: 0.7rem;
+      padding: 3px 10px;
+      border-radius: 50px;
+      background: var(--primary-dim);
+      color: var(--primary);
+      border: 1px solid rgba(0, 245, 255, 0.15);
+      font-weight: 500;
     }
     .sc {
       text-align: right;
       flex-shrink: 0;
     }
     .sn {
-      font-size: 22px;
-      font-weight: 600;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
       line-height: 1;
       font-variant-numeric: tabular-nums;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
     .sl {
-      font-size: 11px;
-      color: #9ca3af;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      margin-top: 2px;
     }
     .bar {
       width: 50px;
-      height: 3px;
-      background: #e5e7eb;
+      height: 4px;
+      background: var(--border);
       border-radius: 2px;
-      margin-top: 6px;
+      margin-top: 8px;
       overflow: hidden;
     }
     .bf {
       height: 100%;
       border-radius: 2px;
-      background: #1a1a1a;
-      transition: width 0.6s ease;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+      box-shadow: 0 0 10px rgba(0, 245, 255, 0.3);
     }
     .rst {
       display: block;
-      margin: 20px auto 0;
-      padding: 9px 24px;
-      border-radius: 10px;
-      font-size: 14px;
+      margin: 2rem auto 0;
+      padding: 0.9rem 2rem;
+      border-radius: 50px;
+      font-size: 0.9rem;
       font-weight: 600;
-      cursor: pointer;
-      background: #1a1a1a;
-      color: #fff;
+      cursor: none;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: var(--bg);
       border: none;
       font-family: inherit;
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
+      transition: all 0.3s ease;
     }
-    .rst:hover { opacity: 0.85; }
+    .rst:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(0, 245, 255, 0.4);
+    }
+
+    /* Footer */
+    footer {
+      background: var(--bg-light);
+      border-top: 1px solid var(--border);
+      padding: 3rem 3rem 1.5rem;
+      position: relative;
+      z-index: 10;
+    }
+    .footer-grid {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 4rem;
+      margin-bottom: 2rem;
+    }
+    .footer-brand h3 {
+      font-size: 1.3rem;
+      margin-bottom: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .footer-brand h3 i { color: var(--primary); }
+    .footer-brand > p {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      line-height: 1.7;
+      margin-bottom: 1.2rem;
+    }
+    .footer-newsletter { display: flex; gap: 0.5rem; }
+    .footer-newsletter input {
+      flex: 1;
+      padding: 0.7rem 1rem;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      color: var(--text);
+      font-size: 0.8rem;
+      outline: none;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+    .footer-newsletter input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
+    }
+    .footer-newsletter button {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border: none;
+      color: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: none;
+      transition: all 0.3s ease;
+    }
+    .footer-newsletter button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+    }
+    .footer-col h4 {
+      font-size: 0.95rem;
+      margin-bottom: 1.2rem;
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .footer-col a {
+      display: block;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.85rem;
+      margin-bottom: 0.7rem;
+      transition: all 0.3s ease;
+    }
+    .footer-col a:hover {
+      color: var(--primary);
+      transform: translateX(5px);
+    }
+    .socials { display: flex; gap: 0.8rem; }
+    .socials a {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: all 0.3s ease;
+      font-size: 0.85rem;
+    }
+    .socials a:hover {
+      background: var(--primary-dim);
+      border-color: var(--primary);
+      color: var(--primary);
+      transform: translateY(-3px);
+      box-shadow: 0 0 15px rgba(0, 245, 255, 0.2);
+    }
+    .footer-bottom {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+    }
+    .footer-bottom i { color: var(--secondary); }
+
+    /* Chat Widget */
+    .chat-widget { position: fixed; bottom: 2rem; right: 2rem; z-index: 1000; }
+    .chat-launcher {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border: none;
+      color: var(--bg);
+      font-size: 1.3rem;
+      cursor: none;
+      position: relative;
+      box-shadow: 0 0 25px rgba(0, 245, 255, 0.4);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .chat-launcher:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 35px rgba(0, 245, 255, 0.6);
+    }
+    .chat-launcher::before {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 2px solid var(--primary);
+      animation: chatPulse 2s infinite;
+    }
+    @keyframes chatPulse {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+    .chat-panel {
+      position: absolute;
+      bottom: 72px;
+      right: 0;
+      width: 360px;
+      height: 460px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      backdrop-filter: blur(30px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .chat-panel.active { display: flex; }
+    .chat-header {
+      padding: 1rem;
+      background: var(--primary-dim);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .chat-header-info { display: flex; align-items: center; gap: 10px; }
+    .chat-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--bg);
+      font-size: 0.9rem;
+    }
+    .chat-header-info div strong { display: block; font-size: 0.85rem; }
+    .chat-header-info div span { font-size: 0.7rem; color: var(--text-dim); }
+    .chat-close {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 1.4rem;
+      cursor: none;
+      transition: color 0.3s ease;
+    }
+    .chat-close:hover { color: var(--secondary); }
+    .chat-messages {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+    .chat-message { display: flex; gap: 8px; align-items: flex-start; }
+    .chat-message.user { flex-direction: row-reverse; }
+    .chat-bubble {
+      max-width: 75%;
+      padding: 0.7rem 0.9rem;
+      border-radius: 14px;
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+    .chat-message.bot .chat-bubble {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-top-left-radius: 4px;
+    }
+    .chat-message.user .chat-bubble {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: var(--bg);
+      border-top-right-radius: 4px;
+    }
+    .chat-quick {
+      padding: 0 1rem 0.8rem;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .chat-quick button {
+      padding: 0.4rem 0.8rem;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      color: var(--text-dim);
+      font-size: 0.7rem;
+      cursor: none;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+    .chat-quick button:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .chat-input {
+      padding: 0.8rem 1rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 0.5rem;
+    }
+    .chat-input input {
+      flex: 1;
+      padding: 0.7rem 1rem;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      color: var(--text);
+      font-size: 0.8rem;
+      outline: none;
+      font-family: inherit;
+    }
+    .chat-input input:focus { border-color: var(--primary); }
+    .chat-input button {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border: none;
+      color: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: none;
+      transition: all 0.3s ease;
+    }
+    .chat-input button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 15px rgba(0, 245, 255, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .pm-wrap { padding: 7rem 1rem 3rem; }
+      .tgrid { grid-template-columns: 1fr; }
+      .card { padding: 1.5rem; }
+      .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .chat-panel { width: calc(100vw - 2rem); right: -1rem; }
+      .cursor, .cursor-follower { display: none; }
+      body { cursor: auto; }
+      .opt, .btn, .profile-trigger, .chat-launcher, .chat-close, .chat-input button, .chat-quick button, .footer-newsletter button, .socials a { cursor: pointer; }
+    }
   </style>
+<base target="_blank">
 </head>
 <body>
-  <div class="pm" id="R">
-    <div class="pm">
-      <h2>Find Your Perfect Companion</h2>
-    
+
+<div class="cursor" id="cursor">
+  <div class="pad pad-1"></div>
+  <div class="pad pad-2"></div>
+  <div class="pad pad-3"></div>
+</div>
+<div class="cursor-follower" id="cursorFollower">
+  <div class="pad pad-1"></div>
+  <div class="pad pad-2"></div>
+  <div class="pad pad-3"></div>
+</div>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+</div>
+
+<nav class="navbar" id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="logo">
+      <div class="logo-icon"><i class="fa-solid fa-paw"></i></div>
+      <div class="logo-text">
+        <h2>TailMates</h2>
+        <span>Every Paw Deserves Home</span>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="Adopt.html">Adopt</a></li>
+      <li><a href="PawMate.html" class="active">PawMate AI</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="shop.html">Shop</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="register.html">Register a Pet</a></li>
+    </ul>
+    <div class="nav-profile" id="navProfile">
+      <div class="profile-trigger" id="profileTrigger">
+        <div class="profile-avatar-icon"><i class="fa-solid fa-user"></i></div>
+        <span class="profile-name">Profile</span>
+        <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; color: var(--text-dim);"></i>
+      </div>
+      <div class="profile-dropdown" id="profileDropdown">
+        <div id="profileDropdownLoggedOut">
+          <div style="padding: 0.7rem 1.2rem; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
+            <i class="fa-solid fa-user" style="margin-right: 6px;"></i> Account
+          </div>
+          <div class="profile-divider"></div>
+          <a href="login.html" class="profile-login"><i class="fa-solid fa-right-to-bracket"></i> Log In</a>
+          <a href="createacc.html" class="profile-login" style="color: var(--accent) !important;"><i class="fa-solid fa-user-plus"></i> Create Account</a>
+        </div>
+        <div id="profileDropdownLoggedIn" style="display: none;">
+          <div style="padding: 0.7rem 1.2rem; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
+            <i class="fa-solid fa-user" style="margin-right: 6px;"></i> Profile
+          </div>
+          <div class="profile-divider"></div>
+          <a href="#"><i class="fa-regular fa-user"></i> My Profile</a>
+          <a href="#"><i class="fa-solid fa-heart"></i> Saved Pets</a>
+          <a href="#"><i class="fa-solid fa-clipboard-list"></i> My Applications</a>
+          <a href="#"><i class="fa-solid fa-paw"></i> My Registered Pets</a>
+          <a href="#"><i class="fa-solid fa-gear"></i> Settings</a>
+          <div class="profile-divider"></div>
+          <a href="#" class="profile-logout"><i class="fa-solid fa-right-from-bracket"></i> Log Out</a>
+        </div>
+      </div>
     </div>
-    <div class="dots" id="D"></div>
-    <div id="C"></div>
   </div>
+</nav>
 
-  <script>
-    // Compact dataset: [id, name, species, breed, weight_kg, lifespan_yrs, care_level, monthly_cost, exercise, grooming, good_with_kids, good_with_other_pets, temperament]
-    // Levels: L=Low, M=Medium, H=High
-    const P = [
-      [1,"Whiskers","Cat","Siamese",4.2,15,"L",3780,"L","L",1,1,"Vocal, Affectionate, Intelligent"],
-      [2,"Luna","Cat","Persian",3.8,12,"M",4620,"L","H",1,1,"Calm, Gentle, Regal"],
-      [3,"Simba","Cat","Maine Coon",6.5,13,"M",4200,"L","H",1,1,"Gentle Giant, Friendly, Playful"],
-      [4,"Milo","Cat","Bengal",5,14,"M",4032,"L","L",1,1,"Active, Curious, Vocal"],
-      [5,"Oliver","Cat","Ragdoll",5.5,15,"L",4368,"L","M",1,1,"Relaxed, Affectionate, Docile"],
-      [6,"Leo","Cat","British Shorthair",5,14,"L",3864,"L","L",1,1,"Easygoing, Loyal, Quiet"],
-      [7,"Shadow","Cat","Bombay",4,15,"L",3696,"L","L",1,1,"Playful, Affectionate, Social"],
-      [8,"Bella","Cat","Sphynx",3.5,12,"H",4872,"L","H",1,1,"Energetic, Friendly, Clingy"],
-      [9,"Loki","Cat","Scottish Fold",4.5,14,"M",3948,"L","M",1,1,"Sweet, Quiet, Adaptable"],
-      [10,"Nala","Cat","Abyssinian",4,14,"M",4116,"L","L",1,1,"Active, Intelligent, Playful"],
-      [11,"Jasper","Cat","Russian Blue",4,15,"L",3780,"L","L",1,1,"Shy, Loyal, Gentle"],
-      [12,"Cleo","Cat","Birman",4.5,14,"L",4200,"L","M",1,1,"Gentle, Social, Quiet"],
-      [13,"Felix","Cat","American Shorthair",4.5,15,"L",3528,"L","L",1,1,"Easygoing, Friendly, Independent"],
-      [14,"Chloe","Cat","Norwegian Forest",5.5,14,"M",4284,"L","H",1,1,"Independent, Adventurous, Friendly"],
-      [15,"Tiger","Cat","Tabby (Domestic)",4.5,15,"L",2940,"L","L",1,1,"Friendly, Active, Adaptable"],
-      [16,"Lily","Cat","Turkish Angora",4,14,"M",4032,"L","M",1,1,"Intelligent, Playful, Affectionate"],
-      [17,"Oreo","Cat","Tuxedo (Domestic)",4.5,15,"L",2940,"L","L",1,1,"Social, Playful, Vocal"],
-      [18,"Misty","Cat","Himalayan",4.5,12,"M",4536,"L","H",1,1,"Calm, Affectionate, Quiet"],
-      [19,"Smokey","Cat","Chartreux",4.5,14,"L",3948,"L","L",1,1,"Quiet, Intelligent, Loyal"],
-      [20,"Ginger","Cat","Exotic Shorthair",4,12,"M",4452,"L","M",1,1,"Sweet, Calm, Playful"],
-      [21,"Coco","Cat","Devon Rex",3,12,"M",4200,"L","L",1,1,"Mischievous, Loyal, Active"],
-      [22,"Pumpkin","Cat","Manx",4.5,14,"L",3864,"L","L",1,1,"Playful, Loyal, Hunter"],
-      [23,"Snowball","Cat","Turkish Van",5,14,"M",4116,"L","M",1,1,"Active, Intelligent, Independent"],
-      [24,"Pepper","Cat","Cornish Rex",3,12,"M",4284,"L","L",1,1,"Playful, Affectionate, Curious"],
-      [25,"Muffin","Cat","Singapura",2.5,14,"L",4032,"L","L",1,1,"Active, Affectionate, Playful"],
-      [26,"Whiskey","Cat","Somali",4,14,"M",4200,"L","M",1,1,"Active, Social, Intelligent"],
-      [27,"Daisy","Cat","Burmese",4,15,"L",3948,"L","L",1,1,"Social, Vocal, Affectionate"],
-      [28,"Mochi","Cat","Japanese Bobtail",3.5,14,"L",3864,"L","L",1,1,"Active, Friendly, Intelligent"],
-      [29,"Salem","Cat","Oriental Shorthair",4,14,"M",4116,"L","L",1,1,"Vocal, Intelligent, Social"],
-      [30,"Pixie","Cat","LaPerm",3.5,13,"L",4032,"L","L",1,1,"Affectionate, Active, Curly Coat"],
-      [31,"Ash","Cat","Korat",3.5,15,"L",3948,"L","L",1,1,"Loyal, Quiet, Intelligent"],
-      [32,"Buddy","Dog","Golden Retriever",28.5,12,"M",7140,"H","H",1,1,"Friendly, Loyal, Patient"],
-      [33,"Max","Dog","Labrador Retriever",30,12,"M",6720,"H","M",1,1,"Outgoing, Even-tempered, Gentle"],
-      [34,"Bella","Dog","Beagle",10.5,13,"M",5040,"H","L",1,1,"Curious, Merry, Friendly"],
-      [35,"Rocky","Dog","German Shepherd",32,11,"H",7560,"H","M",1,1,"Confident, Courageous, Smart"],
-      [36,"Charlie","Dog","Poodle (Standard)",22,13,"M",6300,"H","H",1,1,"Intelligent, Active, Alert"],
-      [37,"Cooper","Dog","Bulldog",23,9,"H",5880,"H","L",1,1,"Docile, Willful, Friendly"],
-      [38,"Daisy","Dog","Pomeranian",2.5,14,"M",4620,"H","H",1,1,"Playful, Intelligent, Friendly"],
-      [39,"Bailey","Dog","Rottweiler",45,10,"H",7392,"H","L",1,1,"Loyal, Confident, Courageous"],
-      [40,"Luna","Dog","Yorkshire Terrier",3,14,"M",4872,"H","H",1,1,"Sprightly, Affectionate, Intelligent"],
-      [41,"Teddy","Dog","Shih Tzu",5.5,13,"M",5208,"H","H",1,1,"Affectionate, Playful, Outgoing"],
-      [42,"Milo","Dog","Boxer",28,11,"M",6552,"H","L",1,1,"Fun-loving, Bright, Active"],
-      [43,"Lucy","Dog","Dachshund",8,13,"M",4872,"H","L",1,1,"Clever, Stubborn, Devoted"],
-      [44,"Jack","Dog","Siberian Husky",25,12,"H",6888,"H","M",1,1,"Outgoing, Mischievous, Loyal"],
-      [45,"Lola","Dog","Chihuahua",2,16,"L",4200,"H","L",1,1,"Graceful, Charming, Sassy"],
-      [46,"Bear","Dog","Great Dane",60,8,"H",7980,"H","L",1,1,"Friendly, Patient, Dependable"],
-      [47,"Duke","Dog","Doberman Pinscher",35,11,"H",7140,"H","L",1,1,"Alert, Fearless, Loyal"],
-      [48,"Sadie","Dog","Cocker Spaniel",12,13,"M",5712,"H","H",1,1,"Gentle, Smart, Happy"],
-      [49,"Tucker","Dog","Australian Shepherd",22,13,"H",6720,"H","M",1,1,"Smart, Work-oriented, Exuberant"],
-      [50,"Maggie","Dog","Pug",7.5,13,"M",4620,"H","L",1,1,"Charming, Mischievous, Loving"],
-      [51,"Oliver","Dog","Corgi (Pembroke)",11,12,"M",5460,"H","M",1,1,"Affectionate, Smart, Alert"],
-      [52,"Rex","Dog","Dalmatian",25,12,"H",6048,"H","L",1,1,"Outgoing, Dignified, Intelligent"],
-      [53,"Zoe","Dog","Maltese",3,14,"M",5040,"H","H",1,1,"Gentle, Playful, Charming"],
-      [54,"Buster","Dog","Saint Bernard",70,9,"H",7728,"H","H",1,1,"Gentle, Watchful, Friendly"],
-      [55,"Ruby","Dog","Shetland Sheepdog",7,13,"M",5460,"H","H",1,1,"Playful, Intelligent, Loyal"],
-      [56,"Oscar","Dog","Basset Hound",25,12,"M",5208,"H","L",1,1,"Charming, Patient, Low-key"],
-      [57,"Penny","Dog","French Bulldog",11,11,"H",6300,"H","L",1,1,"Playful, Smart, Adaptable"],
-      [58,"Bruno","Dog","Bernese Mountain Dog",45,8,"H",7392,"H","H",1,1,"Good-natured, Calm, Strong"],
-      [59,"Rosie","Dog","Bichon Frise",4.5,14,"M",5208,"H","H",1,1,"Playful, Curious, Peppy"],
-      [60,"Scout","Dog","Border Collie",18,13,"H",6552,"H","M",1,1,"Energetic, Smart, Tenacious"],
-      [61,"Molly","Dog","Schnauzer (Miniature)",6,14,"M",5376,"H","H",1,1,"Friendly, Smart, Obedient"],
-      [62,"Diesel","Dog","Great Pyrenees",50,10,"H",7560,"H","H",1,1,"Patient, Calm, Smart"],
-      [63,"Coco","Dog","Cavalier King Charles Spaniel",6.5,12,"M",5712,"H","M",1,1,"Affectionate, Graceful, Gentle"],
-      [64,"Hunter","Dog","Weimaraner",28,11,"H",6888,"H","L",1,1,"Friendly, Fearless, Obedient"],
-      [65,"Lily","Dog","Shiba Inu",9,13,"M",5880,"H","M",1,1,"Alert, Active, Attentive"],
-      [66,"Thor","Dog","Akita",40,11,"H",7224,"H","M",1,1,"Courageous, Dignified, Loyal"],
-      [67,"Pepper","Dog","Whippet",14,13,"M",5460,"H","L",1,1,"Affectionate, Gentle, Lively"],
-      [68,"King","Dog","Indian Pariah Dog",18,14,"L",2940,"H","L",1,1,"Alert, Social, Intelligent"],
-      [69,"Raja","Dog","Rajapalayam",25,12,"M",4620,"H","L",1,1,"Loyal, Independent, Courageous"],
-      [70,"Champ","Dog","Mudhol Hound",22,12,"M",4200,"H","L",1,1,"Elegant, Reserved, Loyal"],
-      [71,"Sheru","Dog","Indian Spitz",10,13,"L",3360,"H","M",1,1,"Loyal, Active, Intelligent"],
-      [72,"Tiger","Dog","Kanni",20,12,"M",4032,"H","L",1,1,"Loyal, Reserved, Agile"],
-      [73,"Komban","Dog","Kombai",24,12,"M",4368,"H","L",1,1,"Loyal, Courageous, Protective"],
-      [74,"Bhairav","Dog","Bully Kutta",55,10,"H",6300,"H","L",1,1,"Powerful, Alert, Dominant"],
-      [75,"Leo","Dog","Chippiparai",20,13,"M",3780,"H","L",1,1,"Loyal, Reserved, Hunter"],
-      [76,"Sultan","Dog","Rampur Greyhound",24,12,"M",4620,"H","L",1,1,"Elegant, Reserved, Fast"],
-      [77,"Rani","Dog","Pashmi Hound",18,12,"M",4200,"H","L",1,1,"Graceful, Loyal, Hunter"],
-      [78,"Bruno","Dog","Gaddi Kutta",45,11,"H",5880,"H","M",1,1,"Fearless, Loyal, Protective"],
-      [79,"Shadow","Dog","Jonangi",16,13,"L",3528,"H","L",1,1,"Loyal, Active, Reserved"],
-      [80,"Bholu","Dog","Bakharwal Dog",35,11,"H",5040,"H","H",1,1,"Loyal, Protective, Hardy"],
-      [81,"Dholu","Dog","Kumaon Mastiff",40,10,"H",5460,"H","L",1,1,"Powerful, Loyal, Courageous"],
-      [82,"Shera","Dog","Himalayan Sheepdog",38,11,"H",5712,"H","H",1,1,"Loyal, Hardy, Protective"],
-      [83,"Rambo","Dog","Alangu Mastiff",50,10,"H",6048,"H","L",1,1,"Powerful, Alert, Dominant"],
-      [84,"Tara","Dog","Pandikona",20,13,"L",3192,"H","L",1,1,"Loyal, Independent, Hunter"],
-      [85,"Moti","Dog","Indian Mastiff",48,10,"H",5880,"H","L",1,1,"Powerful, Loyal, Courageous"],
-      [86,"Nibbles","Hamster","Syrian (Teddy Bear)",0.12,2.5,"L",1260,"L","L",1,0,"Nocturnal, Gentle, Active"],
-      [87,"Pip","Hamster","Dwarf Campbell's Russian",0.04,2,"L",1176,"L","L",1,0,"Active, Social, Nippy"],
-      [88,"Snow","Hamster","Dwarf Winter White Russian",0.04,2,"L",1260,"L","L",1,0,"Friendly, Active, Seasonal"],
-      [89,"Flash","Hamster","Roborovski",0.025,3,"L",1344,"L","L",1,0,"Hyperactive, Shy, Fast"],
-      [90,"Mochi","Hamster","Chinese (Striped)",0.035,2.5,"L",1260,"L","L",1,0,"Gentle, Shy, Climber"],
-      [91,"Hazel","Hamster","European",0.1,2,"L",1512,"L","L",1,0,"Wild, Active, Solitary"],
-      [92,"Cotton","Rabbit","Holland Lop",1.8,10,"M",2520,"M","M",1,1,"Gentle, Social, Playful"],
-      [93,"Thumper","Rabbit","Mini Lop",2.2,10,"M",2688,"M","M",1,1,"Affectionate, Playful, Calm"],
-      [94,"Tiny","Rabbit","Netherland Dwarf",0.9,10,"M",2940,"M","L",1,1,"Energetic, Shy, Intelligent"],
-      [95,"Fluffy","Rabbit","Lionhead",1.3,9,"M",2772,"M","H",1,1,"Friendly, Docile, Social"],
-      [96,"Goliath","Rabbit","Flemish Giant",7,9,"M",3780,"M","M",1,1,"Gentle Giant, Laid-back, Friendly"],
-      [97,"Velvet","Rabbit","Rex (Mini)",1.6,10,"M",2856,"M","L",1,1,"Curious, Intelligent, Playful"],
-      [98,"Cloud","Rabbit","English Angora",2.5,10,"H",3360,"M","H",1,1,"Gentle, Calm, High-maintenance"],
-      [99,"Oreo","Rabbit","Dutch",1.8,10,"M",2520,"M","L",1,1,"Sociable, Calm, Intelligent"],
-      [100,"Spike","Hedgehog","African Pygmy",0.35,5,"M",2100,"L","L",0,0,"Shy, Curious, Quiet"],
-      [101,"Sahara","Hedgehog","Algerian",0.4,5,"M",2352,"L","L",0,0,"Active, Friendly, Explorer"],
-      [102,"Echo","Hedgehog","Egyptian Long-eared",0.3,6,"M",2520,"L","L",0,0,"Nocturnal, Shy, Insect-loving"],
-      [103,"Indy","Hedgehog","Indian Long-eared",0.25,5,"M",2184,"L","L",0,0,"Solitary, Alert, Fast"],
-      [104,"Thorn","Hedgehog","European",0.8,5,"M",2688,"L","L",0,0,"Wild, Active, Forager"],
-      [105,"Karma","Chameleon","Veiled (Yemen)",0.09,7,"H",3360,"L","L",0,0,"Solitary, Territorial, Slow-moving"],
-      [106,"Rainbow","Chameleon","Panther",0.15,7,"H",4620,"L","L",0,0,"Colorful, Active, Shy"],
-      [107,"Trihorn","Chameleon","Jackson's (Three-horned)",0.08,8,"H",4200,"L","L",0,0,"Slow, Deliberate, Arboreal"],
-      [108,"Camo","Chameleon","Carpet (Jeweled)",0.25,6,"H",4032,"L","L",0,0,"Aggressive, Colorful, Arboreal"],
-      [109,"Giant","Chameleon","Meller's (Giant One-horned)",0.4,8,"H",5040,"L","L",0,0,"Gentle, Slow, Arboreal"],
-      [110,"Pebble","Chameleon","Pygmy (Spectral)",0.02,3,"H",3192,"L","L",0,0,"Tiny, Active, Shy"]
-    ];
+<div class="pm-wrap" id="R">
+  <div class="pm-header">
+    <h2><i class="fa-solid fa-wand-magic-sparkles" style="margin-right: 10px;"></i>Find Your Perfect Companion</h2>
+    <p>Answer a few questions and let our AI match you with the ideal pet for your lifestyle.</p>
+  </div>
+  <div class="dots" id="D"></div>
+  <div id="C"></div>
+</div>
 
-    // 10 Questions
-    const Q = [
-      { id: 'sp', t: 'What type of pet are you looking for?', type: 's',
-        opts: [
-          { v: 'Cat', l: 'Cat', d: 'Independent, affectionate companions' },
-          { v: 'Dog', l: 'Dog', d: 'Loyal, active family members' },
-          { v: 'Hamster', l: 'Hamster', d: 'Small, low-maintenance pets' },
-          { v: 'Rabbit', l: 'Rabbit', d: 'Gentle, social fluffballs' },
-          { v: 'Hedgehog', l: 'Hedgehog', d: 'Unique, quiet nocturnal friends' },
-          { v: 'Chameleon', l: 'Chameleon', d: 'Fascinating, observational pets' }
-        ]
-      },
-      { id: 'ki', t: 'Do you have children at home?', type: 's',
-        opts: [
-          { v: 'yes', l: 'Yes, I have children', d: 'Need a gentle, kid-friendly pet' },
-          { v: 'no', l: 'No children at home', d: 'Open to all temperament types' }
-        ]
-      },
-      { id: 'op', t: 'Do you have other pets at home?', type: 's',
-        opts: [
-          { v: 'yes', l: 'Yes, other pets present', d: 'Needs to get along with others' },
-          { v: 'no', l: 'No other pets', d: 'This will be the only pet' }
-        ]
-      },
-      { id: 'cl', t: 'How much time for daily pet care?', type: 's',
-        opts: [
-          { v: 'L', l: 'Minimal (1-2 hrs/week)', d: 'Basic feeding, occasional attention' },
-          { v: 'M', l: 'Moderate (~1 hr/day)', d: 'Regular interaction, basic grooming' },
-          { v: 'H', l: 'Extensive (2+ hrs/day)', d: 'Training, complex care routines' }
-        ]
-      },
-      { id: 'bu', t: 'What is your monthly budget?', type: 's',
-        opts: [
-          { v: 2000, l: 'Under ₹2,000', d: 'Basic care essentials' },
-          { v: 4000, l: '₹2,000 - ₹4,000', d: 'Standard care with extras' },
-          { v: 6000, l: '₹4,000 - ₹6,000', d: 'Quality food, regular vet visits' },
-          { v: 8000, l: '₹6,000 - ₹8,000', d: 'Premium care and grooming' },
-          { v: 10000, l: '₹8,000+', d: 'No budget constraints' }
-        ]
-      },
-      { id: 'ex', t: 'How active is your lifestyle?', type: 's',
-        opts: [
-          { v: 'L', l: 'Relaxed & homebody', d: 'Quiet time at home' },
-          { v: 'M', l: 'Moderately active', d: 'Daily walks, some outdoor time' },
-          { v: 'H', l: 'Very active & outdoorsy', d: 'Running, hiking, lots of exercise' }
-        ]
-      },
-      { id: 'gr', t: 'How much time for grooming?', type: 's',
-        opts: [
-          { v: 'L', l: 'Minimal grooming', d: 'Occasional brushing' },
-          { v: 'M', l: 'Weekly grooming', d: 'Regular brushing, basic maintenance' },
-          { v: 'H', l: 'Daily grooming routine', d: 'Willing to invest in coat care' }
-        ]
-      },
-      { id: 'sz', t: 'What size pet do you prefer?', type: 's',
-        opts: [
-          { v: 'tiny', l: 'Tiny (under 1 kg)', d: 'Hamsters, small reptiles' },
-          { v: 'small', l: 'Small (1-10 kg)', d: 'Cats, small dogs, rabbits' },
-          { v: 'medium', l: 'Medium (10-30 kg)', d: 'Medium dog breeds' },
-          { v: 'large', l: 'Large (30+ kg)', d: 'Big dogs, giant breeds' }
-        ]
-      },
-      { id: 'tp', t: 'Which personality traits appeal to you?', type: 'm',
-        opts: ['Affectionate','Playful','Gentle','Intelligent','Active','Loyal','Calm','Social','Quiet','Friendly','Curious','Independent','Energetic','Shy','Outgoing'].map(x => ({ v: x, l: x }))
-      },
-      { id: 'lf', t: 'How long-term is your commitment?', type: 's',
-        opts: [
-          { v: 'short', l: 'Short-term (2-5 years)', d: 'Testing the waters' },
-          { v: 'medium', l: 'Medium-term (5-10 years)', d: 'A significant chapter' },
-          { v: 'long', l: 'Long-term (10-16 years)', d: 'A lifetime companion' }
-        ]
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <h3><i class="fa-solid fa-paw"></i> TailMates</h3>
+      <p>Connecting loving families with rescued companions. Every paw deserves a forever home.</p>
+      <div class="footer-newsletter">
+        <input type="email" placeholder="Enter your email">
+        <button><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="index.html">Home</a>
+      <a href="Adopt.html">Adopt</a>
+      <a href="PawMate.html">PawMate AI</a>
+      <a href="services.html">Services</a>
+      <a href="shop.html">Shop</a>
+    </div>
+    <div class="footer-col">
+      <h4>Support</h4>
+      <a href="#">Help Center</a>
+      <a href="#">Contact Us</a>
+      <a href="#">FAQ</a>
+      <a href="#">Privacy Policy</a>
+    </div>
+    <div class="footer-col">
+      <h4>Follow Us</h4>
+      <div class="socials">
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-x-twitter"></i></a>
+        <a href="#"><i class="fab fa-youtube"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <i class="fa-solid fa-paw"></i> &copy; 2026 TailMates — Designed with <i class="fa-solid fa-heart"></i> for every rescued companion. <i class="fa-solid fa-paw"></i>
+  </div>
+</footer>
+
+<div class="chat-widget">
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="chat-avatar"><i class="fa-solid fa-paw"></i></div>
+        <div>
+          <strong>TailBot</strong>
+          <span>TailMates companion assistant</span>
+        </div>
+      </div>
+      <button class="chat-close" id="chatClose">&times;</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-message bot">
+        <div class="chat-bubble">Hey there! I'm TailBot. I can help you discover pets, understand adoption, or find a companion that fits your lifestyle!</div>
+      </div>
+    </div>
+    <div class="chat-quick">
+      <button data-message="Show me dogs">Dogs</button>
+      <button data-message="Show me cats">Cats</button>
+      <button data-message="Help me find my match">Match Me</button>
+    </div>
+    <form class="chat-input" id="chatForm">
+      <input id="chatInput" type="text" autocomplete="off" placeholder="Ask TailBot anything...">
+      <button type="submit"><i class="fa-solid fa-arrow-up"></i></button>
+    </form>
+  </div>
+  <button class="chat-launcher" id="chatLauncher">
+    <i class="fa-solid fa-paw"></i>
+  </button>
+</div>
+
+<script>
+
+  // ===================== CURSOR =====================
+  const cursor = document.getElementById('cursor');
+  const cursorFollower = document.getElementById('cursorFollower');
+  let mouseX = 0, mouseY = 0, followerX = 0, followerY = 0;
+
+  document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    cursor.style.left = mouseX - 6 + 'px';
+    cursor.style.top = mouseY - 6 + 'px';
+  });
+
+  function animateFollower() {
+    followerX += (mouseX - followerX) * 0.1;
+    followerY += (mouseY - followerY) * 0.1;
+    cursorFollower.style.left = followerX - 20 + 'px';
+    cursorFollower.style.top = followerY - 20 + 'px';
+    requestAnimationFrame(animateFollower);
+  }
+  animateFollower();
+
+  const hoverElements = document.querySelectorAll('a, button, .opt, .mc, .chat-quick button');
+  hoverElements.forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.classList.add('hover');
+      cursorFollower.classList.add('hover');
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.classList.remove('hover');
+      cursorFollower.classList.remove('hover');
+    });
+  });
+
+  // ===================== SCROLL PROGRESS =====================
+  const scrollProgress = document.getElementById('scrollProgress');
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const scrollPercent = (scrollTop / docHeight) * 100;
+    scrollProgress.style.width = scrollPercent + '%';
+  });
+
+  // ===================== PROFILE DROPDOWN =====================
+  const profileTrigger = document.getElementById('profileTrigger');
+  const profileDropdown = document.getElementById('profileDropdown');
+  const profileDropdownLoggedOut = document.getElementById('profileDropdownLoggedOut');
+  const profileDropdownLoggedIn = document.getElementById('profileDropdownLoggedIn');
+  let isLoggedIn = false;
+
+  function updateProfileDropdown() {
+    if (isLoggedIn) {
+      profileDropdownLoggedOut.style.display = 'none';
+      profileDropdownLoggedIn.style.display = 'block';
+    } else {
+      profileDropdownLoggedOut.style.display = 'block';
+      profileDropdownLoggedIn.style.display = 'none';
+    }
+  }
+  updateProfileDropdown();
+
+  if (profileTrigger && profileDropdown) {
+    profileTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      profileDropdown.classList.toggle('active');
+    });
+    document.addEventListener('click', (e) => {
+      if (!profileTrigger.contains(e.target) && !profileDropdown.contains(e.target)) {
+        profileDropdown.classList.remove('active');
       }
-    ];
+    });
+  }
 
-    let cur = 0;
-    let ans = {};
+  document.querySelectorAll('.profile-logout').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      isLoggedIn = false;
+      updateProfileDropdown();
+      profileDropdown.classList.remove('active');
+    });
+  });
 
-    const $ = id => document.getElementById(id);
+  // ===================== CHAT WIDGET =====================
+  const chatLauncher = document.getElementById('chatLauncher');
+  const chatPanel = document.getElementById('chatPanel');
+  const chatClose = document.getElementById('chatClose');
+  const chatForm = document.getElementById('chatForm');
+  const chatInput = document.getElementById('chatInput');
+  const chatMessages = document.getElementById('chatMessages');
 
-    function renderDots() {
-      $('D').innerHTML = Q.map((_, i) =>
-        `<div class="dot ${i === cur ? 'a' : i < cur ? 'd' : ''}"></div>`
-      ).join('');
+  chatLauncher.addEventListener('click', () => chatPanel.classList.toggle('active'));
+  chatClose.addEventListener('click', () => chatPanel.classList.remove('active'));
+
+  function addMessage(text, isUser = false) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'chat-message ' + (isUser ? 'user' : 'bot');
+    msgDiv.innerHTML = '<div class="chat-bubble">' + text + '</div>';
+    chatMessages.appendChild(msgDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  chatForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = chatInput.value.trim();
+    if (text) {
+      addMessage(text, true);
+      chatInput.value = '';
+      setTimeout(() => {
+        const responses = [
+          "I'd love to help you find the perfect pet! What type of companion are you looking for?",
+          "That's a great question! Our PawMate AI can analyze your lifestyle to suggest the best matches.",
+          "We have many wonderful pets waiting for homes. Would you like to browse dogs, cats, or small pets?",
+          "All our pets come with complete health records and are from verified shelters. You can trust the process!"
+        ];
+        addMessage(responses[Math.floor(Math.random() * responses.length)]);
+      }, 1000);
     }
+  });
 
-    function renderQ() {
-      const q = Q[cur];
-      const sel = ans[q.id] || [];
-      let html = `<div class="card"><div class="qn">Question ${cur + 1} of ${Q.length}</div><div class="qt">${q.t}</div><div class="opts ${q.type === 'm' ? 'tgrid' : ''}">`;
-      q.opts.forEach(o => {
-        const isSel = q.type === 's' ? sel === o.v : sel.includes(o.v);
-        html += `<button class="opt ${isSel ? 'sel' : ''}" onclick="pick('${q.id}','${o.v}',${q.type === 'm'})">
-          <div class="${q.type === 'm' ? 'cb' : 'rd'}"></div>
-          <div>
-            <div style="font-weight:600">${o.l}</div>
-            ${o.d ? `<div style="font-size:12px;color:#6b7280;margin-top:2px">${o.d}</div>` : ''}
-          </div>
-        </button>`;
-      });
-      html += `</div><div class="btns">`;
-      if (cur > 0) html += `<button class="btn btn-g" onclick="prev()">Back</button>`;
-      else html += `<div></div>`;
-      const ok = q.type === 's' ? sel !== undefined : sel.length > 0;
-      const lbl = cur === Q.length - 1 ? 'See matches' : 'Next';
-      html += `<button class="btn btn-p" ${!ok ? 'disabled' : ''} onclick="next()">${lbl}</button></div></div>`;
-      if (q.type === 'm') html += `<div class="hint">Select up to 3 traits (${sel.length || 0}/3 selected)</div>`;
-      $('C').innerHTML = html;
-      renderDots();
+  document.querySelectorAll('.chat-quick button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      addMessage(btn.getAttribute('data-message'), true);
+      setTimeout(() => {
+        const msg = btn.getAttribute('data-message');
+        let response = '';
+        if (msg.includes('dogs')) response = "We have over 120 dogs waiting for homes! From playful Labradors to loyal Indies. Browse our dog section to find your match.";
+        else if (msg.includes('cats')) response = "Our cat family has 80+ beautiful felines! From calm British Shorthairs to energetic tabbies. Check them out!";
+        else response = "Let's find your perfect match! I'll need to know about your living situation, work schedule, and experience with pets. Ready to start?";
+        addMessage(response);
+      }, 1000);
+    });
+  });
+
+  // ===================== PAWMATE QUIZ LOGIC =====================
+
+  const P = [
+    [1,"Whiskers","Cat","Siamese",4.2,15,"L",3780,"L","L",1,1,"Vocal, Affectionate, Intelligent"],
+    [2,"Luna","Cat","Persian",3.8,12,"M",4620,"L","H",1,1,"Calm, Gentle, Regal"],
+    [3,"Simba","Cat","Maine Coon",6.5,13,"M",4200,"L","H",1,1,"Gentle Giant, Friendly, Playful"],
+    [4,"Milo","Cat","Bengal",5,14,"M",4032,"L","L",1,1,"Active, Curious, Vocal"],
+    [5,"Oliver","Cat","Ragdoll",5.5,15,"L",4368,"L","M",1,1,"Relaxed, Affectionate, Docile"],
+    [6,"Leo","Cat","British Shorthair",5,14,"L",3864,"L","L",1,1,"Easygoing, Loyal, Quiet"],
+    [7,"Shadow","Cat","Bombay",4,15,"L",3696,"L","L",1,1,"Playful, Affectionate, Social"],
+    [8,"Bella","Cat","Sphynx",3.5,12,"H",4872,"L","H",1,1,"Energetic, Friendly, Clingy"],
+    [9,"Loki","Cat","Scottish Fold",4.5,14,"M",3948,"L","M",1,1,"Sweet, Quiet, Adaptable"],
+    [10,"Nala","Cat","Abyssinian",4,14,"M",4116,"L","L",1,1,"Active, Intelligent, Playful"],
+    [11,"Jasper","Cat","Russian Blue",4,15,"L",3780,"L","L",1,1,"Shy, Loyal, Gentle"],
+    [12,"Cleo","Cat","Birman",4.5,14,"L",4200,"L","M",1,1,"Gentle, Social, Quiet"],
+    [13,"Felix","Cat","American Shorthair",4.5,15,"L",3528,"L","L",1,1,"Easygoing, Friendly, Independent"],
+    [14,"Chloe","Cat","Norwegian Forest",5.5,14,"M",4284,"L","H",1,1,"Independent, Adventurous, Friendly"],
+    [15,"Tiger","Cat","Tabby (Domestic)",4.5,15,"L",2940,"L","L",1,1,"Friendly, Active, Adaptable"],
+    [16,"Lily","Cat","Turkish Angora",4,14,"M",4032,"L","M",1,1,"Intelligent, Playful, Affectionate"],
+    [17,"Oreo","Cat","Tuxedo (Domestic)",4.5,15,"L",2940,"L","L",1,1,"Social, Playful, Vocal"],
+    [18,"Misty","Cat","Himalayan",4.5,12,"M",4536,"L","H",1,1,"Calm, Affectionate, Quiet"],
+    [19,"Smokey","Cat","Chartreux",4.5,14,"L",3948,"L","L",1,1,"Quiet, Intelligent, Loyal"],
+    [20,"Ginger","Cat","Exotic Shorthair",4,12,"M",4452,"L","M",1,1,"Sweet, Calm, Playful"],
+    [21,"Coco","Cat","Devon Rex",3,12,"M",4200,"L","L",1,1,"Mischievous, Loyal, Active"],
+    [22,"Pumpkin","Cat","Manx",4.5,14,"L",3864,"L","L",1,1,"Playful, Loyal, Hunter"],
+    [23,"Snowball","Cat","Turkish Van",5,14,"M",4116,"L","M",1,1,"Active, Intelligent, Independent"],
+    [24,"Pepper","Cat","Cornish Rex",3,12,"M",4284,"L","L",1,1,"Playful, Affectionate, Curious"],
+    [25,"Muffin","Cat","Singapura",2.5,14,"L",4032,"L","L",1,1,"Active, Affectionate, Playful"],
+    [26,"Whiskey","Cat","Somali",4,14,"M",4200,"L","M",1,1,"Active, Social, Intelligent"],
+    [27,"Daisy","Cat","Burmese",4,15,"L",3948,"L","L",1,1,"Social, Vocal, Affectionate"],
+    [28,"Mochi","Cat","Japanese Bobtail",3.5,14,"L",3864,"L","L",1,1,"Active, Friendly, Intelligent"],
+    [29,"Salem","Cat","Oriental Shorthair",4,14,"M",4116,"L","L",1,1,"Vocal, Intelligent, Social"],
+    [30,"Pixie","Cat","LaPerm",3.5,13,"L",4032,"L","L",1,1,"Affectionate, Active, Curly Coat"],
+    [31,"Ash","Cat","Korat",3.5,15,"L",3948,"L","L",1,1,"Loyal, Quiet, Intelligent"],
+    [32,"Buddy","Dog","Golden Retriever",28.5,12,"M",7140,"H","H",1,1,"Friendly, Loyal, Patient"],
+    [33,"Max","Dog","Labrador Retriever",30,12,"M",6720,"H","M",1,1,"Outgoing, Even-tempered, Gentle"],
+    [34,"Bella","Dog","Beagle",10.5,13,"M",5040,"H","L",1,1,"Curious, Merry, Friendly"],
+    [35,"Rocky","Dog","German Shepherd",32,11,"H",7560,"H","M",1,1,"Confident, Courageous, Smart"],
+    [36,"Charlie","Dog","Poodle (Standard)",22,13,"M",6300,"H","H",1,1,"Intelligent, Active, Alert"],
+    [37,"Cooper","Dog","Bulldog",23,9,"H",5880,"H","L",1,1,"Docile, Willful, Friendly"],
+    [38,"Daisy","Dog","Pomeranian",2.5,14,"M",4620,"H","H",1,1,"Playful, Intelligent, Friendly"],
+    [39,"Bailey","Dog","Rottweiler",45,10,"H",7392,"H","L",1,1,"Loyal, Confident, Courageous"],
+    [40,"Luna","Dog","Yorkshire Terrier",3,14,"M",4872,"H","H",1,1,"Sprightly, Affectionate, Intelligent"],
+    [41,"Teddy","Dog","Shih Tzu",5.5,13,"M",5208,"H","H",1,1,"Affectionate, Playful, Outgoing"],
+    [42,"Milo","Dog","Boxer",28,11,"M",6552,"H","L",1,1,"Fun-loving, Bright, Active"],
+    [43,"Lucy","Dog","Dachshund",8,13,"M",4872,"H","L",1,1,"Clever, Stubborn, Devoted"],
+    [44,"Jack","Dog","Siberian Husky",25,12,"H",6888,"H","M",1,1,"Outgoing, Mischievous, Loyal"],
+    [45,"Lola","Dog","Chihuahua",2,16,"L",4200,"H","L",1,1,"Graceful, Charming, Sassy"],
+    [46,"Bear","Dog","Great Dane",60,8,"H",7980,"H","L",1,1,"Friendly, Patient, Dependable"],
+    [47,"Duke","Dog","Doberman Pinscher",35,11,"H",7140,"H","L",1,1,"Alert, Fearless, Loyal"],
+    [48,"Sadie","Dog","Cocker Spaniel",12,13,"M",5712,"H","H",1,1,"Gentle, Smart, Happy"],
+    [49,"Tucker","Dog","Australian Shepherd",22,13,"H",6720,"H","M",1,1,"Smart, Work-oriented, Exuberant"],
+    [50,"Maggie","Dog","Pug",7.5,13,"M",4620,"H","L",1,1,"Charming, Mischievous, Loving"],
+    [51,"Oliver","Dog","Corgi (Pembroke)",11,12,"M",5460,"H","M",1,1,"Affectionate, Smart, Alert"],
+    [52,"Rex","Dog","Dalmatian",25,12,"H",6048,"H","L",1,1,"Outgoing, Dignified, Intelligent"],
+    [53,"Zoe","Dog","Maltese",3,14,"M",5040,"H","H",1,1,"Gentle, Playful, Charming"],
+    [54,"Buster","Dog","Saint Bernard",70,9,"H",7728,"H","H",1,1,"Gentle, Watchful, Friendly"],
+    [55,"Ruby","Dog","Shetland Sheepdog",7,13,"M",5460,"H","H",1,1,"Playful, Intelligent, Loyal"],
+    [56,"Oscar","Dog","Basset Hound",25,12,"M",5208,"H","L",1,1,"Charming, Patient, Low-key"],
+    [57,"Penny","Dog","French Bulldog",11,11,"H",6300,"H","L",1,1,"Playful, Smart, Adaptable"],
+    [58,"Bruno","Dog","Bernese Mountain Dog",45,8,"H",7392,"H","H",1,1,"Good-natured, Calm, Strong"],
+    [59,"Rosie","Dog","Bichon Frise",4.5,14,"M",5208,"H","H",1,1,"Playful, Curious, Peppy"],
+    [60,"Scout","Dog","Border Collie",18,13,"H",6552,"H","M",1,1,"Energetic, Smart, Tenacious"],
+    [61,"Molly","Dog","Schnauzer (Miniature)",6,14,"M",5376,"H","H",1,1,"Friendly, Smart, Obedient"],
+    [62,"Diesel","Dog","Great Pyrenees",50,10,"H",7560,"H","H",1,1,"Patient, Calm, Smart"],
+    [63,"Coco","Dog","Cavalier King Charles Spaniel",6.5,12,"M",5712,"H","M",1,1,"Affectionate, Graceful, Gentle"],
+    [64,"Hunter","Dog","Weimaraner",28,11,"H",6888,"H","L",1,1,"Friendly, Fearless, Obedient"],
+    [65,"Lily","Dog","Shiba Inu",9,13,"M",5880,"H","M",1,1,"Alert, Active, Attentive"],
+    [66,"Thor","Dog","Akita",40,11,"H",7224,"H","M",1,1,"Courageous, Dignified, Loyal"],
+    [67,"Pepper","Dog","Whippet",14,13,"M",5460,"H","L",1,1,"Affectionate, Gentle, Lively"],
+    [68,"King","Dog","Indian Pariah Dog",18,14,"L",2940,"H","L",1,1,"Alert, Social, Intelligent"],
+    [69,"Raja","Dog","Rajapalayam",25,12,"M",4620,"H","L",1,1,"Loyal, Independent, Courageous"],
+    [70,"Champ","Dog","Mudhol Hound",22,12,"M",4200,"H","L",1,1,"Elegant, Reserved, Loyal"],
+    [71,"Sheru","Dog","Indian Spitz",10,13,"L",3360,"H","M",1,1,"Loyal, Active, Intelligent"],
+    [72,"Tiger","Dog","Kanni",20,12,"M",4032,"H","L",1,1,"Loyal, Reserved, Agile"],
+    [73,"Komban","Dog","Kombai",24,12,"M",4368,"H","L",1,1,"Loyal, Courageous, Protective"],
+    [74,"Bhairav","Dog","Bully Kutta",55,10,"H",6300,"H","L",1,1,"Powerful, Alert, Dominant"],
+    [75,"Leo","Dog","Chippiparai",20,13,"M",3780,"H","L",1,1,"Loyal, Reserved, Hunter"],
+    [76,"Sultan","Dog","Rampur Greyhound",24,12,"M",4620,"H","L",1,1,"Elegant, Reserved, Fast"],
+    [77,"Rani","Dog","Pashmi Hound",18,12,"M",4200,"H","L",1,1,"Graceful, Loyal, Hunter"],
+    [78,"Bruno","Dog","Gaddi Kutta",45,11,"H",5880,"H","M",1,1,"Fearless, Loyal, Protective"],
+    [79,"Shadow","Dog","Jonangi",16,13,"L",3528,"H","L",1,1,"Loyal, Active, Reserved"],
+    [80,"Bholu","Dog","Bakharwal Dog",35,11,"H",5040,"H","H",1,1,"Loyal, Protective, Hardy"],
+    [81,"Dholu","Dog","Kumaon Mastiff",40,10,"H",5460,"H","L",1,1,"Powerful, Loyal, Courageous"],
+    [82,"Shera","Dog","Himalayan Sheepdog",38,11,"H",5712,"H","H",1,1,"Loyal, Hardy, Protective"],
+    [83,"Rambo","Dog","Alangu Mastiff",50,10,"H",6048,"H","L",1,1,"Powerful, Alert, Dominant"],
+    [84,"Tara","Dog","Pandikona",20,13,"L",3192,"H","L",1,1,"Loyal, Independent, Hunter"],
+    [85,"Moti","Dog","Indian Mastiff",48,10,"H",5880,"H","L",1,1,"Powerful, Loyal, Courageous"],
+    [86,"Nibbles","Hamster","Syrian (Teddy Bear)",0.12,2.5,"L",1260,"L","L",1,0,"Nocturnal, Gentle, Active"],
+    [87,"Pip","Hamster","Dwarf Campbell's Russian",0.04,2,"L",1176,"L","L",1,0,"Active, Social, Nippy"],
+    [88,"Snow","Hamster","Dwarf Winter White Russian",0.04,2,"L",1260,"L","L",1,0,"Friendly, Active, Seasonal"],
+    [89,"Flash","Hamster","Roborovski",0.025,3,"L",1344,"L","L",1,0,"Hyperactive, Shy, Fast"],
+    [90,"Mochi","Hamster","Chinese (Striped)",0.035,2.5,"L",1260,"L","L",1,0,"Gentle, Shy, Climber"],
+    [91,"Hazel","Hamster","European",0.1,2,"L",1512,"L","L",1,0,"Wild, Active, Solitary"],
+    [92,"Cotton","Rabbit","Holland Lop",1.8,10,"M",2520,"M","M",1,1,"Gentle, Social, Playful"],
+    [93,"Thumper","Rabbit","Mini Lop",2.2,10,"M",2688,"M","M",1,1,"Affectionate, Playful, Calm"],
+    [94,"Tiny","Rabbit","Netherland Dwarf",0.9,10,"M",2940,"M","L",1,1,"Energetic, Shy, Intelligent"],
+    [95,"Fluffy","Rabbit","Lionhead",1.3,9,"M",2772,"M","H",1,1,"Friendly, Docile, Social"],
+    [96,"Goliath","Rabbit","Flemish Giant",7,9,"M",3780,"M","M",1,1,"Gentle Giant, Laid-back, Friendly"],
+    [97,"Velvet","Rabbit","Rex (Mini)",1.6,10,"M",2856,"M","L",1,1,"Curious, Intelligent, Playful"],
+    [98,"Cloud","Rabbit","English Angora",2.5,10,"H",3360,"M","H",1,1,"Gentle, Calm, High-maintenance"],
+    [99,"Oreo","Rabbit","Dutch",1.8,10,"M",2520,"M","L",1,1,"Sociable, Calm, Intelligent"],
+    [100,"Spike","Hedgehog","African Pygmy",0.35,5,"M",2100,"L","L",0,0,"Shy, Curious, Quiet"],
+    [101,"Sahara","Hedgehog","Algerian",0.4,5,"M",2352,"L","L",0,0,"Active, Friendly, Explorer"],
+    [102,"Echo","Hedgehog","Egyptian Long-eared",0.3,6,"M",2520,"L","L",0,0,"Nocturnal, Shy, Insect-loving"],
+    [103,"Indy","Hedgehog","Indian Long-eared",0.25,5,"M",2184,"L","L",0,0,"Solitary, Alert, Fast"],
+    [104,"Thorn","Hedgehog","European",0.8,5,"M",2688,"L","L",0,0,"Wild, Active, Forager"],
+    [105,"Karma","Chameleon","Veiled (Yemen)",0.09,7,"H",3360,"L","L",0,0,"Solitary, Territorial, Slow-moving"],
+    [106,"Rainbow","Chameleon","Panther",0.15,7,"H",4620,"L","L",0,0,"Colorful, Active, Shy"],
+    [107,"Trihorn","Chameleon","Jackson's (Three-horned)",0.08,8,"H",4200,"L","L",0,0,"Slow, Deliberate, Arboreal"],
+    [108,"Camo","Chameleon","Carpet (Jeweled)",0.25,6,"H",4032,"L","L",0,0,"Aggressive, Colorful, Arboreal"],
+    [109,"Giant","Chameleon","Meller's (Giant One-horned)",0.4,8,"H",5040,"L","L",0,0,"Gentle, Slow, Arboreal"],
+    [110,"Pebble","Chameleon","Pygmy (Spectral)",0.02,3,"H",3192,"L","L",0,0,"Tiny, Active, Shy"]
+  ];
+
+  const Q = [
+    { id: 'sp', t: 'What type of pet are you looking for?', type: 's',
+      opts: [
+        { v: 'Cat', l: 'Cat', d: 'Independent, affectionate companions' },
+        { v: 'Dog', l: 'Dog', d: 'Loyal, active family members' },
+        { v: 'Hamster', l: 'Hamster', d: 'Small, low-maintenance pets' },
+        { v: 'Rabbit', l: 'Rabbit', d: 'Gentle, social fluffballs' },
+        { v: 'Hedgehog', l: 'Hedgehog', d: 'Unique, quiet nocturnal friends' },
+        { v: 'Chameleon', l: 'Chameleon', d: 'Fascinating, observational pets' }
+      ]
+    },
+    { id: 'ki', t: 'Do you have children at home?', type: 's',
+      opts: [
+        { v: 'yes', l: 'Yes, I have children', d: 'Need a gentle, kid-friendly pet' },
+        { v: 'no', l: 'No children at home', d: 'Open to all temperament types' }
+      ]
+    },
+    { id: 'op', t: 'Do you have other pets at home?', type: 's',
+      opts: [
+        { v: 'yes', l: 'Yes, other pets present', d: 'Needs to get along with others' },
+        { v: 'no', l: 'No other pets', d: 'This will be the only pet' }
+      ]
+    },
+    { id: 'cl', t: 'How much time for daily pet care?', type: 's',
+      opts: [
+        { v: 'L', l: 'Minimal (1-2 hrs/week)', d: 'Basic feeding, occasional attention' },
+        { v: 'M', l: 'Moderate (~1 hr/day)', d: 'Regular interaction, basic grooming' },
+        { v: 'H', l: 'Extensive (2+ hrs/day)', d: 'Training, complex care routines' }
+      ]
+    },
+    { id: 'bu', t: 'What is your monthly budget?', type: 's',
+      opts: [
+        { v: 2000, l: 'Under Rs.2,000', d: 'Basic care essentials' },
+        { v: 4000, l: 'Rs.2,000 - Rs.4,000', d: 'Standard care with extras' },
+        { v: 6000, l: 'Rs.4,000 - Rs.6,000', d: 'Quality food, regular vet visits' },
+        { v: 8000, l: 'Rs.6,000 - Rs.8,000', d: 'Premium care and grooming' },
+        { v: 10000, l: 'Rs.8,000+', d: 'No budget constraints' }
+      ]
+    },
+    { id: 'ex', t: 'How active is your lifestyle?', type: 's',
+      opts: [
+        { v: 'L', l: 'Relaxed & homebody', d: 'Quiet time at home' },
+        { v: 'M', l: 'Moderately active', d: 'Daily walks, some outdoor time' },
+        { v: 'H', l: 'Very active & outdoorsy', d: 'Running, hiking, lots of exercise' }
+      ]
+    },
+    { id: 'gr', t: 'How much time for grooming?', type: 's',
+      opts: [
+        { v: 'L', l: 'Minimal grooming', d: 'Occasional brushing' },
+        { v: 'M', l: 'Weekly grooming', d: 'Regular brushing, basic maintenance' },
+        { v: 'H', l: 'Daily grooming routine', d: 'Willing to invest in coat care' }
+      ]
+    },
+    { id: 'sz', t: 'What size pet do you prefer?', type: 's',
+      opts: [
+        { v: 'tiny', l: 'Tiny (under 1 kg)', d: 'Hamsters, small reptiles' },
+        { v: 'small', l: 'Small (1-10 kg)', d: 'Cats, small dogs, rabbits' },
+        { v: 'medium', l: 'Medium (10-30 kg)', d: 'Medium dog breeds' },
+        { v: 'large', l: 'Large (30+ kg)', d: 'Big dogs, giant breeds' }
+      ]
+    },
+    { id: 'tp', t: 'Which personality traits appeal to you?', type: 'm',
+      opts: ['Affectionate','Playful','Gentle','Intelligent','Active','Loyal','Calm','Social','Quiet','Friendly','Curious','Independent','Energetic','Shy','Outgoing'].map(x => ({ v: x, l: x }))
+    },
+    { id: 'lf', t: 'How long-term is your commitment?', type: 's',
+      opts: [
+        { v: 'short', l: 'Short-term (2-5 years)', d: 'Testing the waters' },
+        { v: 'medium', l: 'Medium-term (5-10 years)', d: 'A significant chapter' },
+        { v: 'long', l: 'Long-term (10-16 years)', d: 'A lifetime companion' }
+      ]
     }
+  ];
 
-    function pick(id, v, multi) {
-      if (multi) {
-        let arr = ans[id] || [];
-        if (arr.includes(v)) arr = arr.filter(x => x !== v);
-        else if (arr.length < 3) arr.push(v);
-        ans[id] = arr;
-      } else {
-        ans[id] = v;
-      }
-      renderQ();
+  let cur = 0;
+  let ans = {};
+
+  const $ = id => document.getElementById(id);
+
+  function renderDots() {
+    $('D').innerHTML = Q.map((_, i) =>
+      `<div class="dot ${i === cur ? 'a' : i < cur ? 'd' : ''}"></div>`
+    ).join('');
+  }
+
+  function renderQ() {
+    const q = Q[cur];
+    const sel = ans[q.id] || [];
+    let html = `<div class="card"><div class="qn">Question ${cur + 1} of ${Q.length}</div><div class="qt">${q.t}</div><div class="opts ${q.type === 'm' ? 'tgrid' : ''}">`;
+    q.opts.forEach(o => {
+      const isSel = q.type === 's' ? sel === o.v : sel.includes(o.v);
+      html += `<button class="opt ${isSel ? 'sel' : ''}" onclick="pick('${q.id}','${o.v}',${q.type === 'm'})">
+        <div class="${q.type === 'm' ? 'cb' : 'rd'}"></div>
+        <div>
+          <span class="opt-label">${o.l}</span>
+          ${o.d ? `<span class="opt-desc">${o.d}</span>` : ''}
+        </div>
+      </button>`;
+    });
+    html += `</div><div class="btns">`;
+    if (cur > 0) html += `<button class="btn btn-g" onclick="prev()"><i class="fa-solid fa-arrow-left"></i> Back</button>`;
+    else html += `<div></div>`;
+    const ok = q.type === 's' ? sel !== undefined : sel.length > 0;
+    const lbl = cur === Q.length - 1 ? 'See matches' : 'Next';
+    const icon = cur === Q.length - 1 ? '<i class="fa-solid fa-wand-magic-sparkles"></i> ' : 'Next <i class="fa-solid fa-arrow-right"></i>';
+    html += `<button class="btn btn-p" ${!ok ? 'disabled' : ''} onclick="next()">${icon}</button></div></div>`;
+    if (q.type === 'm') html += `<div class="hint">Select up to 3 traits (${sel.length || 0}/3 selected)</div>`;
+    $('C').innerHTML = html;
+    renderDots();
+  }
+
+  function pick(id, v, multi) {
+    if (multi) {
+      let arr = ans[id] || [];
+      if (arr.includes(v)) arr = arr.filter(x => x !== v);
+      else if (arr.length < 3) arr.push(v);
+      ans[id] = arr;
+    } else {
+      ans[id] = v;
     }
-
-    function prev() {
-      if (cur > 0) { cur--; renderQ(); }
-    }
-
-    function next() {
-      if (cur < Q.length - 1) { cur++; renderQ(); }
-      else { showRes(); }
-    }
-
-    // Scoring helpers
-    function szCat(w) { return w < 1 ? 'tiny' : w < 10 ? 'small' : w < 30 ? 'medium' : 'large'; }
-    function lfCat(l) { return l < 5 ? 'short' : l < 10 ? 'medium' : 'long'; }
-    function lvDist(a, b) { const o = { L: 0, M: 1, H: 2 }; return Math.abs((o[a] || 0) - (o[b] || 0)); }
-
-    function score(p) {
-      let s = 0, max = 100;
-
-      // species
-      if (ans.sp && p[2] === ans.sp) s += 15;
-
-      // kids (hard filter)
-      if (ans.ki === 'yes' && !p[10]) return -1;
-      if (ans.ki === 'yes' && p[10]) s += 10;
-
-      // other pets (hard filter)
-      if (ans.op === 'yes' && !p[11]) return -1;
-      if (ans.op === 'yes' && p[11]) s += 10;
-
-      // care level
-      if (ans.cl) { const d = lvDist(p[6], ans.cl); s += d === 0 ? 10 : d === 1 ? 5 : 0; }
-
-      // budget
-      if (ans.bu) { const b = +ans.bu; if (p[7] <= b) s += 10; else if (p[7] <= b + 1500) s += 5; }
-
-      // exercise
-      if (ans.ex) { const d = lvDist(p[8], ans.ex); s += d === 0 ? 10 : d === 1 ? 5 : 0; }
-
-      // grooming
-      if (ans.gr) { const d = lvDist(p[9], ans.gr); s += d === 0 ? 10 : d === 1 ? 5 : 0; }
-
-      // size
-      if (ans.sz) {
-        const sc = szCat(p[4]);
-        if (sc === ans.sz) s += 10;
-        else if ((sc === 'small' && ans.sz === 'tiny') || (sc === 'medium' && ans.sz === 'small') || (sc === 'large' && ans.sz === 'medium')) s += 5;
-      }
-
-      // temperament (multi-select, up to 3)
-      if (ans.tp && ans.tp.length > 0) {
-        const pt = p[12].toLowerCase();
-        ans.tp.forEach(t => { if (pt.includes(t.toLowerCase())) s += 4; });
-      }
-
-      // lifespan
-      if (ans.lf) {
-        const lc = lfCat(p[5]);
-        if (lc === ans.lf) s += 10;
-        else if ((lc === 'short' && ans.lf === 'medium') || (lc === 'medium' && ans.lf === 'long')) s += 5;
-      }
-
-      return Math.round((s / max) * 100);
-    }
-
-    function showRes() {
-      const ranked = P.map(p => {
-        const sc = score(p);
-        return sc >= 0 ? { p, sc } : null;
-      }).filter(x => x).sort((a, b) => b.sc - a.sc).slice(0, 5);
-
-      let html = `<div class="res"><div class="rh"><h3>Your Top Matches</h3><p>Based on your preferences, here are your best companions</p></div>`;
-
-      ranked.forEach((r, i) => {
-        const p = r.p;
-        const g = i === 0 ? 'g1' : i === 1 ? 'g2' : i === 2 ? 'g3' : 'gx';
-        const sz = p[4] < 1 ? (p[4] * 1000) + 'g' : p[4] + ' kg';
-
-        html += `<div class="mc">
-          <div class="rk ${g}">${i + 1}</div>
-          <div class="inf">
-            <div class="pn">${p[1]} <span style="color:#9ca3af;font-weight:400">(${p[2]})</span></div>
-            <div class="pb">${p[3]} &middot; ${sz} &middot; ${p[5]} yrs lifespan</div>
-            <div class="tags">
-              <span class="tag">Care: ${p[6] === 'L' ? 'Low' : p[6] === 'M' ? 'Medium' : 'High'}</span>
-              <span class="tag">₹${p[7]}/mo</span>
-              <span class="tag">${p[8] === 'L' ? 'Low' : p[8] === 'M' ? 'Medium' : 'High'} exercise</span>
-              <span class="tag">${p[9] === 'L' ? 'Low' : p[9] === 'M' ? 'Medium' : 'High'} grooming</span>
-            </div>
-          </div>
-          <div class="sc">
-            <div class="sn">${r.sc}%</div>
-            <div class="sl">match</div>
-            <div class="bar"><div class="bf" style="width:${r.sc}%"></div></div>
-          </div>
-        </div>`;
-      });
-
-      html += `<button class="rst" onclick="restart()">Start over</button></div>`;
-      $('C').innerHTML = html;
-      $('D').innerHTML = Q.map(() => '<div class="dot d"></div>').join('');
-    }
-
-    function restart() {
-      cur = 0;
-      ans = {};
-      renderQ();
-    }
-
-    // Expose handlers to global scope for inline onclick
-    window.pick = pick;
-    window.prev = prev;
-    window.next = next;
-    window.restart = restart;
-
-    // Start
     renderQ();
-  </script>
+  }
+
+  function prev() {
+    if (cur > 0) { cur--; renderQ(); }
+  }
+
+  function next() {
+    if (cur < Q.length - 1) { cur++; renderQ(); }
+    else { showRes(); }
+  }
+
+  function szCat(w) { return w < 1 ? 'tiny' : w < 10 ? 'small' : w < 30 ? 'medium' : 'large'; }
+  function lfCat(l) { return l < 5 ? 'short' : l < 10 ? 'medium' : 'long'; }
+  function lvDist(a, b) { const o = { L: 0, M: 1, H: 2 }; return Math.abs((o[a] || 0) - (o[b] || 0)); }
+
+  function score(p) {
+    let s = 0, max = 100;
+    if (ans.sp && p[2] === ans.sp) s += 15;
+    if (ans.ki === 'yes' && !p[10]) return -1;
+    if (ans.ki === 'yes' && p[10]) s += 10;
+    if (ans.op === 'yes' && !p[11]) return -1;
+    if (ans.op === 'yes' && p[11]) s += 10;
+    if (ans.cl) { const d = lvDist(p[6], ans.cl); s += d === 0 ? 10 : d === 1 ? 5 : 0; }
+    if (ans.bu) { const b = +ans.bu; if (p[7] <= b) s += 10; else if (p[7] <= b + 1500) s += 5; }
+    if (ans.ex) { const d = lvDist(p[8], ans.ex); s += d === 0 ? 10 : d === 1 ? 5 : 0; }
+    if (ans.gr) { const d = lvDist(p[9], ans.gr); s += d === 0 ? 10 : d === 1 ? 5 : 0; }
+    if (ans.sz) {
+      const sc = szCat(p[4]);
+      if (sc === ans.sz) s += 10;
+      else if ((sc === 'small' && ans.sz === 'tiny') || (sc === 'medium' && ans.sz === 'small') || (sc === 'large' && ans.sz === 'medium')) s += 5;
+    }
+    if (ans.tp && ans.tp.length > 0) {
+      const pt = p[12].toLowerCase();
+      ans.tp.forEach(t => { if (pt.includes(t.toLowerCase())) s += 4; });
+    }
+    if (ans.lf) {
+      const lc = lfCat(p[5]);
+      if (lc === ans.lf) s += 10;
+      else if ((lc === 'short' && ans.lf === 'medium') || (lc === 'medium' && ans.lf === 'long')) s += 5;
+    }
+    return Math.round((s / max) * 100);
+  }
+
+  function showRes() {
+    const ranked = P.map(p => {
+      const sc = score(p);
+      return sc >= 0 ? { p, sc } : null;
+    }).filter(x => x).sort((a, b) => b.sc - a.sc).slice(0, 5);
+
+    let html = `<div class="res"><div class="rh"><h3><i class="fa-solid fa-sparkles" style="margin-right:8px"></i>Your Top Matches</h3><p>Based on your preferences, here are your best companions</p></div>`;
+
+    ranked.forEach((r, i) => {
+      const p = r.p;
+      const g = i === 0 ? 'g1' : i === 1 ? 'g2' : i === 2 ? 'g3' : 'gx';
+      const sz = p[4] < 1 ? (p[4] * 1000) + 'g' : p[4] + ' kg';
+
+      html += `<div class="mc">
+        <div class="rk ${g}">${i + 1}</div>
+        <div class="inf">
+          <div class="pn">${p[1]} <span style="color:var(--text-dim);font-weight:400">(${p[2]})</span></div>
+          <div class="pb">${p[3]} &middot; ${sz} &middot; ${p[5]} yrs lifespan</div>
+          <div class="tags">
+            <span class="tag">Care: ${p[6] === 'L' ? 'Low' : p[6] === 'M' ? 'Medium' : 'High'}</span>
+            <span class="tag">Rs.${p[7]}/mo</span>
+            <span class="tag">${p[8] === 'L' ? 'Low' : p[8] === 'M' ? 'Medium' : 'High'} exercise</span>
+            <span class="tag">${p[9] === 'L' ? 'Low' : p[9] === 'M' ? 'Medium' : 'High'} grooming</span>
+          </div>
+        </div>
+        <div class="sc">
+          <div class="sn">${r.sc}%</div>
+          <div class="sl">match</div>
+          <div class="bar"><div class="bf" style="width:${r.sc}%"></div></div>
+        </div>
+      </div>`;
+    });
+
+    html += `<button class="rst" onclick="restart()"><i class="fa-solid fa-rotate-right" style="margin-right:6px"></i>Start over</button></div>`;
+    $('C').innerHTML = html;
+    $('D').innerHTML = Q.map(() => '<div class="dot d"></div>').join('');
+  }
+
+  function restart() {
+    cur = 0;
+    ans = {};
+    renderQ();
+  }
+
+  window.pick = pick;
+  window.prev = prev;
+  window.next = next;
+  window.restart = restart;
+
+  renderQ();
+</script>
 </body>
 </html>
