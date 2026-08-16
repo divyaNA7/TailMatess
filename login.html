@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TailMates Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <style>
+    :root {
+      --primary: #00f5ff;
+      --primary-dim: rgba(0, 245, 255, 0.15);
+      --secondary: #ff6b6b;
+      --accent: #a855f7;
+      --bg: #0a0a0f;
+      --bg-light: #12121a;
+      --bg-card: rgba(255, 255, 255, 0.03);
+      --bg-glass: rgba(255, 255, 255, 0.05);
+      --text: #f0f0f5;
+      --text-dim: #8b8b9a;
+      --border: rgba(255, 255, 255, 0.08);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    h1, h2, h3, h4, h5, h6 { font-family: 'Space Grotesk', sans-serif; }
+
+    /* Background Orbs */
+    .bg-orbs {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .orb {
+      position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.4;
+      animation: orbFloat 20s infinite ease-in-out;
+    }
+    .orb-1 { width: 600px; height: 600px; background: var(--primary); top: -200px; left: -200px; animation-delay: 0s; }
+    .orb-2 { width: 500px; height: 500px; background: var(--accent); top: 50%; right: -150px; animation-delay: -5s; }
+    .orb-3 { width: 400px; height: 400px; background: var(--secondary); bottom: -100px; left: 30%; animation-delay: -10s; }
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(50px, -30px) scale(1.1); }
+      50% { transform: translate(-30px, 50px) scale(0.9); }
+      75% { transform: translate(20px, 20px) scale(1.05); }
+    }
+
+    /* Navbar - matches index.html */
+    .navbar {
+      position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+      padding: 1rem 3rem;
+      background: rgba(10, 10, 15, 0.8); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1400px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 12px; text-decoration: none;
+    }
+    .logo-icon {
+      width: 45px; height: 45px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; color: var(--bg);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+    .logo:hover .logo-icon { transform: rotate(15deg) scale(1.1); box-shadow: 0 0 30px rgba(0, 245, 255, 0.5); }
+    .logo-text h2 { font-size: 1.5rem; font-weight: 700; color: var(--text); letter-spacing: -0.5px; font-family: 'Space Grotesk', sans-serif; }
+    .logo-text span { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      color: var(--text-dim); text-decoration: none; font-size: 0.9rem; font-weight: 500;
+      position: relative; transition: color 0.3s ease; padding: 0.5rem 0;
+    }
+    .nav-links a::after {
+      content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width 0.3s ease; box-shadow: 0 0 10px var(--primary);
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--text); }
+    .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+
+    /* Login Card */
+    .login-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8rem 2rem 4rem;
+      position: relative;
+      z-index: 10;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+    .login-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .login-header .icon-wrap {
+      width: 70px; height: 70px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 20px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.2rem;
+      font-size: 1.8rem;
+      color: var(--bg);
+      box-shadow: 0 0 30px rgba(0, 245, 255, 0.3);
+    }
+    .login-header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      background: linear-gradient(135deg, var(--text), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .login-header p {
+      color: var(--text-dim);
+      font-size: 0.9rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.3rem;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-dim);
+      margin-bottom: 0.5rem;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.9rem 1.1rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+    }
+    .form-group input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
+    }
+    .form-group input::placeholder { color: #555; }
+    .error-msg {
+      color: var(--secondary);
+      font-size: 0.8rem;
+      margin-top: 0.4rem;
+      display: none;
+    }
+    .error-msg.show { display: block; }
+
+    .form-options {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+    .remember-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .remember-wrap input[type="checkbox"] {
+      width: 18px; height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    .remember-wrap span {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+    .forgot-link {
+      font-size: 0.85rem;
+      color: var(--primary);
+      text-decoration: none;
+      transition: opacity 0.3s;
+    }
+    .forgot-link:hover { opacity: 0.8; }
+
+    .btn-login {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border: none;
+      border-radius: 12px;
+      color: var(--bg);
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Space Grotesk', sans-serif;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px rgba(0, 245, 255, 0.3);
+    }
+    .btn-login:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .login-footer {
+      text-align: center;
+      margin-top: 1.5rem;
+    }
+    .login-footer p {
+      color: var(--text-dim);
+      font-size: 0.9rem;
+    }
+    .login-footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      transition: opacity 0.3s;
+    }
+    .login-footer a:hover { opacity: 0.8; }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 1.5rem 0;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .donate-box {
+      text-align: center;
+      padding: 1.2rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-top: 1.5rem;
+    }
+    .donate-box p {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+    }
+    .donate-box a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: opacity 0.3s;
+    }
+    .donate-box a:hover { opacity: 0.8; }
+
+    .loading-spinner {
+      display: none;
+      width: 20px; height: 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: var(--bg);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .alert {
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .alert.error {
+      background: rgba(255, 107, 107, 0.1);
+      border: 1px solid rgba(255, 107, 107, 0.3);
+      color: var(--secondary);
+      display: block;
+    }
+    .alert.success {
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      color: #4ade80;
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .navbar { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .login-card { padding: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Effects -->
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="logo">
+        <div class="logo-icon"><i class="fa-solid fa-paw"></i></div>
+        <div class="logo-text">
+          <h2>TailMates</h2>
+          <span>Every Paw Deserves Home</span>
+        </div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="Adopt.html">Adopt</a></li>
+        <li><a href="PawMate.html">PawMate AI</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="shop.html">Shop</a></li>
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="register.html">Register a Pet</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Login Card -->
+  <div class="login-wrapper">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="icon-wrap"><i class="fa-solid fa-paw"></i></div>
+        <h1>Welcome Back</h1>
+        <p>Sign in to explore pets available for adoption</p>
+      </div>
+
+      <div class="alert" id="alertBox"></div>
+
+      <form id="loginForm" onsubmit="handleSubmit(event)">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required
+                 placeholder="your.email@example.com"
+                 autocomplete="email">
+          <p class="error-msg" id="emailError">Please enter a valid email address</p>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required minlength="6"
+                 placeholder="Enter your password"
+                 autocomplete="current-password">
+          <p class="error-msg" id="passwordError">Password must be at least 6 characters</p>
+        </div>
+        <div class="form-options">
+          <label class="remember-wrap">
+            <input type="checkbox" id="rememberMe">
+            <span>Remember me</span>
+          </label>
+          <a href="forgotpass.html" class="forgot-link">Forgot Password?</a>
+        </div>
+        <button type="submit" class="btn-login" id="loginBtn">
+          <span id="btnText">Sign In</span>
+          <div class="loading-spinner" id="btnSpinner"></div>
+        </button>
+      </form>
+
+      <div class="divider">or</div>
+
+      <div class="login-footer">
+        <p>New to TailMates? <a href="createacc.html">Create an account</a></p>
+      </div>
+
+      <div class="donate-box">
+        <p>Support our mission to rescue and rehabilitate pets</p>
+        <a href="donate.html"><i class="fa-solid fa-heart" style="margin-right: 6px;"></i>Donate Now</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase Login Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBifu5Te7paXOFUFrDUtogIPpi5H0xR7rY",
+      authDomain: "tailmatess.firebaseapp.com",
+      projectId: "tailmatess",
+      storageBucket: "tailmatess.firebasestorage.app",
+      messagingSenderId: "445299543083",
+      appId: "1:445299543083:web:e7be85a3eae32f8ba5ee6e",
+      measurementId: "G-ZLQG062LVE"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const alertBox = document.getElementById('alertBox');
+    const loginBtn = document.getElementById('loginBtn');
+    const btnText = document.getElementById('btnText');
+    const btnSpinner = document.getElementById('btnSpinner');
+
+    function showAlert(message, type) {
+      alertBox.className = 'alert ' + type;
+      alertBox.textContent = message;
+    }
+
+    function clearAlert() {
+      alertBox.className = 'alert';
+      alertBox.textContent = '';
+    }
+
+    function setLoading(loading) {
+      loginBtn.disabled = loading;
+      if (loading) {
+        btnText.style.display = 'none';
+        btnSpinner.style.display = 'block';
+      } else {
+        btnText.style.display = 'block';
+        btnSpinner.style.display = 'none';
+      }
+    }
+
+    window.handleSubmit = async function(event) {
+      event.preventDefault();
+      clearAlert();
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const rememberMe = document.getElementById('rememberMe').checked;
+      const emailError = document.getElementById('emailError');
+      const passwordError = document.getElementById('passwordError');
+
+      emailError.classList.remove('show');
+      passwordError.classList.remove('show');
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      let isValid = true;
+
+      if (!emailRegex.test(email)) {
+        emailError.classList.add('show');
+        isValid = false;
+      }
+      if (password.length < 6) {
+        passwordError.classList.add('show');
+        isValid = false;
+      }
+
+      if (!isValid) return;
+
+      setLoading(true);
+
+      try {
+        // Set persistence based on remember me
+        const persistence = rememberMe ? browserLocalPersistence : browserSessionPersistence;
+        await setPersistence(auth, persistence);
+
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        showAlert('Login successful! Redirecting...', 'success');
+
+        // Store user info in localStorage for cross-page access
+        localStorage.setItem('tailmates_user', JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || user.email.split('@')[0],
+          photoURL: user.photoURL
+        }));
+
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1200);
+      } catch (error) {
+        setLoading(false);
+        let msg = 'Login failed: ';
+        switch (error.code) {
+          case 'auth/user-not-found':
+            msg += 'No account found with this email.';
+            break;
+          case 'auth/wrong-password':
+            msg += 'Incorrect password. Please try again.';
+            break;
+          case 'auth/invalid-credential':
+            msg += 'Invalid email or password.';
+            break;
+          case 'auth/too-many-requests':
+            msg += 'Too many failed attempts. Please try again later.';
+            break;
+          case 'auth/user-disabled':
+            msg += 'This account has been disabled.';
+            break;
+          default:
+            msg += error.message;
+        }
+        showAlert(msg, 'error');
+      }
+    };
+
+    // Check if already logged in
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        localStorage.setItem('tailmates_user', JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || user.email.split('@')[0],
+          photoURL: user.photoURL
+        }));
+      }
+    });
+  </script>
+
+</body>
+</html>
