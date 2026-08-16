@@ -62,22 +62,17 @@
       transform: translateY(-6px);
     }
 
-    .pet-card img {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-    }
 
-    .pet-card h3 {
-      margin: 15px 0 5px;
-      color: #333;
-    }
 
-    .pet-card p {
-      margin: 4px 0;
-      color: #666;
-      font-size: 14px;
-    }
+   <!-- In your card template -->
+<div class="card-image">
+    <img src="${pet.image_url}" alt="${pet.name}" 
+         style="width:100%;height:100%;object-fit:cover;display:block;"
+         onerror="this.style.display='none';this.parentElement.innerHTML='🐾';">
+</div>
+
+    
+
 
     .adopt-btn {
       margin: 15px 0 20px;
