@@ -3,8 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <title>Adopt a Pet</title>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js" type="module"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js" type="module"></script>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -40,6 +38,13 @@
       opacity: 0.85;
     }
 
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+      font-size: 18px;
+    }
+
     .pet-list {
       display: flex;
       flex-wrap: wrap;
@@ -61,18 +66,22 @@
     .pet-card:hover {
       transform: translateY(-6px);
     }
+      .pet-card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
 
+    .pet-card h3 {
+      margin: 15px 0 5px;
+      color: #333;
+    }
 
-
-   <!-- In your card template -->
-<div class="card-image">
-    <img src="${pet.image_url}" alt="${pet.name}" 
-         style="width:100%;height:100%;object-fit:cover;display:block;"
-         onerror="this.style.display='none';this.parentElement.innerHTML='🐾';">
-</div>
-
-    
-
+    .pet-card p {
+      margin: 4px 0;
+      color: #666;
+      font-size: 14px;
+    }
 
     .adopt-btn {
       margin: 15px 0 20px;
@@ -89,6 +98,20 @@
     .adopt-btn:hover {
       background-color: #e05a50;
     }
+
+    .error-box {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .error-box h3 { color: #c0392b; }
+    .error-box code {
+      background: #ffeaea;
+      color: #c0392b;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    
   </style>
 </head>
 <body>
@@ -106,66 +129,81 @@
     </div>
   </div>
 
-  <!-- In your card template -->
-  <div class="card-image">
-    <img src="${pet.image_url}" alt="${pet.name}" 
-         style="width:100%;height:100%;object-fit:cover;display:block;"
-         onerror="this.style.display='none';this.parentElement.innerHTML='🐾';">
+  <!-- Loading state -->
+  <div id="loadingState" class="loading">Loading pets...</div>
+
+<!-- Error state (hidden by default) -->
+  <div id="errorState" class="error-box" style="display:none;">
+    <h3>⚠️ Failed to load pets</h3>
+    <p>Could not connect to Firebase.</p>
+    <code id="errorUrl"></code>
   </div>
   
+ <!-- Pet cards will appear here -->
+  <div id="petList" class="pet-list" style="display:none;"></div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+ <script>
+    const FIREBASE_DB_URL = "https://tailmatess-default-rtdb.asia-southeast1.firebasedatabase.app/pets.json";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBifu5Te7paXOFUFrDUtogIPpi5H0xR7rY",
-  authDomain: "tailmatess.firebaseapp.com",
-  projectId: "tailmatess",
-  storageBucket: "tailmatess.firebasestorage.app",
-  messagingSenderId: "445299543083",
-  appId: "1:445299543083:web:e7be85a3eae32f8ba5ee6e",
-  measurementId: "G-ZLQG062LVE"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-
-const FIREBASE_DB_URL = "https://tailmatess-default-rtdb.asia-southeast1.firebasedatabase.app//pets.json"; 
-
-let allPets = [];
-
-async function loadPetsFromFirebase() {
-    try {
+    let allPets = [];
+    // FETCH PETS FROM FIREBASE
+    async function loadPetsFromFirebase() {
+      try {
         const response = await fetch(FIREBASE_DB_URL);
         if (!response.ok) throw new Error("HTTP " + response.status);
-        
+
         const data = await response.json();
-        
+
         // Firebase returns { "1": {...}, "2": {...} } — convert to array
         allPets = Object.values(data);
-        
-        // Now render
+
+        // Hide loading, show pets
+        document.getElementById("loadingState").style.display = "none";
+        document.getElementById("petList").style.display = "flex";
+
+        // Render the cards
         renderPets(allPets);
-        updateStats(allPets);
-        
-    } catch (err) {
+
+      } catch (err) {
         console.error("Failed to load pets:", err);
-        document.getElementById("petGrid").innerHTML = 
-            `<div style="text-align:center;padding:60px 20px;">
-                <div style="font-size:3rem;margin-bottom:16px;">⚠️</div>
-                <h3>Failed to load pets</h3>
-                <p style="color:#78716c;">Could not connect to Firebase. Check your database URL.</p>
-                <code style="background:#fee2e2;color:#991b1b;padding:8px 12px;border-radius:6px;font-size:0.8rem;">${FIREBASE_DB_URL}</code>
-            </div>`;
+        document.getElementById("loadingState").style.display = "none";
+        document.getElementById("errorState").style.display = "block";
+        document.getElementById("errorUrl").textContent = FIREBASE_DB_URL;
+      }
     }
-}
-    
-// Start loading when page opens
-loadPetsFromFirebase();
-  
-    
+   
+    // RENDER PET CARDS
+    function renderPets(pets) {
+      const container = document.getElementById("petList");
+      container.innerHTML = "";
+
+      pets.forEach(pet => {
+        const ageYears = (pet.age_months / 12).toFixed(1);
+
+        const card = document.createElement("div");
+        card.className = "pet-card";
+
+        card.innerHTML = `
+          <img src="${pet.image_url}" alt="${pet.name}" 
+               onerror="this.src='https://via.placeholder.com/280x200?text=No+Image'">
+          <h3>${pet.name}</h3>
+          <p><strong>${pet.breed}</strong></p>
+          <p>${pet.species} · ${ageYears} yrs · ${pet.weight_kg} kg</p>
+          <p>Care: ${pet.care_level} · ₹${pet.avg_monthly_cost_inr}/mo</p>
+          <button class="adopt-btn" onclick="adoptPet('${pet.name}')">Adopt Me</button>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    function adoptPet(name) {
+      alert("Thank you for your interest in adopting " + name + "!\n\nThis would open an adoption form.");
+    }
+
+    // Start loading when page opens
+    loadPetsFromFirebase();
   </script>
- </body>
+
+</body>
 </html>
