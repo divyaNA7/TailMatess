@@ -4,170 +4,358 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TailMates Messenger</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root {
-      --wa-green: #8d2ea5;
-      --wa-green-dark: #d091d8;
-      --wa-bubble-sent: #dcf8c6;
-      --wa-bubble-received: #ffffff;
-      --wa-bg: #e5ddd5;
-      --wa-text: #111b21;
-      --wa-meta: #667781;
-      --wa-blue: #9e51b1;
-      --wa-input-bg: #6e0c6e;
+      --primary: #00f5ff;
+      --primary-dim: rgba(0, 245, 255, 0.15);
+      --secondary: #ff6b6b;
+      --accent: #a855f7;
+      --bg: #0a0a0f;
+      --bg-light: #12121a;
+      --bg-card: rgba(255, 255, 255, 0.03);
+      --bg-glass: rgba(255, 255, 255, 0.05);
+      --text: #f0f0f5;
+      --text-dim: #8b8b9a;
+      --border: rgba(255, 255, 255, 0.08);
+      --glow-primary: 0 0 40px rgba(0, 245, 255, 0.3);
     }
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: var(--wa-bg);
-      color: var(--wa-text);
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
       height: 100vh;
       overflow: hidden;
+      cursor: none;
+    }
+    h1, h2, h3, h4, h5, h6 { font-family: 'Space Grotesk', sans-serif; }
+
+    /* Custom Paw Cursor */
+    .cursor {
+      width: 40px; height: 40px;
+      position: fixed; pointer-events: none; z-index: 99999;
+      transition: transform 0.1s ease;
+    }
+    .cursor::before {
+      content: '';
+      position: absolute;
+      top: 2px; left: 50%; transform: translateX(-50%);
+      width: 16px; height: 18px; background: rgba(255, 255, 255, 0.9); border-radius: 50% 50% 45% 45%;
+    }
+    .cursor .pad {
+      position: absolute; width: 10px; height: 12px; background: rgba(255, 255, 255, 0.9); border-radius: 50%;
+    }
+    .cursor .pad-1 { top: 14px; left: 2px; transform: rotate(-20deg); }
+    .cursor .pad-2 { top: 8px; left: 15px; }
+    .cursor .pad-3 { top: 14px; right: 2px; transform: rotate(20deg); }
+    .cursor-follower {
+      width: 60px; height: 60px;
+      position: fixed; pointer-events: none; z-index: 99998;
+      transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0.15;
+    }
+    .cursor-follower::before {
+      content: '';
+      position: absolute; top: 2px; left: 50%; transform: translateX(-50%);
+      width: 22px; height: 24px; border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 50% 50% 45% 45%;
+    }
+    .cursor-follower .pad {
+      position: absolute; width: 14px; height: 16px; border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 50%;
+    }
+    .cursor-follower .pad-1 { top: 20px; left: 2px; transform: rotate(-20deg); }
+    .cursor-follower .pad-2 { top: 12px; left: 20px; }
+    .cursor-follower .pad-3 { top: 20px; right: 2px; transform: rotate(20deg); }
+    .cursor.hover { transform: scale(1.3); }
+    .cursor.hover::before, .cursor.hover .pad { background: var(--primary); }
+    .cursor-follower.hover { transform: scale(1.2); opacity: 0.3; }
+    .cursor-follower.hover::before, .cursor-follower.hover .pad { border-color: var(--primary); }
+
+    /* Scroll Progress */
+    .scroll-progress {
+      position: fixed; top: 0; left: 0; height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent), var(--secondary));
+      z-index: 10000; width: 0%; box-shadow: 0 0 20px var(--primary);
     }
 
-    .chat-bg {
-      background-color: var(--wa-bg);
-      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d5d5d5' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    /* Background Orbs */
+    .bg-orbs {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .orb {
+      position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.4;
+      animation: orbFloat 20s infinite ease-in-out;
+    }
+    .orb-1 { width: 600px; height: 600px; background: var(--primary); top: -200px; left: -200px; animation-delay: 0s; }
+    .orb-2 { width: 500px; height: 500px; background: var(--accent); top: 50%; right: -150px; animation-delay: -5s; }
+    .orb-3 { width: 400px; height: 400px; background: var(--secondary); bottom: -100px; left: 30%; animation-delay: -10s; }
+    .orb-4 { width: 300px; height: 300px; background: #4ade80; top: 30%; left: 60%; animation-delay: -15s; }
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(50px, -30px) scale(1.1); }
+      50% { transform: translate(-30px, 50px) scale(0.9); }
+      75% { transform: translate(20px, 20px) scale(1.05); }
     }
 
-    .chat-container { width: 100%; height: 100vh; display: flex; flex-direction: column; }
+    /* Navbar */
+    .navbar {
+      position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+      padding: 0.8rem 2rem;
+      background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1400px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 12px; text-decoration: none;
+    }
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; color: var(--bg);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+    .logo:hover .logo-icon { transform: rotate(15deg) scale(1.1); box-shadow: 0 0 30px rgba(0, 245, 255, 0.5); }
+    .logo-text h2 { font-size: 1.4rem; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+    .logo-text span { font-size: 0.65rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      color: var(--text-dim); text-decoration: none; font-size: 0.85rem; font-weight: 500;
+      position: relative; transition: color 0.3s ease; padding: 0.5rem 0;
+    }
+    .nav-links a::after {
+      content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width 0.3s ease; box-shadow: 0 0 10px var(--primary);
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--text); }
+    .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
 
-    .wa-header {
-      background: var(--wa-green);
-      color: white;
-      padding: 0.6rem 1rem;
+    /* Chat Layout */
+    .chat-wrap {
+      position: relative; z-index: 10;
+      height: 100vh;
+      padding-top: 65px;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 30;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+      flex-direction: column;
+    }
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 0;
+      overflow: hidden;
+    }
+    @media (min-width: 1024px) {
+      .chat-container {
+        border-radius: 24px;
+        margin: 1rem auto;
+        max-height: calc(100vh - 90px);
+      }
+    }
+
+    /* Chat Header */
+    .wa-header {
+      background: linear-gradient(135deg, rgba(0, 245, 255, 0.1), rgba(168, 85, 247, 0.1));
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.25rem;
+      display: flex; align-items: center; justify-content: space-between;
+      backdrop-filter: blur(20px);
     }
     .header-left { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
-    .back-btn { display: none; padding: 0.4rem; background: none; border: none; border-radius: 50%; cursor: pointer; color: white; }
-    .back-btn:hover { background: rgba(255,255,255,0.1); }
-    <!-- In the .header-left div, BEFORE the avatar -->
-<button class="back-btn" onclick="window.location.href='message.html'" title="All chats" style="display:block;">
-  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-    <path d="M15 19l-7-7 7-7"/>
-  </svg>
-</button>
-    .header-avatar { width: 2.5rem; height: 2.5rem; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.3); flex-shrink: 0; }
+    .back-btn {
+      padding: 0.4rem; background: none; border: none; border-radius: 50%;
+      cursor: none; color: var(--text); transition: all 0.2s;
+    }
+    .back-btn:hover { background: var(--primary-dim); color: var(--primary); }
+    .back-btn svg { width: 20px; height: 20px; }
+    .header-avatar {
+      width: 2.5rem; height: 2.5rem; border-radius: 50%; object-fit: cover;
+      border: 2px solid rgba(0, 245, 255, 0.3); flex-shrink: 0;
+      box-shadow: 0 0 15px rgba(0, 245, 255, 0.15);
+    }
     .header-info { min-width: 0; }
-    .header-info h2 { font-size: 0.95rem; font-weight: 600; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .header-status { font-size: 0.75rem; color: #a5e8d0; font-weight: 500; }
+    .header-info h2 {
+      font-size: 0.95rem; font-weight: 600; line-height: 1.2;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      color: var(--text);
+    }
+    .header-status { font-size: 0.75rem; color: var(--primary); font-weight: 500; }
     .header-actions { display: flex; align-items: center; gap: 0.25rem; }
-    .icon-btn { padding: 0.5rem; background: none; border: none; border-radius: 50%; cursor: pointer; color: white; transition: background 0.2s; }
-    .icon-btn:hover { background: rgba(255,255,255,0.1); }
+    .icon-btn {
+      padding: 0.5rem; background: none; border: none; border-radius: 50%;
+      cursor: none; color: var(--text-dim); transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .icon-btn:hover { background: var(--primary-dim); color: var(--primary); }
     .icon-btn svg { width: 1.25rem; height: 1.25rem; }
 
+    /* Pet Bar */
     .pet-bar {
-      background: #e1f5e1;
-      padding: 0.5rem 1rem;
-      border-bottom: 1px solid rgba(7,94,84,0.08);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+      background: linear-gradient(90deg, rgba(0, 245, 255, 0.08), rgba(168, 85, 247, 0.08));
+      padding: 0.5rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.5rem;
     }
-    .pet-bar img { width: 1.75rem; height: 1.75rem; border-radius: 0.375rem; object-fit: cover; }
-    .pet-bar-text { font-size: 0.75rem; color: var(--wa-green); font-weight: 500; }
-    .pet-bar-text span { font-weight: 700; }
-    .pet-badge { font-size: 0.65rem; background: var(--wa-green); color: white; padding: 0.15rem 0.5rem; border-radius: 1rem; font-weight: 600; margin-left: auto; }
+    .pet-bar img {
+      width: 1.75rem; height: 1.75rem; border-radius: 0.375rem; object-fit: cover;
+      border: 1px solid var(--border);
+    }
+    .pet-bar-text { font-size: 0.8rem; color: var(--text-dim); font-weight: 500; }
+    .pet-bar-text span { font-weight: 600; color: var(--primary); }
+    .pet-badge {
+      font-size: 0.65rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: var(--bg); padding: 0.15rem 0.6rem;
+      border-radius: 1rem; font-weight: 700; margin-left: auto;
+    }
 
+    /* Messages Area */
     .messages-area {
       flex: 1;
       overflow-y: auto;
-      padding: 0.75rem 1rem;
+      padding: 1rem 1.25rem;
       display: flex;
       flex-direction: column;
-      gap: 0.125rem;
+      gap: 0.25rem;
+      background: transparent;
     }
     .messages-area::-webkit-scrollbar { width: 6px; }
     .messages-area::-webkit-scrollbar-track { background: transparent; }
-    .messages-area::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+    .messages-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
 
     .date-separator { display: flex; justify-content: center; margin: 0.75rem 0; }
     .date-separator span {
-      background: #e1f2fb; color: #54656f; font-size: 0.7rem;
-      padding: 0.35rem 0.75rem; border-radius: 0.5rem;
-      box-shadow: 0 1px 1px rgba(0,0,0,0.05);
-      font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;
+      background: var(--bg-glass); color: var(--text-dim); font-size: 0.7rem;
+      padding: 0.35rem 0.875rem; border-radius: 0.5rem;
+      border: 1px solid var(--border);
+      font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+      backdrop-filter: blur(10px);
     }
 
-    .msg-row { display: flex; margin-bottom: 0.25rem; animation: msgIn 0.2s ease-out; }
+    .msg-row { display: flex; margin-bottom: 0.25rem; animation: msgIn 0.25s ease-out; }
     .msg-row.sent { justify-content: flex-end; }
     .msg-row.received { justify-content: flex-start; }
 
     .msg-bubble {
       max-width: 75%;
-      padding: 0.5rem 0.75rem;
+      padding: 0.6rem 0.875rem;
       position: relative;
-      box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
-      line-height: 1.4;
+      line-height: 1.45;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(10px);
     }
-    .msg-row.sent .msg-bubble { background: var(--wa-bubble-sent); border-radius: 0.5rem; border-top-right-radius: 0; }
-    .msg-row.received .msg-bubble { background: var(--wa-bubble-received); border-radius: 0.5rem; border-top-left-radius: 0; }
+    .msg-row.sent .msg-bubble {
+      background: linear-gradient(135deg, rgba(0, 245, 255, 0.12), rgba(168, 85, 247, 0.08));
+      border-radius: 16px; border-top-right-radius: 4px;
+      border-color: rgba(0, 245, 255, 0.15);
+    }
+    .msg-row.received .msg-bubble {
+      background: var(--bg-glass);
+      border-radius: 16px; border-top-left-radius: 4px;
+    }
 
-    .msg-text { font-size: 0.875rem; color: var(--wa-text); word-wrap: break-word; padding-right: 3.5rem; }
-    .msg-meta { position: absolute; bottom: 0.25rem; right: 0.5rem; display: flex; align-items: center; gap: 0.15rem; }
-    .msg-time { font-size: 0.65rem; color: var(--wa-meta); }
-    .msg-read { font-size: 0.7rem; color: var(--wa-blue); line-height: 1; }
-    .msg-read.pending { color: var(--wa-meta); }
+    .msg-text { font-size: 0.875rem; color: var(--text); word-wrap: break-word; padding-right: 3.5rem; }
+    .msg-meta { position: absolute; bottom: 0.3rem; right: 0.6rem; display: flex; align-items: center; gap: 0.2rem; }
+    .msg-time { font-size: 0.65rem; color: var(--text-dim); }
+    .msg-read { font-size: 0.7rem; color: var(--primary); line-height: 1; }
+    .msg-read.pending { color: var(--text-dim); }
 
     .system-row { display: flex; justify-content: center; margin: 0.5rem 0; }
     .system-bubble {
-      background: #ffeac8; color: #7b5c2e; font-size: 0.75rem;
-      padding: 0.4rem 0.875rem; border-radius: 0.5rem;
-      box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(251, 146, 60, 0.05));
+      color: #fbbf24; font-size: 0.75rem;
+      padding: 0.5rem 1rem; border-radius: 12px;
+      border: 1px solid rgba(251, 191, 36, 0.2);
       text-align: center; max-width: 85%;
+      backdrop-filter: blur(10px);
     }
     .system-bubble p:first-child { font-weight: 600; }
     .system-bubble p:last-child { font-size: 0.7rem; margin-top: 0.125rem; opacity: 0.8; }
 
     .typing-row { display: flex; justify-content: flex-start; margin-bottom: 0.25rem; }
-    .typing-bubble { background: white; border-radius: 0.5rem; border-top-left-radius: 0; padding: 0.75rem 1rem; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
+    .typing-bubble {
+      background: var(--bg-glass); border-radius: 16px; border-top-left-radius: 4px;
+      padding: 0.75rem 1rem; border: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
     .typing-dots { display: flex; gap: 0.25rem; }
-    .typing-dots span { width: 6px; height: 6px; background: #9ca3af; border-radius: 50%; animation: typingBounce 1.4s infinite ease-in-out both; }
+    .typing-dots span { width: 6px; height: 6px; background: var(--text-dim); border-radius: 50%; animation: typingBounce 1.4s infinite ease-in-out both; }
     .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
     .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
 
+    /* Input Area */
     .input-area {
-      background: var(--wa-input-bg);
-      padding: 0.5rem 0.75rem;
-      display: flex;
-      align-items: flex-end;
-      gap: 0.5rem;
+      background: var(--bg-light);
+      border-top: 1px solid var(--border);
+      padding: 0.6rem 1rem;
+      display: flex; align-items: flex-end; gap: 0.5rem;
     }
-    .input-icon { padding: 0.5rem; background: none; border: none; border-radius: 50%; cursor: pointer; color: var(--wa-meta); flex-shrink: 0; transition: background 0.2s; }
-    .input-icon:hover { background: rgba(0,0,0,0.05); }
-    .input-icon svg { width: 1.5rem; height: 1.5rem; }
-    .input-field-wrap { flex: 1; background: white; border-radius: 1.5rem; padding: 0.6rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-    .input-field { width: 100%; border: none; outline: none; font-size: 0.9rem; color: var(--wa-text); background: transparent; }
-    .input-field::placeholder { color: var(--wa-meta); }
+    .input-icon {
+      padding: 0.5rem; background: none; border: none; border-radius: 50%;
+      cursor: none; color: var(--text-dim); flex-shrink: 0;
+      transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+    }
+    .input-icon:hover { background: var(--primary-dim); color: var(--primary); }
+    .input-icon svg { width: 1.4rem; height: 1.4rem; }
+    .input-field-wrap {
+      flex: 1;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 1.5rem;
+      padding: 0.6rem 1rem;
+      transition: all 0.3s ease;
+    }
+    .input-field-wrap:focus-within {
+      border-color: rgba(0, 245, 255, 0.3);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.05);
+    }
+    .input-field {
+      width: 100%; border: none; outline: none;
+      font-size: 0.9rem; color: var(--text); background: transparent;
+      font-family: inherit;
+    }
+    .input-field::placeholder { color: var(--text-dim); }
 
     .send-btn {
       width: 2.5rem; height: 2.5rem;
-      border-radius: 50%; border: none; cursor: pointer;
+      border-radius: 50%; border: none; cursor: none;
       display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; transition: all 0.2s;
-      background: var(--wa-green); color: white;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+      flex-shrink: 0; transition: all 0.3s ease;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: var(--bg);
+      box-shadow: 0 0 15px rgba(0, 245, 255, 0.2);
     }
-    .send-btn:hover { background: var(--wa-green-dark); }
+    .send-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 25px rgba(0, 245, 255, 0.4);
+    }
 
-    .camera-btn { color: var(--wa-meta); }
-    .camera-btn:hover { background: rgba(0,0,0,0.05); color: var(--wa-green); }
-
+    /* Image Bubble */
     .image-bubble {
       max-width: 280px;
       padding: 0.25rem 0.25rem 0.5rem !important;
       overflow: hidden; cursor: pointer;
+      border: 1px solid var(--border) !important;
     }
     .image-bubble img {
       width: 100%; max-height: 240px; object-fit: cover;
-      border-radius: 0.375rem; display: block; background: #e5e7eb;
+      border-radius: 12px; display: block; background: var(--bg-light);
     }
     .image-bubble .msg-meta {
       position: static; justify-content: flex-end;
@@ -175,155 +363,336 @@
       display: flex; align-items: center; gap: 0.15rem;
     }
 
-    /* Not logged in state */
+    /* Location Bubble */
+    .location-bubble { max-width: 280px; padding: 0 !important; overflow: hidden; cursor: pointer; }
+    .location-bubble .loc-map-img { width: 100%; height: 140px; object-fit: cover; display: block; background: var(--bg-light); }
+    .location-bubble .loc-info { padding: 0.5rem 0.75rem; }
+    .location-bubble .loc-name { font-size: 0.85rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .location-bubble .loc-address { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.125rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .location-bubble .loc-meta { padding: 0 0.75rem 0.375rem; display: flex; align-items: center; gap: 0.25rem; }
+    .location-bubble .loc-meta .msg-time { position: static; }
+
+    /* Not Logged In */
     .not-logged {
       flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1rem;
-      padding: 2rem;
-      text-align: center;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 1rem; padding: 2rem; text-align: center;
     }
-    .not-logged h3 { font-size: 1.1rem; color: var(--wa-text); }
-    .not-logged p { font-size: 0.85rem; color: var(--wa-meta); }
+    .not-logged h3 { font-size: 1.3rem; color: var(--text); font-family: 'Space Grotesk', sans-serif; }
+    .not-logged p { font-size: 0.9rem; color: var(--text-dim); }
     .not-logged a {
-      padding: 0.75rem 1.5rem;
-      background: var(--wa-green);
-      color: white;
-      text-decoration: none;
-      border-radius: 0.5rem;
-      font-weight: 600;
+      padding: 0.8rem 2rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: var(--bg); text-decoration: none;
+      border-radius: 50px; font-weight: 700;
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
+      transition: all 0.3s ease;
+    }
+    .not-logged a:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(0, 245, 255, 0.4);
     }
 
-    @keyframes msgIn { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-    @keyframes typingBounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-5px); } }
+    /* Inbox Items */
+    .inbox-item { cursor: pointer; }
+    .inbox-item .msg-bubble {
+      background: var(--bg-glass) !important;
+      border: 1px solid var(--border) !important;
+      width: 100%; max-width: 100%;
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.75rem !important;
+      border-radius: 16px !important;
+      transition: all 0.3s ease;
+    }
+    .inbox-item:hover .msg-bubble {
+      border-color: rgba(0, 245, 255, 0.2) !important;
+      transform: translateX(4px);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.05);
+    }
 
-    @media (max-width: 640px) { .back-btn { display: block; } }
+    /* Panels */
+    .panel-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 40;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
+      backdrop-filter: blur(5px);
+    }
+    .panel-overlay.open { opacity: 1; pointer-events: auto; }
 
     /* Meetup Panel */
     .meetup-panel {
       position: fixed; top: 0; right: 0; bottom: 0;
-      width: 100%; max-width: 400px; background: white; z-index: 50;
+      width: 100%; max-width: 420px;
+      background: var(--bg-light);
+      border-left: 1px solid var(--border);
+      z-index: 50;
       transform: translateX(100%); transition: transform 0.3s ease;
       display: flex; flex-direction: column;
-      box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+      box-shadow: -10px 0 40px rgba(0,0,0,0.5);
     }
     .meetup-panel.open { transform: translateX(0); }
-    .panel-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 40;
-      opacity: 0; pointer-events: none; transition: opacity 0.3s;
-    }
-    .panel-overlay.open { opacity: 1; pointer-events: auto; }
     .panel-header {
-      background: var(--wa-green); color: white; padding: 1rem;
+      background: linear-gradient(135deg, rgba(0, 245, 255, 0.1), rgba(168, 85, 247, 0.1));
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.25rem;
       display: flex; align-items: center; justify-content: space-between;
+      backdrop-filter: blur(20px);
     }
-    .panel-header h3 { font-size: 1rem; font-weight: 600; }
-    .panel-close { background: none; border: none; color: white; cursor: pointer; padding: 0.25rem; }
-    .panel-body { flex: 1; overflow-y: auto; padding: 1rem; }
+    .panel-header h3 { font-size: 1rem; font-weight: 600; color: var(--text); font-family: 'Space Grotesk', sans-serif; }
+    .panel-close { background: none; border: none; color: var(--text-dim); cursor: none; padding: 0.25rem; transition: color 0.2s; }
+    .panel-close:hover { color: var(--secondary); }
+    .panel-body { flex: 1; overflow-y: auto; padding: 1.25rem; }
     .spot-card2 {
-      padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 0.75rem;
-      margin-bottom: 0.5rem; cursor: pointer; transition: all 0.2s;
+      padding: 1rem; background: var(--bg-glass);
+      border: 1px solid var(--border); border-radius: 14px;
+      margin-bottom: 0.6rem; cursor: none;
+      transition: all 0.3s ease;
     }
-    .spot-card2:hover { border-color: var(--wa-green); background: #f0fdf4; }
-    .spot-card2.selected { border-color: var(--wa-green); background: #f0fdf4; box-shadow: 0 0 0 2px rgba(7,94,84,0.1); }
-    .spot-name2 { font-weight: 600; font-size: 0.9rem; color: var(--wa-text); }
-    .spot-area2 { font-size: 0.75rem; color: var(--wa-meta); margin-top: 0.125rem; }
-    .datetime-section2 { margin-top: 1rem; }
-    .datetime-section2 label { font-size: 0.75rem; font-weight: 600; color: var(--wa-meta); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; display: block; }
-    .datetime-section2 input[type="date"] { width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-size: 0.875rem; margin-bottom: 0.5rem; }
+    .spot-card2:hover {
+      border-color: rgba(0, 245, 255, 0.2);
+      transform: translateX(4px);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.05);
+    }
+    .spot-card2.selected {
+      border-color: var(--primary);
+      background: var(--primary-dim);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
+    }
+    .spot-name2 { font-weight: 600; font-size: 0.9rem; color: var(--text); }
+    .spot-area2 { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.25rem; }
+    .datetime-section2 { margin-top: 1.5rem; }
+    .datetime-section2 label {
+      font-size: 0.7rem; font-weight: 600; color: var(--primary);
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 0.75rem; display: block;
+    }
+    .datetime-section2 input[type="date"] {
+      width: 100%; padding: 0.6rem 1rem;
+      background: var(--bg-glass); border: 1px solid var(--border);
+      border-radius: 12px; font-size: 0.875rem;
+      color: var(--text); font-family: inherit;
+      margin-bottom: 0.75rem; outline: none;
+    }
+    .datetime-section2 input[type="date"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 15px rgba(0, 245, 255, 0.1);
+    }
     .time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem; }
-    .time-btn { padding: 0.5rem; border: 1px solid #e5e7eb; background: white; border-radius: 0.5rem; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
-    .time-btn:hover { border-color: var(--wa-green); background: #f0fdf4; }
-    .time-btn.selected { background: var(--wa-green); color: white; border-color: var(--wa-green); }
-    .confirm-btn2 { width: 100%; padding: 0.75rem; background: var(--wa-green); color: white; border: none; border-radius: 0.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
-    .confirm-btn2:hover { background: var(--wa-green-dark); }
+    .time-btn {
+      padding: 0.6rem; background: var(--bg-glass);
+      border: 1px solid var(--border); border-radius: 10px;
+      font-size: 0.8rem; color: var(--text); cursor: none;
+      transition: all 0.2s; font-family: inherit;
+    }
+    .time-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .time-btn.selected {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: var(--bg); border-color: transparent;
+      box-shadow: 0 0 15px rgba(0, 245, 255, 0.2);
+    }
+    .confirm-btn2 {
+      width: 100%; padding: 0.8rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: var(--bg); border: none; border-radius: 50px;
+      font-size: 0.9rem; font-weight: 700; cursor: none;
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
+      transition: all 0.3s ease; font-family: inherit;
+    }
+    .confirm-btn2:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(0, 245, 255, 0.4);
+    }
 
     /* Map Panel */
     .map-panel {
       position: fixed; top: 0; right: 0; bottom: 0;
-      width: 100%; max-width: 420px; background: white; z-index: 50;
+      width: 100%; max-width: 420px;
+      background: var(--bg-light);
+      border-left: 1px solid var(--border);
+      z-index: 50;
       transform: translateX(100%); transition: transform 0.3s ease;
       display: flex; flex-direction: column;
-      box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+      box-shadow: -10px 0 40px rgba(0,0,0,0.5);
     }
     .map-panel.open { transform: translateX(0); }
     .map-container { flex: 1; position: relative; min-height: 0; }
     .map-search-bar {
       display: flex; gap: 0.5rem;
-      padding: 0.75rem 1rem; border-bottom: 1px solid #e5e7eb; background: #f9fafb;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
     }
-    .map-search-bar input { flex: 1; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.875rem; outline: none; }
-    .map-search-bar input:focus { border-color: var(--wa-green); box-shadow: 0 0 0 3px rgba(7,94,84,0.08); }
-    .map-search-btn { padding: 0.5rem 0.75rem; background: var(--wa-green); border: none; border-radius: 0.5rem; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    .map-search-btn:hover { background: var(--wa-green-dark); }
-    .map-results { max-height: 180px; overflow-y: auto; background: white; border-bottom: 1px solid #e5e7eb; display: none; }
+    .map-search-bar input {
+      flex: 1; padding: 0.6rem 1rem;
+      background: var(--bg-glass); border: 1px solid var(--border);
+      border-radius: 12px; font-size: 0.875rem;
+      color: var(--text); outline: none; font-family: inherit;
+    }
+    .map-search-bar input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 15px rgba(0, 245, 255, 0.1);
+    }
+    .map-search-btn {
+      padding: 0.6rem 0.875rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border: none; border-radius: 12px; color: var(--bg);
+      cursor: none; display: flex; align-items: center; justify-content: center;
+      transition: all 0.3s ease;
+    }
+    .map-search-btn:hover { box-shadow: 0 0 15px rgba(0, 245, 255, 0.3); }
+    .map-results {
+      max-height: 180px; overflow-y: auto;
+      background: var(--bg-light);
+      border-bottom: 1px solid var(--border);
+      display: none;
+    }
     .map-results.active { display: block; }
-    .map-result-item { padding: 0.625rem 1rem; cursor: pointer; border-bottom: 1px solid #f3f4f6; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
-    .map-result-item:hover { background: #f0fdf4; }
-    .map-result-item svg { flex-shrink: 0; color: var(--wa-green); }
-    .map-result-name { font-weight: 500; color: var(--wa-text); }
-    .map-result-area { font-size: 0.75rem; color: var(--wa-meta); }
-    .map-footer { padding: 0.75rem 1rem; border-top: 1px solid #e5e7eb; display: flex; gap: 0.5rem; background: white; }
-    .map-locate-btn, .map-send-btn { flex: 1; padding: 0.625rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; gap: 0.375rem; transition: all 0.2s; }
-    .map-locate-btn { background: #f3f4f6; color: #374151; }
-    .map-locate-btn:hover { background: #e5e7eb; }
-    .map-send-btn { background: var(--wa-green); color: white; }
-    .map-send-btn:hover:not(:disabled) { background: var(--wa-green-dark); }
-    .map-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .map-result-item {
+      padding: 0.75rem 1rem; cursor: none;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem; display: flex;
+      align-items: center; gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .map-result-item:hover { background: var(--primary-dim); }
+    .map-result-item svg { flex-shrink: 0; color: var(--primary); }
+    .map-result-name { font-weight: 500; color: var(--text); }
+    .map-result-area { font-size: 0.75rem; color: var(--text-dim); }
+    .map-footer {
+      padding: 0.75rem 1rem;
+      border-top: 1px solid var(--border);
+      display: flex; gap: 0.5rem; background: var(--bg);
+    }
+    .map-locate-btn, .map-send-btn {
+      flex: 1; padding: 0.7rem;
+      border-radius: 12px; font-size: 0.875rem;
+      font-weight: 600; cursor: none; border: none;
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.375rem; transition: all 0.3s ease; font-family: inherit;
+    }
+    .map-locate-btn { background: var(--bg-glass); color: var(--text); border: 1px solid var(--border); }
+    .map-locate-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .map-send-btn {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: var(--bg);
+      box-shadow: 0 0 15px rgba(0, 245, 255, 0.2);
+    }
+    .map-send-btn:hover:not(:disabled) { box-shadow: 0 0 25px rgba(0, 245, 255, 0.4); }
+    .map-send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-    .location-bubble { max-width: 280px; padding: 0 !important; overflow: hidden; cursor: pointer; }
-    .location-bubble .loc-map-img { width: 100%; height: 140px; object-fit: cover; display: block; background: #e5e7eb; }
-    .location-bubble .loc-info { padding: 0.5rem 0.75rem; }
-    .location-bubble .loc-name { font-size: 0.85rem; font-weight: 600; color: var(--wa-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .location-bubble .loc-address { font-size: 0.75rem; color: var(--wa-meta); margin-top: 0.125rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .location-bubble .loc-meta { padding: 0 0.75rem 0.375rem; display: flex; align-items: center; gap: 0.25rem; }
-    .location-bubble .loc-meta .msg-time { position: static; }
-
-    .leaflet-popup-content-wrapper { border-radius: 0.75rem; }
+    /* Leaflet overrides for dark theme */
+    .leaflet-popup-content-wrapper {
+      border-radius: 12px;
+      background: var(--bg-light);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
     .leaflet-popup-content { margin: 0.5rem 0.75rem; font-size: 0.8rem; }
+    .leaflet-popup-tip { background: var(--bg-light); }
+    .leaflet-container { background: var(--bg); }
 
-    @media (max-width: 640px) { .map-panel { max-width: 100%; } }
+    @keyframes msgIn { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes typingBounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-5px); } }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .chat-container { border-radius: 0; margin: 0; max-height: 100vh; }
+      .meetup-panel, .map-panel { max-width: 100%; }
+      .cursor, .cursor-follower { display: none; }
+      body { cursor: auto; }
+      .back-btn, .icon-btn, .input-icon, .send-btn, .panel-close, .spot-card2, .time-btn, .confirm-btn2, .map-search-btn, .map-locate-btn, .map-send-btn, .map-result-item { cursor: pointer; }
+    }
   </style>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<base target="_blank">
 </head>
-<body class="chat-bg">
+<body>
 
+<!-- Custom Paw Cursor -->
+<div class="cursor" id="cursor">
+  <div class="pad pad-1"></div>
+  <div class="pad pad-2"></div>
+  <div class="pad pad-3"></div>
+</div>
+<div class="cursor-follower" id="cursorFollower">
+  <div class="pad pad-1"></div>
+  <div class="pad pad-2"></div>
+  <div class="pad pad-3"></div>
+</div>
+
+<!-- Scroll Progress -->
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<!-- Background Orbs -->
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+</div>
+
+<!-- Navigation -->
+<nav class="navbar" id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="logo">
+      <div class="logo-icon"><i class="fa-solid fa-paw"></i></div>
+      <div class="logo-text">
+        <h2>TailMates</h2>
+        <span>Every Paw Deserves Home</span>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="Adopt.html">Adopt</a></li>
+      <li><a href="PawMate.html">PawMate AI</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="shop.html">Shop</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="register.html">Register a Pet</a></li>
+    </ul>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <a href="message.html" class="icon-btn" title="Messages" style="color:var(--primary);">
+        <i class="fa-solid fa-comment-dots" style="font-size:1.1rem;"></i>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- Chat Wrap -->
+<div class="chat-wrap">
   <!-- Meetup Panel Overlay -->
   <div class="panel-overlay" id="panel-overlay" onclick="toggleMeetupPanel()"></div>
 
   <!-- Meetup Panel -->
   <div class="meetup-panel" id="meetup-panel">
     <div class="panel-header">
-      <h3>📍 Schedule Meetup</h3>
+      <h3><i class="fa-solid fa-location-dot" style="margin-right:8px;color:var(--primary);"></i>Schedule Meetup</h3>
       <button class="panel-close" onclick="toggleMeetupPanel()">
-        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        <i class="fa-solid fa-xmark" style="font-size:1.2rem;"></i>
       </button>
     </div>
     <div class="panel-body">
-      <p style="font-size: 0.8rem; color: var(--wa-meta); margin-bottom: 0.75rem;">Pick a safe, public spot in Mumbai to meet the pet.</p>
+      <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1rem;">Pick a safe, public spot in Mumbai to meet the pet.</p>
       <div id="spot-list">
-        <div class="spot-card2" onclick="selectSpot(this, 'Carter Road Promenade', 'Bandra West • Cat-friendly • Sea-facing')">
+        <div class="spot-card2" onclick="selectSpot(this, 'Carter Road Promenade', 'Bandra West - Cat-friendly - Sea-facing')">
           <div class="spot-name2">Carter Road Promenade</div>
-          <div class="spot-area2">Bandra West • Cat-friendly • Sea-facing</div>
+          <div class="spot-area2">Bandra West - Cat-friendly - Sea-facing</div>
         </div>
-        <div class="spot-card2" onclick="selectSpot(this, 'Joggers Park', 'Bandra West • Leashed pets • 6AM–9PM')">
+        <div class="spot-card2" onclick="selectSpot(this, 'Joggers Park', 'Bandra West - Leashed pets - 6AM-9PM')">
           <div class="spot-name2">Joggers Park</div>
-          <div class="spot-area2">Bandra West • Leashed pets • 6AM–9PM</div>
+          <div class="spot-area2">Bandra West - Leashed pets - 6AM-9PM</div>
         </div>
-        <div class="spot-card2" onclick="selectSpot(this, 'Aarey Colony', 'Goregaon • Open trails • Nature walks')">
+        <div class="spot-card2" onclick="selectSpot(this, 'Aarey Colony', 'Goregaon - Open trails - Nature walks')">
           <div class="spot-name2">Aarey Colony</div>
-          <div class="spot-area2">Goregaon • Open trails • Nature walks</div>
+          <div class="spot-area2">Goregaon - Open trails - Nature walks</div>
         </div>
-        <div class="spot-card2" onclick="selectSpot(this, 'The Pet Café', 'Versova • Indoor • 10AM–10PM')">
-          <div class="spot-name2">The Pet Café</div>
-          <div class="spot-area2">Versova • Indoor • 10AM–10PM</div>
+        <div class="spot-card2" onclick="selectSpot(this, 'The Pet Cafe', 'Versova - Indoor - 10AM-10PM')">
+          <div class="spot-name2">The Pet Cafe</div>
+          <div class="spot-area2">Versova - Indoor - 10AM-10PM</div>
         </div>
-        <div class="spot-card2" onclick="selectSpot(this, 'Shivaji Park', 'Dadar • Large ground • Cat-friendly')">
+        <div class="spot-card2" onclick="selectSpot(this, 'Shivaji Park', 'Dadar - Large ground - Cat-friendly')">
           <div class="spot-name2">Shivaji Park</div>
-          <div class="spot-area2">Dadar • Large ground • Cat-friendly</div>
+          <div class="spot-area2">Dadar - Large ground - Cat-friendly</div>
         </div>
       </div>
       <div class="datetime-section2" id="datetime-section" style="display: none;">
@@ -348,36 +717,35 @@
   <!-- Map Panel -->
   <div class="map-panel" id="map-panel">
     <div class="panel-header">
-      <h3>📍 Share Location</h3>
+      <h3><i class="fa-solid fa-map-location-dot" style="margin-right:8px;color:var(--primary);"></i>Share Location</h3>
       <button class="panel-close" onclick="toggleMapPanel()">
-        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        <i class="fa-solid fa-xmark" style="font-size:1.2rem;"></i>
       </button>
     </div>
     <div class="map-search-bar">
       <input type="text" id="map-search-input" placeholder="Search for a place..." autocomplete="off">
       <button class="map-search-btn" onclick="searchLocation()">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <i class="fa-solid fa-magnifying-glass"></i>
       </button>
     </div>
     <div class="map-results" id="map-results"></div>
     <div class="map-container" id="leaflet-map"></div>
     <div class="map-footer">
       <button class="map-locate-btn" onclick="locateMe()">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.07-6.93l-2.83 2.83M9.76 14.24l-2.83 2.83m11.14 0l-2.83-2.83M9.76 9.76L6.93 6.93"/></svg>
-        My Location
+        <i class="fa-solid fa-location-crosshairs"></i> My Location
       </button>
       <button class="map-send-btn" id="map-send-btn" onclick="sendLocation()" disabled>
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-        Send Location
+        <i class="fa-solid fa-paper-plane"></i> Send Location
       </button>
     </div>
   </div>
 
+  <!-- Chat Container -->
   <div class="chat-container" id="chat-container">
     <div class="wa-header">
       <div class="header-left">
         <button class="back-btn" onclick="history.back()">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+          <i class="fa-solid fa-arrow-left"></i>
         </button>
         <img src="https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop" class="header-avatar" alt="Pet" id="header-avatar">
         <div class="header-info">
@@ -387,10 +755,10 @@
       </div>
       <div class="header-actions">
         <button class="icon-btn" onclick="toggleMeetupPanel()" title="Schedule Meetup">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <i class="fa-solid fa-calendar-check" style="font-size:1.1rem;"></i>
         </button>
         <button class="icon-btn" onclick="logoutUser()" title="Logout">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          <i class="fa-solid fa-right-from-bracket" style="font-size:1.1rem;"></i>
         </button>
       </div>
     </div>
@@ -406,664 +774,586 @@
       <div class="date-separator"><span>Today</span></div>
     </div>
 
-    <!-- Not logged in placeholder (hidden by default) -->
+    <!-- Not logged in placeholder -->
     <div class="not-logged" id="not-logged" style="display:none;">
-      <h3>Please sign in to chat</h3>
+      <h3><i class="fa-solid fa-lock" style="margin-right:8px;color:var(--primary);"></i>Please sign in to chat</h3>
       <p>You need to be logged in to message about this pet.</p>
       <a href="login.html" id="login-link">Go to Login</a>
     </div>
 
     <div class="input-area" id="input-area">
-      <button class="input-icon camera-btn" onclick="document.getElementById('camera-input').click()" title="Take photo">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <button class="input-icon" onclick="document.getElementById('camera-input').click()" title="Take photo">
+        <i class="fa-solid fa-camera" style="font-size:1.2rem;"></i>
       </button>
       <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none" onchange="handleCameraCapture(event)">
 
       <button class="input-icon" onclick="toggleMapPanel()" title="Share location">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <i class="fa-solid fa-location-dot" style="font-size:1.2rem;"></i>
       </button>
 
       <div class="input-field-wrap">
-        <input type="text" class="input-field" id="message-input" placeholder="Type a message" autocomplete="off">
+        <input type="text" class="input-field" id="message-input" placeholder="Type a message..." autocomplete="off">
       </div>
 
       <button class="send-btn" id="send-btn" onclick="sendMessage()" title="Send">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+        <i class="fa-solid fa-paper-plane" style="font-size:1rem;"></i>
       </button>
     </div>
   </div>
+</div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-  <script>
-    // ==========================================
-    // FIREBASE CONFIG (same as your login page)
-    // ==========================================
-    const firebaseConfig = {
-      apiKey: "AIzaSyBifu5Te7paXOFUFrDUtogIPpi5H0xR7rY",
-      authDomain: "tailmatess.firebaseapp.com",
-      projectId: "tailmatess",
-      storageBucket: "tailmatess.firebasestorage.app",
-      messagingSenderId: "445299543083",
-      appId: "1:445299543083:web:e7be85a3eae32f8ba5ee6e",
-      measurementId: "G-ZLQG062LVE"
-    };
+<script>
 
-    let db, auth, currentUser, conversationId, unsubMessages;
-    let firebaseReady = false;
+  // ===================== CURSOR =====================
+  const cursor = document.getElementById('cursor');
+  const cursorFollower = document.getElementById('cursorFollower');
+  let mouseX = 0, mouseY = 0, followerX = 0, followerY = 0;
 
-    try {
-      firebase.initializeApp(firebaseConfig);
-      auth = firebase.auth();
-      db = firebase.firestore();
-      firebaseReady = true;
-      console.log("Firebase initialized");
-    } catch (e) {
-      console.error("Firebase init failed:", e);
-    }
-
-    // ==========================================
-    // PET DATA FROM URL + DATASET
-    // ==========================================
-    const urlParams = new URLSearchParams(window.location.search);
-    const petId = urlParams.get('pet') || 'whiskers-001';
-    const petName = urlParams.get('name') || 'Whiskers';
-    const petBreed = urlParams.get('breed') || 'Siamese';
-    const petImg = urlParams.get('img') || 'https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop';
-    const otherUserId = urlParams.get('lister') || '';  // UID of the pet owner from your dataset
-    const matchScore = urlParams.get('match') || '88';
-
-    let selectedSpot = null;
-    let selectedTime = null;
-    let otherUserProfile = null;
-
-    // ==========================================
-    // AUTH STATE - connects to YOUR login page
-    // ==========================================
-// ==========================================
-// AUTH STATE
-// ==========================================
-auth.onAuthStateChanged(async (user) => {
-  if (!user) {
-    currentUser = null;
-    if (unsubMessages) { unsubMessages(); unsubMessages = null; }
-    showNotLoggedIn();
-    return;
+  document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX; mouseY = e.clientY;
+    cursor.style.left = mouseX - 6 + 'px';
+    cursor.style.top = mouseY - 6 + 'px';
+  });
+  function animateFollower() {
+    followerX += (mouseX - followerX) * 0.1;
+    followerY += (mouseY - followerY) * 0.1;
+    cursorFollower.style.left = followerX - 20 + 'px';
+    cursorFollower.style.top = followerY - 20 + 'px';
+    requestAnimationFrame(animateFollower);
   }
+  animateFollower();
 
-  currentUser = user;
-  document.getElementById('not-logged').style.display = 'none';
-  document.getElementById('input-area').style.display = 'flex';
-  document.getElementById('chat-messages').style.display = 'flex';
+  const hoverEls = document.querySelectorAll('a, button, .icon-btn, .input-icon, .send-btn, .spot-card2, .time-btn, .confirm-btn2, .map-search-btn, .map-locate-btn, .map-send-btn, .map-result-item, .back-btn, .panel-close');
+  hoverEls.forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.classList.add('hover'); cursorFollower.classList.add('hover'); });
+    el.addEventListener('mouseleave', () => { cursor.classList.remove('hover'); cursorFollower.classList.remove('hover'); });
+  });
 
-  // Check if we have a valid lister in URL
-  if (!otherUserId || otherUserId === 'lister_demo') {
-    // No specific chat requested — show inbox inside message.html
-    await loadMyConversations();
-  } else {
-    // Normal single-chat mode
-    await initSingleChat();
-  }
-});
+  // ===================== SCROLL PROGRESS =====================
+  const scrollProgress = document.getElementById('scrollProgress');
+  window.addEventListener('scroll', () => {
+    const st = window.scrollY;
+    const dh = document.documentElement.scrollHeight - window.innerHeight;
+    scrollProgress.style.width = (st / dh * 100) + '%';
+  });
 
-// ==========================================
-// MODE 1: SHOW "MY CHATS" INBOX (no lister in URL)
-// ==========================================
-async function loadMyConversations() {
-  document.title = 'My Chats | TailMates';
-  document.getElementById('header-name').textContent = 'My Chats';
-  document.getElementById('header-status').textContent = 'All conversations';
-  document.getElementById('pet-bar').style.display = 'none';
-  document.getElementById('input-area').style.display = 'none';
+  // ===================== FIREBASE =====================
+  const firebaseConfig = {
+    apiKey: "AIzaSyBifu5Te7paXOFUFrDUtogIPpi5H0xR7rY",
+    authDomain: "tailmatess.firebaseapp.com",
+    projectId: "tailmatess",
+    storageBucket: "tailmatess.firebasestorage.app",
+    messagingSenderId: "445299543083",
+    appId: "1:445299543083:web:e7be85a3eae32f8ba5ee6e",
+    measurementId: "G-ZLQG062LVE"
+  };
 
-  const chatMessages = document.getElementById('chat-messages');
-  chatMessages.innerHTML = '<div class="date-separator"><span>Your Conversations</span></div>';
+  let db, auth, currentUser, conversationId, unsubMessages;
+  let firebaseReady = false;
 
-  db.collection('conversations')
-    .where('participants', 'array-contains', currentUser.uid)
-    .orderBy('lastMessageTime', 'desc')
-    .onSnapshot(async (snapshot) => {
-      if (snapshot.empty) {
-        chatMessages.innerHTML += `
-          <div style="text-align:center;padding:3rem 1rem;color:var(--wa-meta);">
-            <p style="font-size:1rem;margin-bottom:0.5rem;">No chats yet</p>
-            <p style="font-size:0.85rem;">Go to the adopt page and click "Chat" on a pet to start messaging.</p>
-          </div>
-        `;
-        return;
-      }
+  try {
+    firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    db = firebase.firestore();
+    firebaseReady = true;
+  } catch (e) { console.error("Firebase init failed:", e); }
 
-      // Clear old list (keep separator)
-      const oldItems = chatMessages.querySelectorAll('.inbox-item');
-      oldItems.forEach(el => el.remove());
+  // ===================== PET DATA =====================
+  const urlParams = new URLSearchParams(window.location.search);
+  const petId = urlParams.get('pet') || 'whiskers-001';
+  const petName = urlParams.get('name') || 'Whiskers';
+  const petBreed = urlParams.get('breed') || 'Siamese';
+  const petImg = urlParams.get('img') || 'https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop';
+  const otherUserId = urlParams.get('lister') || '';
+  const matchScore = urlParams.get('match') || '88';
 
-      for (const doc of snapshot.docs) {
-        const conv = doc.data();
-        const otherUid = conv.participants.find(id => id !== currentUser.uid);
+  let selectedSpot = null;
+  let selectedTime = null;
+  let otherUserProfile = null;
 
-        let otherName = 'User';
-        let otherAvatar = `https://ui-avatars.com/api/?name=User&background=random`;
-        try {
-          const userDoc = await db.collection('users').doc(otherUid).get();
-          if (userDoc.exists) {
-            const data = userDoc.data();
-            otherName = data.name || 'User';
-            otherAvatar = data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherName)}&background=random`;
-          }
-        } catch (e) {}
-
-        const time = conv.lastMessageTime
-          ? conv.lastMessageTime.toDate().toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })
-          : '';
-
-        const item = document.createElement('div');
-        item.className = 'msg-row inbox-item';
-        item.style.cursor = 'pointer';
-        item.style.justifyContent = 'flex-start';
-        item.onclick = () => {
-          const params = new URLSearchParams({
-            pet: conv.petId,
-            name: conv.petName,
-            breed: '',
-            img: conv.petImage || '',
-            lister: otherUid,
-            match: '88'
-          });
-          window.location.href = `message.html?${params.toString()}`;
-        };
-
-        item.innerHTML = `
-          <div class="msg-bubble" style="background:white;max-width:100%;width:100%;display:flex;align-items:center;gap:0.75rem;padding:0.75rem;">
-            <img src="${otherAvatar}" style="width:2.5rem;height:2.5rem;border-radius:50%;object-fit:cover;flex-shrink:0;">
-            <div style="flex:1;min-width:0;">
-              <div style="font-weight:600;font-size:0.9rem;color:var(--wa-text);display:flex;justify-content:space-between;">
-                <span>${otherName} • ${conv.petName}</span>
-                <span style="font-weight:400;font-size:0.7rem;color:var(--wa-meta);">${time}</span>
-              </div>
-              <div style="font-size:0.8rem;color:var(--wa-meta);margin-top:0.125rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                ${conv.lastMessage || 'Start chatting'}
-              </div>
-            </div>
-          </div>
-        `;
-        chatMessages.appendChild(item);
-      }
-    });
-}
-
-// ==========================================
-// MODE 2: SINGLE CHAT (lister provided in URL)
-// ==========================================
-async function initSingleChat() {
-  const headerName = document.getElementById('header-name');
-  const petNameEl = document.getElementById('pet-name');
-  const matchScoreEl = document.getElementById('match-score');
-  const petBarImg = document.getElementById('pet-bar-img');
-  const headerAvatar = document.getElementById('header-avatar');
-  const petBar = document.getElementById('pet-bar');
-
-  if (petBar) petBar.style.display = 'flex';
-  if (headerName) headerName.textContent = `${petName} (${petBreed})`;
-  if (petNameEl) petNameEl.textContent = petName;
-  if (matchScoreEl) matchScoreEl.textContent = `${matchScore}%`;
-  if (petBarImg) petBarImg.src = petImg;
-  if (headerAvatar) headerAvatar.src = petImg;
-  document.title = `Chat - ${petName} | TailMates`;
-
-  await getOrCreateConversation();
-  await loadOtherUserProfile();
-  loadMessagesFromFirebase();
-}
-
-function showNotLoggedIn() {
-  document.getElementById('not-logged').style.display = 'flex';
-  document.getElementById('input-area').style.display = 'none';
-  document.getElementById('chat-messages').style.display = 'none';
-  document.getElementById('pet-bar').style.display = 'none';
-}
-    // ==========================================
-    // CONVERSATION SETUP
-    // ==========================================
-    async function getOrCreateConversation() {
-      if (!currentUser || !otherUserId) {
-        console.error("Missing user IDs for conversation");
-        return null;
-      }
-      const participants = [currentUser.uid, otherUserId].sort();
-      conversationId = participants.join('_') + '_' + petId;
-
-      const convRef = db.collection('conversations').doc(conversationId);
-      const convDoc = await convRef.get();
-
-      if (!convDoc.exists) {
-        await convRef.set({
-          participants: participants,
-          petId: petId,
-          petName: petName,
-          petImage: petImg,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          lastMessage: '',
-          lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
-          unreadCount: 0
-        });
-      }
-      return conversationId;
+  // ===================== AUTH =====================
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+      currentUser = null;
+      if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+      showNotLoggedIn();
+      return;
     }
+    currentUser = user;
+    document.getElementById('not-logged').style.display = 'none';
+    document.getElementById('input-area').style.display = 'flex';
+    document.getElementById('chat-messages').style.display = 'flex';
 
-    async function loadOtherUserProfile() {
-      if (!otherUserId) return;
-      try {
-        const doc = await db.collection('users').doc(otherUserId).get();
-        if (doc.exists) {
-          otherUserProfile = doc.data();
-          const headerName = document.getElementById('header-name');
-          const statusEl = document.getElementById('header-status');
-          if (headerName && otherUserProfile.name) {
-            headerName.textContent = `${otherUserProfile.name} • ${petName}`;
-          }
-          if (statusEl) statusEl.textContent = otherUserProfile.name || 'Online';
-        }
-      } catch (e) {
-        console.log('Could not load other user profile');
-      }
+    if (!otherUserId || otherUserId === 'lister_demo') {
+      await loadMyConversations();
+    } else {
+      await initSingleChat();
     }
+  });
 
-    // ==========================================
-    // CHAT UI
-    // ==========================================
+  async function loadMyConversations() {
+    document.title = 'My Chats | TailMates';
+    document.getElementById('header-name').textContent = 'My Chats';
+    document.getElementById('header-status').textContent = 'All conversations';
+    document.getElementById('pet-bar').style.display = 'none';
+    document.getElementById('input-area').style.display = 'none';
+
     const chatMessages = document.getElementById('chat-messages');
-    const messageInput = document.getElementById('message-input');
+    chatMessages.innerHTML = '<div class="date-separator"><span>Your Conversations</span></div>';
 
-    async function initChat() {
-      if (!currentUser) return;
-
-      const headerName = document.getElementById('header-name');
-      const petNameEl = document.getElementById('pet-name');
-      const matchScoreEl = document.getElementById('match-score');
-      const petBarImg = document.getElementById('pet-bar-img');
-      const headerAvatar = document.getElementById('header-avatar');
-
-      if (headerName) headerName.textContent = `${petName} (${petBreed})`;
-      if (petNameEl) petNameEl.textContent = petName;
-      if (matchScoreEl) matchScoreEl.textContent = `${matchScore}%`;
-      if (petBarImg) petBarImg.src = petImg;
-      if (headerAvatar) headerAvatar.src = petImg;
-      document.title = `Chat - ${petName} | TailMates`;
-
-      await getOrCreateConversation();
-      await loadOtherUserProfile();
-      loadMessagesFromFirebase();
-    }
-
-    function loadMessagesFromFirebase() {
-      if (!conversationId) return;
-      if (unsubMessages) unsubMessages();
-
-      const msgsRef = db.collection('conversations')
-        .doc(conversationId)
-        .collection('messages')
-        .orderBy('time', 'asc');
-
-      unsubMessages = msgsRef.onSnapshot(snapshot => {
-        chatMessages.innerHTML = '<div class="date-separator"><span>Today</span></div>';
-        snapshot.forEach(doc => {
-          const m = doc.data();
-          const isMe = m.sender === currentUser.uid;
-          const type = isMe ? 'sent' : 'received';
-          const time = m.time ? m.time.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-
-          if (m.type === 'location') {
-            addLocationMessageToUI(type, { lat: m.lat, lng: m.lng, name: m.name, address: m.address }, time);
-          } else if (m.type === 'image') {
-            addImageMessageToUI(type, m.imageUrl, time);
-          } else if (m.type === 'system') {
-            addSystemMessageToUI(m.text, m.subtext);
-          } else {
-            addMessageToUI(type, m.text, time, m.read || false);
-          }
-        });
-        scrollToBottom();
-      }, err => {
-        console.error("Messages error:", err);
-      });
-    }
-
-    async function saveMessage(data) {
-      if (!db || !currentUser || !conversationId) return;
-      const msgData = {
-        ...data,
-        sender: currentUser.uid,
-        senderName: currentUser.displayName || 'User',
-        time: firebase.firestore.FieldValue.serverTimestamp()
-      };
-      try {
-        await db.collection('conversations').doc(conversationId).collection('messages').add(msgData);
-        await db.collection('conversations').doc(conversationId).update({
-          lastMessage: data.type === 'text' ? data.text : (data.type === 'image' ? '📷 Photo' : '📍 Location'),
-          lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
-          lastSender: currentUser.uid
-        });
-      } catch (e) {
-        console.error("Error saving message:", e);
-      }
-    }
-
-    function sendMessage() {
-      const text = messageInput.value.trim();
-      if (!text || !currentUser) return;
-      messageInput.value = '';
-      const time = formatTime(new Date());
-      addMessageToUI('sent', text, time, false);
-      scrollToBottom();
-      saveMessage({ text, type: 'text', read: false });
-    }
-
-    function addMessageToUI(type, text, time, read) {
-      const row = document.createElement('div');
-      row.className = `msg-row ${type}`;
-      row.innerHTML = `
-        <div class="msg-bubble">
-          <div class="msg-text">${escapeHtml(text)}</div>
-          <div class="msg-meta">
-            <span class="msg-time">${time}</span>
-            ${type === 'sent' ? `<span class="msg-read ${read ? '' : 'pending'}">${read ? '✓✓' : '✓'}</span>` : ''}
-          </div>
-        </div>
-      `;
-      chatMessages.appendChild(row);
-      scrollToBottom();
-    }
-
-    function addSystemMessageToUI(text, subtext) {
-      const row = document.createElement('div');
-      row.className = 'system-row';
-      row.innerHTML = `
-        <div class="system-bubble">
-          <p>${escapeHtml(text)}</p>
-          ${subtext ? `<p>${escapeHtml(subtext)}</p>` : ''}
-        </div>
-      `;
-      chatMessages.appendChild(row);
-    }
-
-    function scrollToBottom() {
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    function formatTime(date) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    // ==========================================
-    // CAMERA
-    // ==========================================
-    function handleCameraCapture(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target.result;
-        const time = formatTime(new Date());
-        addImageMessageToUI('sent', imageUrl, time);
-        scrollToBottom();
-        saveMessage({ type: 'image', imageUrl: imageUrl, text: '', read: false });
-        event.target.value = '';
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function addImageMessageToUI(type, imageUrl, time) {
-      const row = document.createElement('div');
-      row.className = `msg-row ${type}`;
-      row.innerHTML = `
-        <div class="msg-bubble image-bubble" onclick="window.open('${imageUrl}', '_blank')">
-          <img src="${imageUrl}" alt="Photo">
-          <div class="msg-meta">
-            <span class="msg-time">${time}</span>
-            ${type === 'sent' ? `<span class="msg-read">✓✓</span>` : ''}
-          </div>
-        </div>
-      `;
-      chatMessages.appendChild(row);
-      scrollToBottom();
-    }
-
-    // ==========================================
-    // MEETUP
-    // ==========================================
-    function toggleMeetupPanel() {
-      if (!currentUser) { alert('Please sign in first'); return; }
-      const panel = document.getElementById('meetup-panel');
-      const overlay = document.getElementById('panel-overlay');
-      const isOpen = panel.classList.contains('open');
-      panel.classList.toggle('open', !isOpen);
-      overlay.classList.toggle('open', !isOpen);
-    }
-
-    function selectSpot(el, name, area) {
-      document.querySelectorAll('.spot-card2').forEach(c => c.classList.remove('selected'));
-      el.classList.add('selected');
-      selectedSpot = { name, area };
-      document.getElementById('datetime-section').style.display = 'block';
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      document.getElementById('meetup-date').valueAsDate = tomorrow;
-    }
-
-    function selectTime(btn) {
-      document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      selectedTime = btn.textContent;
-    }
-
-    async function confirmMeetup() {
-      if (!currentUser) return;
-      const dateVal = document.getElementById('meetup-date').value;
-      if (!selectedSpot) { alert('Please select a meetup spot.'); return; }
-      if (!dateVal) { alert('Please pick a date.'); return; }
-      if (!selectedTime) { alert('Please pick a time slot.'); return; }
-
-      const dateObj = new Date(dateVal);
-      const dateStr = dateObj.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
-
-      await saveMessage({
-        type: 'system',
-        text: '📍 Meetup Scheduled',
-        subtext: `${selectedSpot.name} — ${dateStr} at ${selectedTime}`,
-        read: false
-      });
-
-      await saveMessage({
-        type: 'text',
-        text: `Great! I've noted the meetup at ${selectedSpot.name} on ${dateStr} at ${selectedTime}. See you there! 🐈`,
-        read: false
-      });
-
-      toggleMeetupPanel();
-      selectedSpot = null; selectedTime = null;
-      document.querySelectorAll('.spot-card2').forEach(c => c.classList.remove('selected'));
-      document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
-      document.getElementById('datetime-section').style.display = 'none';
-    }
-
-    // ==========================================
-    // MAP
-    // ==========================================
-    let map = null, mapMarker = null, selectedLocation = null;
-
-    function toggleMapPanel() {
-      if (!currentUser) { alert('Please sign in first'); return; }
-      const panel = document.getElementById('map-panel');
-      const overlay = document.getElementById('map-overlay');
-      const isOpen = panel.classList.contains('open');
-      panel.classList.toggle('open', !isOpen);
-      overlay.classList.toggle('open', !isOpen);
-      if (!isOpen) {
-        setTimeout(() => initMap(), 100);
-      } else {
-        selectedLocation = null;
-        document.getElementById('map-send-btn').disabled = true;
-        document.getElementById('map-results').innerHTML = '';
-        document.getElementById('map-results').classList.remove('active');
-      }
-    }
-
-    function initMap() {
-      if (map) { map.invalidateSize(); return; }
-      const defaultLat = 19.0760, defaultLng = 72.8777;
-      map = L.map('leaflet-map').setView([defaultLat, defaultLng], 13);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19
-      }).addTo(map);
-
-      map.on('click', async (e) => {
-        const { lat, lng } = e.latlng;
-        setMapMarker(lat, lng);
-        const address = await reverseGeocode(lat, lng);
-        selectedLocation = { lat, lng, name: address.name, address: address.display_name };
-        document.getElementById('map-send-btn').disabled = false;
-      });
-
-      locateMe();
-    }
-
-    function setMapMarker(lat, lng) {
-      if (mapMarker) map.removeLayer(mapMarker);
-      const customIcon = L.divIcon({
-        className: 'custom-pin',
-        html: `<div style="width:28px;height:28px;background:#075e54;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.3);"><div style="width:10px;height:10px;background:white;border-radius:50%;transform:rotate(45deg);"></div></div>`,
-        iconSize: [28, 28], iconAnchor: [14, 28]
-      });
-      mapMarker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
-      map.setView([lat, lng], 16);
-    }
-
-    function locateMe() {
-      if (!navigator.geolocation) { alert('Geolocation is not supported.'); return; }
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const { latitude, longitude } = pos.coords;
-          if (!map) return;
-          setMapMarker(latitude, longitude);
-          const address = await reverseGeocode(latitude, longitude);
-          selectedLocation = { lat: latitude, lng: longitude, name: address.name, address: address.display_name };
-          document.getElementById('map-send-btn').disabled = false;
-        },
-        (err) => { console.warn('Geolocation error:', err); },
-        { enableHighAccuracy: true, timeout: 10000 }
-      );
-    }
-
-    async function searchLocation() {
-      const query = document.getElementById('map-search-input').value.trim();
-      if (!query) return;
-      const resultsContainer = document.getElementById('map-results');
-      resultsContainer.innerHTML = '<div style="padding:1rem;text-align:center;color:#9ca3af;font-size:0.8rem;">Searching...</div>';
-      resultsContainer.classList.add('active');
-
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
-        const data = await res.json();
-        resultsContainer.innerHTML = '';
-        if (!data || data.length === 0) {
-          resultsContainer.innerHTML = '<div style="padding:1rem;text-align:center;color:#9ca3af;font-size:0.8rem;">No places found.</div>';
+    db.collection('conversations')
+      .where('participants', 'array-contains', currentUser.uid)
+      .orderBy('lastMessageTime', 'desc')
+      .onSnapshot(async (snapshot) => {
+        if (snapshot.empty) {
+          chatMessages.innerHTML += `
+            <div style="text-align:center;padding:3rem 1rem;color:var(--text-dim);">
+              <p style="font-size:1rem;margin-bottom:0.5rem;">No chats yet</p>
+              <p style="font-size:0.85rem;">Go to the adopt page and click "Chat" on a pet to start messaging.</p>
+            </div>`;
           return;
         }
-        data.forEach(place => {
+        const oldItems = chatMessages.querySelectorAll('.inbox-item');
+        oldItems.forEach(el => el.remove());
+
+        for (const doc of snapshot.docs) {
+          const conv = doc.data();
+          const otherUid = conv.participants.find(id => id !== currentUser.uid);
+          let otherName = 'User';
+          let otherAvatar = `https://ui-avatars.com/api/?name=User&background=random`;
+          try {
+            const userDoc = await db.collection('users').doc(otherUid).get();
+            if (userDoc.exists) {
+              const data = userDoc.data();
+              otherName = data.name || 'User';
+              otherAvatar = data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherName)}&background=random`;
+            }
+          } catch (e) {}
+          const time = conv.lastMessageTime
+            ? conv.lastMessageTime.toDate().toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })
+            : '';
+
           const item = document.createElement('div');
-          item.className = 'map-result-item';
-          item.innerHTML = `
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            <div>
-              <div class="map-result-name">${escapeHtml(place.display_name.split(',')[0])}</div>
-              <div class="map-result-area">${escapeHtml(place.display_name)}</div>
-            </div>
-          `;
+          item.className = 'msg-row inbox-item';
+          item.style.justifyContent = 'flex-start';
           item.onclick = () => {
-            const lat = parseFloat(place.lat), lon = parseFloat(place.lon);
-            setMapMarker(lat, lon);
-            selectedLocation = { lat, lng: lon, name: place.display_name.split(',')[0], address: place.display_name };
-            document.getElementById('map-send-btn').disabled = false;
-            resultsContainer.classList.remove('active');
-            document.getElementById('map-search-input').value = place.display_name.split(',')[0];
+            const params = new URLSearchParams({
+              pet: conv.petId, name: conv.petName, breed: '',
+              img: conv.petImage || '', lister: otherUid, match: '88'
+            });
+            window.location.href = `message.html?${params.toString()}`;
           };
-          resultsContainer.appendChild(item);
-        });
-      } catch (e) {
-        console.error('Search error:', e);
-        resultsContainer.innerHTML = '<div style="padding:1rem;text-align:center;color:#ef4444;font-size:0.8rem;">Search failed. Try again.</div>';
-      }
-    }
+          item.innerHTML = `
+            <div class="msg-bubble">
+              <img src="${otherAvatar}" style="width:2.5rem;height:2.5rem;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid var(--border);">
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:600;font-size:0.9rem;color:var(--text);display:flex;justify-content:space-between;">
+                  <span>${otherName} &middot; ${conv.petName}</span>
+                  <span style="font-weight:400;font-size:0.7rem;color:var(--text-dim);">${time}</span>
+                </div>
+                <div style="font-size:0.8rem;color:var(--text-dim);margin-top:0.125rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                  ${conv.lastMessage || 'Start chatting'}
+                </div>
+              </div>
+            </div>`;
+          chatMessages.appendChild(item);
+        }
+      });
+  }
 
-    async function reverseGeocode(lat, lng) {
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-        return await res.json();
-      } catch (e) {
-        return { name: 'Selected Location', display_name: `${lat.toFixed(4)}, ${lng.toFixed(4)}` };
-      }
-    }
+  async function initSingleChat() {
+    const headerName = document.getElementById('header-name');
+    const petNameEl = document.getElementById('pet-name');
+    const matchScoreEl = document.getElementById('match-score');
+    const petBarImg = document.getElementById('pet-bar-img');
+    const headerAvatar = document.getElementById('header-avatar');
+    const petBar = document.getElementById('pet-bar');
 
-    async function sendLocation() {
-      if (!selectedLocation || !currentUser) return;
-      const time = formatTime(new Date());
-      addLocationMessageToUI('sent', selectedLocation, time);
-      scrollToBottom();
-      toggleMapPanel();
+    if (petBar) petBar.style.display = 'flex';
+    if (headerName) headerName.textContent = `${petName} (${petBreed})`;
+    if (petNameEl) petNameEl.textContent = petName;
+    if (matchScoreEl) matchScoreEl.textContent = `${matchScore}%`;
+    if (petBarImg) petBarImg.src = petImg;
+    if (headerAvatar) headerAvatar.src = petImg;
+    document.title = `Chat - ${petName} | TailMates`;
 
-      await saveMessage({
-        type: 'location',
-        lat: selectedLocation.lat, lng: selectedLocation.lng,
-        name: selectedLocation.name, address: selectedLocation.address,
-        read: false
+    await getOrCreateConversation();
+    await loadOtherUserProfile();
+    loadMessagesFromFirebase();
+  }
+
+  function showNotLoggedIn() {
+    document.getElementById('not-logged').style.display = 'flex';
+    document.getElementById('input-area').style.display = 'none';
+    document.getElementById('chat-messages').style.display = 'none';
+    document.getElementById('pet-bar').style.display = 'none';
+  }
+
+  async function getOrCreateConversation() {
+    if (!currentUser || !otherUserId) return null;
+    const participants = [currentUser.uid, otherUserId].sort();
+    conversationId = participants.join('_') + '_' + petId;
+    const convRef = db.collection('conversations').doc(conversationId);
+    const convDoc = await convRef.get();
+    if (!convDoc.exists) {
+      await convRef.set({
+        participants, petId, petName, petImage: petImg,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastMessage: '',
+        lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+        unreadCount: 0
       });
     }
+    return conversationId;
+  }
 
-    function addLocationMessageToUI(type, loc, time) {
-      const row = document.createElement('div');
-      row.className = `msg-row ${type}`;
-      const mapImg = `https://static-maps.openstreetmap.org/?center=${loc.lat},${loc.lng}&zoom=15&size=280x140&markers=${loc.lat},${loc.lng}`;
-      row.innerHTML = `
-        <div class="msg-bubble location-bubble" onclick="openInMaps(${loc.lat}, ${loc.lng})">
-          <img class="loc-map-img" src="${mapImg}" alt="Map" onerror="this.style.display='none'">
-          <div class="loc-info">
-            <div class="loc-name">📍 ${escapeHtml(loc.name || 'Shared Location')}</div>
-            <div class="loc-address">${escapeHtml(loc.address || '')}</div>
-          </div>
-          <div class="loc-meta">
-            <span class="msg-time">${time}</span>
-            ${type === 'sent' ? `<span class="msg-read">✓✓</span>` : ''}
-          </div>
-        </div>
-      `;
-      chatMessages.appendChild(row);
-    }
-
-    function openInMaps(lat, lng) {
-      window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
-    }
-
-    // Event listeners
-    messageInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const searchInput = document.getElementById('map-search-input');
-      if (searchInput) {
-        searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') searchLocation(); });
+  async function loadOtherUserProfile() {
+    if (!otherUserId) return;
+    try {
+      const doc = await db.collection('users').doc(otherUserId).get();
+      if (doc.exists) {
+        otherUserProfile = doc.data();
+        const headerName = document.getElementById('header-name');
+        const statusEl = document.getElementById('header-status');
+        if (headerName && otherUserProfile.name) headerName.textContent = `${otherUserProfile.name} - ${petName}`;
+        if (statusEl) statusEl.textContent = otherUserProfile.name || 'Online';
       }
+    } catch (e) { console.log('Could not load other user profile'); }
+  }
+
+  const chatMessages = document.getElementById('chat-messages');
+  const messageInput = document.getElementById('message-input');
+
+  function loadMessagesFromFirebase() {
+    if (!conversationId) return;
+    if (unsubMessages) unsubMessages();
+    const msgsRef = db.collection('conversations').doc(conversationId).collection('messages').orderBy('time', 'asc');
+    unsubMessages = msgsRef.onSnapshot(snapshot => {
+      chatMessages.innerHTML = '<div class="date-separator"><span>Today</span></div>';
+      snapshot.forEach(doc => {
+        const m = doc.data();
+        const isMe = m.sender === currentUser.uid;
+        const type = isMe ? 'sent' : 'received';
+        const time = m.time ? m.time.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+        if (m.type === 'location') {
+          addLocationMessageToUI(type, { lat: m.lat, lng: m.lng, name: m.name, address: m.address }, time);
+        } else if (m.type === 'image') {
+          addImageMessageToUI(type, m.imageUrl, time);
+        } else if (m.type === 'system') {
+          addSystemMessageToUI(m.text, m.subtext);
+        } else {
+          addMessageToUI(type, m.text, time, m.read || false);
+        }
+      });
+      scrollToBottom();
+    }, err => console.error("Messages error:", err));
+  }
+
+  async function saveMessage(data) {
+    if (!db || !currentUser || !conversationId) return;
+    const msgData = { ...data, sender: currentUser.uid, senderName: currentUser.displayName || 'User', time: firebase.firestore.FieldValue.serverTimestamp() };
+    try {
+      await db.collection('conversations').doc(conversationId).collection('messages').add(msgData);
+      await db.collection('conversations').doc(conversationId).update({
+        lastMessage: data.type === 'text' ? data.text : (data.type === 'image' ? 'Photo' : 'Location'),
+        lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+        lastSender: currentUser.uid
+      });
+    } catch (e) { console.error("Error saving message:", e); }
+  }
+
+  function sendMessage() {
+    const text = messageInput.value.trim();
+    if (!text || !currentUser) return;
+    messageInput.value = '';
+    const time = formatTime(new Date());
+    addMessageToUI('sent', text, time, false);
+    scrollToBottom();
+    saveMessage({ text, type: 'text', read: false });
+  }
+
+  function addMessageToUI(type, text, time, read) {
+    const row = document.createElement('div');
+    row.className = `msg-row ${type}`;
+    row.innerHTML = `
+      <div class="msg-bubble">
+        <div class="msg-text">${escapeHtml(text)}</div>
+        <div class="msg-meta">
+          <span class="msg-time">${time}</span>
+          ${type === 'sent' ? `<span class="msg-read ${read ? '' : 'pending'}">${read ? '\u2713\u2713' : '\u2713'}</span>` : ''}
+        </div>
+      </div>`;
+    chatMessages.appendChild(row);
+    scrollToBottom();
+  }
+
+  function addSystemMessageToUI(text, subtext) {
+    const row = document.createElement('div');
+    row.className = 'system-row';
+    row.innerHTML = `
+      <div class="system-bubble">
+        <p>${escapeHtml(text)}</p>
+        ${subtext ? `<p>${escapeHtml(subtext)}</p>` : ''}
+      </div>`;
+    chatMessages.appendChild(row);
+  }
+
+  function scrollToBottom() { chatMessages.scrollTop = chatMessages.scrollHeight; }
+  function formatTime(date) { return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+  function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+  // ===================== CAMERA =====================
+  function handleCameraCapture(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imageUrl = e.target.result;
+      const time = formatTime(new Date());
+      addImageMessageToUI('sent', imageUrl, time);
+      scrollToBottom();
+      saveMessage({ type: 'image', imageUrl: imageUrl, text: '', read: false });
+      event.target.value = '';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function addImageMessageToUI(type, imageUrl, time) {
+    const row = document.createElement('div');
+    row.className = `msg-row ${type}`;
+    row.innerHTML = `
+      <div class="msg-bubble image-bubble" onclick="window.open('${imageUrl}', '_blank')">
+        <img src="${imageUrl}" alt="Photo">
+        <div class="msg-meta">
+          <span class="msg-time">${time}</span>
+          ${type === 'sent' ? `<span class="msg-read">\u2713\u2713</span>` : ''}
+        </div>
+      </div>`;
+    chatMessages.appendChild(row);
+    scrollToBottom();
+  }
+
+  // ===================== MEETUP =====================
+  function toggleMeetupPanel() {
+    if (!currentUser) { alert('Please sign in first'); return; }
+    const panel = document.getElementById('meetup-panel');
+    const overlay = document.getElementById('panel-overlay');
+    const isOpen = panel.classList.contains('open');
+    panel.classList.toggle('open', !isOpen);
+    overlay.classList.toggle('open', !isOpen);
+  }
+
+  function selectSpot(el, name, area) {
+    document.querySelectorAll('.spot-card2').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedSpot = { name, area };
+    document.getElementById('datetime-section').style.display = 'block';
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('meetup-date').valueAsDate = tomorrow;
+  }
+
+  function selectTime(btn) {
+    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedTime = btn.textContent;
+  }
+
+  async function confirmMeetup() {
+    if (!currentUser) return;
+    const dateVal = document.getElementById('meetup-date').value;
+    if (!selectedSpot) { alert('Please select a meetup spot.'); return; }
+    if (!dateVal) { alert('Please pick a date.'); return; }
+    if (!selectedTime) { alert('Please pick a time slot.'); return; }
+
+    const dateObj = new Date(dateVal);
+    const dateStr = dateObj.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
+
+    await saveMessage({
+      type: 'system',
+      text: 'Meetup Scheduled',
+      subtext: `${selectedSpot.name} - ${dateStr} at ${selectedTime}`,
+      read: false
     });
-  </script>
+    await saveMessage({
+      type: 'text',
+      text: `Great! I've noted the meetup at ${selectedSpot.name} on ${dateStr} at ${selectedTime}. See you there!`,
+      read: false
+    });
+
+    toggleMeetupPanel();
+    selectedSpot = null; selectedTime = null;
+    document.querySelectorAll('.spot-card2').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('datetime-section').style.display = 'none';
+  }
+
+  // ===================== MAP =====================
+  let map = null, mapMarker = null, selectedLocation = null;
+
+  function toggleMapPanel() {
+    if (!currentUser) { alert('Please sign in first'); return; }
+    const panel = document.getElementById('map-panel');
+    const overlay = document.getElementById('map-overlay');
+    const isOpen = panel.classList.contains('open');
+    panel.classList.toggle('open', !isOpen);
+    overlay.classList.toggle('open', !isOpen);
+    if (!isOpen) { setTimeout(() => initMap(), 100); }
+    else {
+      selectedLocation = null;
+      document.getElementById('map-send-btn').disabled = true;
+      document.getElementById('map-results').innerHTML = '';
+      document.getElementById('map-results').classList.remove('active');
+    }
+  }
+
+  function initMap() {
+    if (map) { map.invalidateSize(); return; }
+    const defaultLat = 19.0760, defaultLng = 72.8777;
+    map = L.map('leaflet-map').setView([defaultLat, defaultLng], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
+    }).addTo(map);
+    map.on('click', async (e) => {
+      const { lat, lng } = e.latlng;
+      setMapMarker(lat, lng);
+      const address = await reverseGeocode(lat, lng);
+      selectedLocation = { lat, lng, name: address.name, address: address.display_name };
+      document.getElementById('map-send-btn').disabled = false;
+    });
+    locateMe();
+  }
+
+  function setMapMarker(lat, lng) {
+    if (mapMarker) map.removeLayer(mapMarker);
+    const customIcon = L.divIcon({
+      className: 'custom-pin',
+      html: `<div style="width:28px;height:28px;background:linear-gradient(135deg,#00f5ff,#a855f7);border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,245,255,0.4);"><div style="width:10px;height:10px;background:#0a0a0f;border-radius:50%;transform:rotate(45deg);"></div></div>`,
+      iconSize: [28, 28], iconAnchor: [14, 28]
+    });
+    mapMarker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+    map.setView([lat, lng], 16);
+  }
+
+  function locateMe() {
+    if (!navigator.geolocation) { alert('Geolocation is not supported.'); return; }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        if (!map) return;
+        setMapMarker(latitude, longitude);
+        const address = await reverseGeocode(latitude, longitude);
+        selectedLocation = { lat: latitude, lng: longitude, name: address.name, address: address.display_name };
+        document.getElementById('map-send-btn').disabled = false;
+      },
+      (err) => { console.warn('Geolocation error:', err); },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
+  async function searchLocation() {
+    const query = document.getElementById('map-search-input').value.trim();
+    if (!query) return;
+    const resultsContainer = document.getElementById('map-results');
+    resultsContainer.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--text-dim);font-size:0.8rem;">Searching...</div>';
+    resultsContainer.classList.add('active');
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
+      const data = await res.json();
+      resultsContainer.innerHTML = '';
+      if (!data || data.length === 0) {
+        resultsContainer.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--text-dim);font-size:0.8rem;">No places found.</div>';
+        return;
+      }
+      data.forEach(place => {
+        const item = document.createElement('div');
+        item.className = 'map-result-item';
+        item.innerHTML = `
+          <i class="fa-solid fa-location-dot" style="color:var(--primary);flex-shrink:0;"></i>
+          <div>
+            <div class="map-result-name">${escapeHtml(place.display_name.split(',')[0])}</div>
+            <div class="map-result-area">${escapeHtml(place.display_name)}</div>
+          </div>`;
+        item.onclick = () => {
+          const lat = parseFloat(place.lat), lon = parseFloat(place.lon);
+          setMapMarker(lat, lon);
+          selectedLocation = { lat, lng: lon, name: place.display_name.split(',')[0], address: place.display_name };
+          document.getElementById('map-send-btn').disabled = false;
+          resultsContainer.classList.remove('active');
+          document.getElementById('map-search-input').value = place.display_name.split(',')[0];
+        };
+        resultsContainer.appendChild(item);
+      });
+    } catch (e) {
+      console.error('Search error:', e);
+      resultsContainer.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--secondary);font-size:0.8rem;">Search failed. Try again.</div>';
+    }
+  }
+
+  async function reverseGeocode(lat, lng) {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      return await res.json();
+    } catch (e) {
+      return { name: 'Selected Location', display_name: `${lat.toFixed(4)}, ${lng.toFixed(4)}` };
+    }
+  }
+
+  async function sendLocation() {
+    if (!selectedLocation || !currentUser) return;
+    const time = formatTime(new Date());
+    addLocationMessageToUI('sent', selectedLocation, time);
+    scrollToBottom();
+    toggleMapPanel();
+    await saveMessage({
+      type: 'location', lat: selectedLocation.lat, lng: selectedLocation.lng,
+      name: selectedLocation.name, address: selectedLocation.address, read: false
+    });
+  }
+
+  function addLocationMessageToUI(type, loc, time) {
+    const row = document.createElement('div');
+    row.className = `msg-row ${type}`;
+    const mapImg = `https://static-maps.openstreetmap.org/?center=${loc.lat},${loc.lng}&zoom=15&size=280x140&markers=${loc.lat},${loc.lng}`;
+    row.innerHTML = `
+      <div class="msg-bubble location-bubble" onclick="openInMaps(${loc.lat}, ${loc.lng})">
+        <img class="loc-map-img" src="${mapImg}" alt="Map" onerror="this.style.display='none'">
+        <div class="loc-info">
+          <div class="loc-name"><i class="fa-solid fa-location-dot" style="margin-right:4px;color:var(--primary);"></i>${escapeHtml(loc.name || 'Shared Location')}</div>
+          <div class="loc-address">${escapeHtml(loc.address || '')}</div>
+        </div>
+        <div class="loc-meta">
+          <span class="msg-time">${time}</span>
+          ${type === 'sent' ? `<span class="msg-read">\u2713\u2713</span>` : ''}
+        </div>
+      </div>`;
+    chatMessages.appendChild(row);
+  }
+
+  function openInMaps(lat, lng) {
+    window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+  }
+
+  function logoutUser() {
+    if (auth) auth.signOut().then(() => location.reload());
+  }
+
+  messageInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('map-search-input');
+    if (searchInput) {
+      searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') searchLocation(); });
+    }
+  });
+</script>
 </body>
 </html>
