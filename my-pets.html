@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Registered Pets | TailMates</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00f5ff;
+            --primary-dim: rgba(0, 245, 255, 0.15);
+            --secondary: #ff6b6b;
+            --accent: #a855f7;
+            --bg: #0a0a0f;
+            --bg-light: #12121a;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --bg-glass: rgba(255, 255, 255, 0.05);
+            --text: #f0f0f5;
+            --text-dim: #8b8b9a;
+            --border: rgba(255, 255, 255, 0.08);
+            --gold: #c9a96e;
+            --gold-dim: rgba(201, 169, 110, 0.15);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            cursor: none;
+            min-height: 100vh;
+        }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Space Grotesk', sans-serif; }
+        a { text-decoration: none; color: inherit; }
+
+        .cursor {
+            width: 40px; height: 40px;
+            position: fixed; pointer-events: none; z-index: 99999;
+            transition: transform 0.1s ease;
+        }
+        .cursor::before {
+            content: ''; position: absolute;
+            top: 2px; left: 50%; transform: translateX(-50%);
+            width: 16px; height: 18px; background: rgba(255,255,255,0.9); border-radius: 50% 50% 45% 45%;
+        }
+        .cursor .pad { position: absolute; width: 10px; height: 12px; background: rgba(255,255,255,0.9); border-radius: 50%; }
+        .cursor .pad-1 { top: 14px; left: 2px; transform: rotate(-20deg); }
+        .cursor .pad-2 { top: 8px; left: 15px; }
+        .cursor .pad-3 { top: 14px; right: 2px; transform: rotate(20deg); }
+        .cursor-follower {
+            width: 60px; height: 60px;
+            position: fixed; pointer-events: none; z-index: 99998;
+            transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0.15;
+        }
+        .cursor-follower::before {
+            content: ''; position: absolute; top: 2px; left: 50%; transform: translateX(-50%);
+            width: 22px; height: 24px; border: 2px solid rgba(255,255,255,0.4); border-radius: 50% 50% 45% 45%;
+        }
+        .cursor-follower .pad { position: absolute; width: 14px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-radius: 50%; }
+        .cursor-follower .pad-1 { top: 20px; left: 2px; transform: rotate(-20deg); }
+        .cursor-follower .pad-2 { top: 12px; left: 20px; }
+        .cursor-follower .pad-3 { top: 20px; right: 2px; transform: rotate(20deg); }
+        .cursor.hover { transform: scale(1.3); }
+        .cursor.hover::before, .cursor.hover .pad { background: var(--primary); }
+        .cursor-follower.hover { transform: scale(1.2); opacity: 0.3; }
+        .cursor-follower.hover::before, .cursor-follower.hover .pad { border-color: var(--primary); }
+
+        .scroll-progress {
+            position: fixed; top: 0; left: 0; height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent), var(--secondary));
+            z-index: 10000; width: 0%; box-shadow: 0 0 20px var(--primary);
+        }
+
+        .bg-orbs {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0; overflow: hidden;
+        }
+        .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.4; animation: orbFloat 20s infinite ease-in-out; }
+        .orb-1 { width: 600px; height: 600px; background: var(--primary); top: -200px; left: -200px; animation-delay: 0s; }
+        .orb-2 { width: 500px; height: 500px; background: var(--accent); top: 50%; right: -150px; animation-delay: -5s; }
+        .orb-3 { width: 400px; height: 400px; background: var(--secondary); bottom: -100px; left: 30%; animation-delay: -10s; }
+        .orb-4 { width: 300px; height: 300px; background: #4ade80; top: 30%; left: 60%; animation-delay: -15s; }
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0,0) scale(1); }
+            25% { transform: translate(50px,-30px) scale(1.1); }
+            50% { transform: translate(-30px,50px) scale(0.9); }
+            75% { transform: translate(20px,20px) scale(1.05); }
+        }
+
+        .navbar {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+            padding: 1rem 3rem; transition: all 0.4s ease;
+            background: rgba(10, 10, 15, 0.8); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-icon {
+            width: 45px; height: 45px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; color: var(--bg);
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        .logo:hover .logo-icon { transform: rotate(15deg) scale(1.1); box-shadow: 0 0 30px rgba(0, 245, 255, 0.5); }
+        .logo-text h2 { font-size: 1.5rem; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+        .logo-text span { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
+        .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+        .nav-links a {
+            color: var(--text-dim); font-size: 0.9rem; font-weight: 500;
+            position: relative; transition: color 0.3s ease; padding: 0.5rem 0;
+        }
+        .nav-links a::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transition: width 0.3s ease; box-shadow: 0 0 10px var(--primary);
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--text); }
+        .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+        .nav-profile { position: relative; }
+        .profile-trigger {
+            display: flex; align-items: center; gap: 10px;
+            padding: 0.4rem 0.8rem 0.4rem 0.4rem;
+            background: var(--bg-glass); border: 1px solid var(--border);
+            border-radius: 50px; cursor: none; transition: all 0.3s ease;
+        }
+        .profile-trigger:hover { border-color: var(--primary); box-shadow: 0 0 20px rgba(0, 245, 255, 0.1); }
+        .profile-avatar-icon {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex; align-items: center; justify-content: center;
+            color: var(--bg); font-size: 0.9rem;
+        }
+        .profile-name { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+        .profile-dropdown {
+            position: absolute; top: calc(100% + 10px); right: 0;
+            width: 240px; background: var(--bg-glass); border: 1px solid var(--border);
+            border-radius: 16px; backdrop-filter: blur(30px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            padding: 0.8rem 0; opacity: 0; visibility: hidden;
+            transform: translateY(-10px); transition: all 0.3s ease; z-index: 1001;
+        }
+        .profile-dropdown.active { opacity: 1; visibility: visible; transform: translateY(0); }
+        .profile-dropdown a {
+            display: flex; align-items: center; gap: 10px;
+            padding: 0.7rem 1.2rem; color: var(--text-dim); font-size: 0.85rem; transition: all 0.2s ease;
+        }
+        .profile-dropdown a:hover { color: var(--primary); background: var(--primary-dim); }
+        .profile-dropdown a i { width: 18px; text-align: center; }
+        .profile-divider { height: 1px; background: var(--border); margin: 0.5rem 0; }
+        .profile-dropdown-header {
+            padding: 0.7rem 1.2rem; font-size: 0.75rem; color: var(--text-dim);
+            text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
+        }
+        .profile-logout { color: var(--secondary) !important; }
+        .profile-logout:hover { background: rgba(255, 107, 107, 0.1) !important; }
+
+        .page-wrapper { position: relative; z-index: 10; padding-top: 100px; min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 3rem; }
+
+        .section-header {
+            text-align: center; max-width: 700px; margin: 0 auto 3rem;
+        }
+        .section-tag {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 0.5rem 1.2rem; background: var(--primary-dim);
+            border: 1px solid rgba(0, 245, 255, 0.2); border-radius: 50px;
+            font-size: 0.8rem; color: var(--primary); margin-bottom: 1.5rem;
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+        .section-header h1 {
+            font-size: clamp(2rem, 4vw, 3rem); font-weight: 700;
+            margin-bottom: 1rem; line-height: 1.2;
+        }
+        .section-header p { color: var(--text-dim); font-size: 1.05rem; line-height: 1.7; }
+
+        .card {
+            background: var(--bg-glass); border: 1px solid var(--border); border-radius: 24px;
+            overflow: hidden; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            border-color: rgba(0, 245, 255, 0.15);
+        }
+
+        .btn-primary {
+            padding: 0.9rem 2rem;
+            background: linear-gradient(135deg, var(--gold), #a08050);
+            border: none; border-radius: 50px; color: var(--bg); font-weight: 700;
+            font-size: 0.9rem; cursor: none; transition: all 0.3s ease;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 40px rgba(201, 169, 110, 0.3); }
+        .btn-secondary {
+            padding: 0.9rem 2rem; background: transparent; border: 1px solid var(--border);
+            border-radius: 50px; color: var(--text); font-weight: 600; font-size: 0.9rem;
+            cursor: none; transition: all 0.3s ease;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+        .btn-danger {
+            padding: 0.9rem 2rem; background: rgba(255, 107, 107, 0.15); border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 50px; color: var(--secondary); font-weight: 600; font-size: 0.9rem;
+            cursor: none; transition: all 0.3s ease;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-danger:hover { background: rgba(255, 107, 107, 0.25); transform: translateY(-2px); }
+        .btn-small { padding: 0.5rem 1.2rem; font-size: 0.8rem; }
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-label { display: block; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.5rem; font-weight: 500; }
+        .form-input, .form-select, .form-textarea {
+            width: 100%; padding: 0.9rem 1.2rem;
+            background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px;
+            color: var(--text); font-size: 0.9rem; font-family: 'Inter', sans-serif;
+            outline: none; transition: all 0.3s ease;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: var(--primary); box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
+        }
+        .form-textarea { min-height: 120px; resize: vertical; }
+
+        .badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 0.35rem 0.9rem; border-radius: 50px;
+            font-size: 0.75rem; font-weight: 600; backdrop-filter: blur(10px);
+        }
+        .badge-success { background: rgba(74, 222, 128, 0.15); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ade80; }
+        .badge-warning { background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.3); color: #fbbf24; }
+        .badge-info { background: rgba(0, 245, 255, 0.15); border: 1px solid rgba(0, 245, 255, 0.3); color: var(--primary); }
+        .badge-danger { background: rgba(255, 107, 107, 0.15); border: 1px solid rgba(255, 107, 107, 0.3); color: var(--secondary); }
+        .badge-secondary { background: rgba(139, 139, 154, 0.15); border: 1px solid rgba(139, 139, 154, 0.3); color: var(--text-dim); }
+
+        footer {
+            background: var(--bg-light); border-top: 1px solid var(--border);
+            padding: 4rem 3rem 2rem; position: relative; z-index: 10;
+        }
+        .footer-grid {
+            max-width: 1400px; margin: 0 auto;
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 4rem; margin-bottom: 3rem;
+        }
+        .footer-brand h3 { font-size: 1.5rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; }
+        .footer-brand h3 i { color: var(--primary); }
+        .footer-brand > p { color: var(--text-dim); font-size: 0.9rem; line-height: 1.7; margin-bottom: 1.5rem; }
+        .footer-newsletter { display: flex; gap: 0.5rem; }
+        .footer-newsletter input {
+            flex: 1; padding: 0.8rem 1.2rem; background: var(--bg-glass);
+            border: 1px solid var(--border); border-radius: 50px; color: var(--text);
+            font-size: 0.85rem; outline: none; transition: all 0.3s ease;
+        }
+        .footer-newsletter input:focus { border-color: var(--primary); box-shadow: 0 0 20px rgba(0, 245, 255, 0.1); }
+        .footer-newsletter button {
+            width: 45px; height: 45px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: none; color: var(--bg); display: flex; align-items: center; justify-content: center;
+            cursor: none; transition: all 0.3s ease;
+        }
+        .footer-newsletter button:hover { transform: scale(1.1); box-shadow: 0 0 20px rgba(0, 245, 255, 0.3); }
+        .footer-col h4 { font-size: 1rem; margin-bottom: 1.5rem; color: var(--text); }
+        .footer-col a {
+            display: block; color: var(--text-dim); font-size: 0.9rem;
+            margin-bottom: 0.8rem; transition: all 0.3s ease;
+        }
+        .footer-col a:hover { color: var(--primary); transform: translateX(5px); }
+        .socials { display: flex; gap: 1rem; }
+        .socials a {
+            width: 40px; height: 40px; border-radius: 50%; background: var(--bg-glass);
+            border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+            color: var(--text-dim); transition: all 0.3s ease;
+        }
+        .socials a:hover {
+            background: var(--primary-dim); border-color: var(--primary); color: var(--primary);
+            transform: translateY(-3px); box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
+        }
+        .footer-bottom {
+            max-width: 1400px; margin: 0 auto; padding-top: 2rem;
+            border-top: 1px solid var(--border); text-align: center;
+            color: var(--text-dim); font-size: 0.85rem;
+        }
+
+        .chat-widget { position: fixed; bottom: 2rem; right: 2rem; z-index: 1000; }
+        .chat-launcher {
+            width: 60px; height: 60px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: none; color: var(--bg); font-size: 1.5rem;
+            cursor: none; position: relative;
+            box-shadow: 0 0 30px rgba(0, 245, 255, 0.4);
+            transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
+        }
+        .chat-launcher:hover { transform: scale(1.1); box-shadow: 0 0 40px rgba(0, 245, 255, 0.6); }
+        .chat-launcher::before {
+            content: ''; position: absolute; inset: -5px; border-radius: 50%;
+            border: 2px solid var(--primary); animation: chatPulse 2s infinite;
+        }
+        @keyframes chatPulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+        .chat-panel {
+            position: absolute; bottom: 80px; right: 0; width: 380px; height: 500px;
+            background: var(--bg-glass); border: 1px solid var(--border); border-radius: 24px;
+            backdrop-filter: blur(30px); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            display: none; flex-direction: column; overflow: hidden;
+        }
+        .chat-panel.active { display: flex; }
+        .chat-header {
+            padding: 1.2rem; background: var(--primary-dim);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .chat-header-info { display: flex; align-items: center; gap: 10px; }
+        .chat-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex; align-items: center; justify-content: center;
+            color: var(--bg); font-size: 1rem;
+        }
+        .chat-header-info div strong { display: block; font-size: 0.9rem; }
+        .chat-header-info div span { font-size: 0.75rem; color: var(--text-dim); }
+        .chat-close { background: none; border: none; color: var(--text-dim); font-size: 1.5rem; cursor: none; transition: color 0.3s ease; }
+        .chat-close:hover { color: var(--secondary); }
+        .chat-messages {
+            flex: 1; padding: 1.2rem; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 1rem;
+        }
+        .chat-message { display: flex; gap: 10px; align-items: flex-start; }
+        .chat-message.user { flex-direction: row-reverse; }
+        .chat-bubble { max-width: 70%; padding: 0.8rem 1rem; border-radius: 16px; font-size: 0.85rem; line-height: 1.5; }
+        .chat-message.bot .chat-bubble { background: var(--bg-glass); border: 1px solid var(--border); color: var(--text); border-top-left-radius: 4px; }
+        .chat-message.user .chat-bubble { background: linear-gradient(135deg, var(--primary), var(--accent)); color: var(--bg); border-top-right-radius: 4px; }
+        .chat-quick { padding: 0 1.2rem 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .chat-quick button {
+            padding: 0.5rem 1rem; background: var(--bg-glass); border: 1px solid var(--border);
+            border-radius: 50px; color: var(--text-dim); font-size: 0.75rem;
+            cursor: none; transition: all 0.3s ease;
+        }
+        .chat-quick button:hover { border-color: var(--primary); color: var(--primary); }
+        .chat-input { padding: 1rem 1.2rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem; }
+        .chat-input input {
+            flex: 1; padding: 0.8rem 1.2rem; background: var(--bg-glass);
+            border: 1px solid var(--border); border-radius: 50px;
+            color: var(--text); font-size: 0.85rem; outline: none;
+        }
+        .chat-input input:focus { border-color: var(--primary); }
+        .chat-input button {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: none; color: var(--bg); display: flex; align-items: center; justify-content: center;
+            cursor: none; transition: all 0.3s ease;
+        }
+        .chat-input button:hover { transform: scale(1.1); box-shadow: 0 0 20px rgba(0, 245, 255, 0.3); }
+
+        @media (max-width: 1024px) {
+            .footer-grid { grid-template-columns: repeat(2, 1fr); }
+            .resp-grid-2 { grid-template-columns: 1fr !important; }
+            .resp-grid-sidebar { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .container { padding: 0 1.5rem; }
+            .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+            .chat-panel { width: calc(100vw - 2rem); right: -1rem; }
+            .cursor, .cursor-follower { display: none; }
+            body { cursor: auto; }
+            .page-wrapper { padding-top: 80px; }
+            .resp-flex-col { flex-direction: column !important; }
+            .resp-full { width: 100% !important; }
+        }
+        
+@media (max-width: 768px) {
+    .pet-detail-grid { grid-template-columns: 1fr !important; }
+}
+
+    </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor">
+    <div class="pad pad-1"></div>
+    <div class="pad pad-2"></div>
+    <div class="pad pad-3"></div>
+</div>
+<div class="cursor-follower" id="cursorFollower">
+    <div class="pad pad-1"></div>
+    <div class="pad pad-2"></div>
+    <div class="pad pad-3"></div>
+</div>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+</div>
+
+<nav class="navbar" id="navbar">
+    <div class="nav-inner">
+        <a href="index.html" class="logo">
+            <div class="logo-icon"><i class="fa-solid fa-paw"></i></div>
+            <div class="logo-text">
+                <h2>TailMates</h2>
+                <span>Every Paw Deserves Home</span>
+            </div>
+        </a>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="Adopt.html">Adopt</a></li>
+            <li><a href="PawMate.html">PawMate AI</a></li>
+            <li><a href="services.html">Services</a></li>
+            <li><a href="shop.html">Shop</a></li>
+            <li><a href="index.html#about">About</a></li>
+            <li><a href="register.html">Register a Pet</a></li>
+        </ul>
+        <div class="nav-profile" id="navProfile">
+            <div class="profile-trigger" id="profileTrigger">
+                <div class="profile-avatar-icon" id="profileAvatar"><i class="fa-solid fa-user-check"></i></div>
+                <span class="profile-name" id="profileName">My Account</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; color: var(--text-dim);"></i>
+            </div>
+            <div class="profile-dropdown" id="profileDropdown">
+                <div class="profile-dropdown-header"><i class="fa-solid fa-user" style="margin-right: 6px;"></i> <span id="dropdownUserName">User</span></div>
+                <div class="profile-divider"></div>
+                <a href="profile.html" ><i class="fa-regular fa-user"></i> My Profile</a>
+                <a href="saved-pets.html" ><i class="fa-solid fa-heart"></i> Saved Pets</a>
+                <a href="applications.html" ><i class="fa-solid fa-clipboard-list"></i> My Applications</a>
+                <a href="my-pets.html" style="color: var(--primary); background: var(--primary-dim);"><i class="fa-solid fa-paw"></i> My Registered Pets</a>
+                <a href="settings.html" ><i class="fa-solid fa-gear"></i> Settings</a>
+                <div class="profile-divider"></div>
+                <a href="index.html" class="profile-logout" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Log Out</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="page-wrapper">
+<div class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <div class="section-header">
+        <span class="section-tag"><i class="fa-solid fa-paw"></i> My Registered Pets</span>
+        <h1>Pets You've Registered</h1>
+        <p>Animals you've listed for adoption. Manage their profiles, track applications, and find them forever homes.</p>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div style="display: flex; gap: 1rem;">
+            <div class="card" style="padding: 1.2rem 1.5rem; text-align: center; min-width: 140px;">
+                <div style="font-size: 1.8rem; font-weight: 700; color: var(--primary); font-family: 'Space Grotesk', sans-serif;">2</div>
+                <div style="font-size: 0.8rem; color: var(--text-dim);">Registered</div>
+            </div>
+            <div class="card" style="padding: 1.2rem 1.5rem; text-align: center; min-width: 140px;">
+                <div style="font-size: 1.8rem; font-weight: 700; color: #4ade80; font-family: 'Space Grotesk', sans-serif;">5</div>
+                <div style="font-size: 0.8rem; color: var(--text-dim);">Applications</div>
+            </div>
+            <div class="card" style="padding: 1.2rem 1.5rem; text-align: center; min-width: 140px;">
+                <div style="font-size: 1.8rem; font-weight: 700; color: var(--gold); font-family: 'Space Grotesk', sans-serif;">1</div>
+                <div style="font-size: 0.8rem; color: var(--text-dim);">Adopted</div>
+            </div>
+        </div>
+        <button class="btn-primary" onclick="window.location.href='register.html'">
+            <i class="fa-solid fa-plus"></i> Register New Pet
+        </button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Registered Pet 1 -->
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <div style="display: grid; grid-template-columns: 280px 1fr;">
+                <div style="position: relative; height: 100%; min-height: 260px;">
+                    <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=600&q=80" alt="Beagle" style="width: 100%; height: 100%; object-fit: cover;">
+                    <div style="position: absolute; top: 1rem; left: 1rem; padding: 0.4rem 1rem; background: rgba(74, 222, 128, 0.2); border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 50px; font-size: 0.75rem; color: #4ade80; font-weight: 600; backdrop-filter: blur(10px);">Available</div>
+                </div>
+                <div style="padding: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                        <div>
+                            <h3 style="font-size: 1.4rem; margin-bottom: 0.3rem;">Max — Beagle Pup</h3>
+                            <p style="color: var(--text-dim); font-size: 0.9rem;"><i class="fa-solid fa-location-dot" style="color: var(--secondary); margin-right: 6px;"></i> Kolkata &bull; 4 months old &bull; Male</p>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn-secondary btn-small"><i class="fa-solid fa-pen"></i> Edit</button>
+                            <button class="btn-danger btn-small" onclick="if(confirm('Remove this listing?')) alert('Listing removed.')"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                        <span class="badge badge-info">Vaccinated</span>
+                        <span class="badge badge-success">Dewormed</span>
+                        <span class="badge badge-warning">Neutering Pending</span>
+                    </div>
+                    <p style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.5rem;">Max is a playful and curious Beagle puppy who loves outdoor walks and meeting new people. He's great with kids and other dogs. Fully vaccinated and ready for his forever home.</p>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="background: var(--bg-card); border-radius: 12px; padding: 1rem; text-align: center; border: 1px solid var(--border);">
+                            <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">3</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim);">Applications</div>
+                        </div>
+                        <div style="background: var(--bg-card); border-radius: 12px; padding: 1rem; text-align: center; border: 1px solid var(--border);">
+                            <div style="font-size: 1.3rem; font-weight: 700; color: var(--gold);">128</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim);">Views</div>
+                        </div>
+                        <div style="background: var(--bg-card); border-radius: 12px; padding: 1rem; text-align: center; border: 1px solid var(--border);">
+                            <div style="font-size: 1.3rem; font-weight: 700; color: #f472b6;">24</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim);">Saves</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button class="btn-primary btn-small"><i class="fa-solid fa-clipboard-list"></i> View Applications</button>
+                        <button class="btn-secondary btn-small"><i class="fa-solid fa-share-nodes"></i> Share Listing</button>
+                        <button class="btn-secondary btn-small"><i class="fa-solid fa-image"></i> Manage Photos</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registered Pet 2 -->
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <div style="display: grid; grid-template-columns: 280px 1fr;">
+                <div style="position: relative; height: 100%; min-height: 260px;">
+                    <img src="https://images.unsplash.com/photo-1545249390-6bdfa286032f?auto=format&fit=crop&w=600&q=80" alt="Indie Cat" style="width: 100%; height: 100%; object-fit: cover;">
+                    <div style="position: absolute; top: 1rem; left: 1rem; padding: 0.4rem 1rem; background: rgba(255, 107, 107, 0.2); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 50px; font-size: 0.75rem; color: var(--secondary); font-weight: 600; backdrop-filter: blur(10px);">Adopted</div>
+                </div>
+                <div style="padding: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                        <div>
+                            <h3 style="font-size: 1.4rem; margin-bottom: 0.3rem;">Milo — Indie Cat</h3>
+                            <p style="color: var(--text-dim); font-size: 0.9rem;"><i class="fa-solid fa-location-dot" style="color: var(--secondary); margin-right: 6px;"></i> Mumbai &bull; 2 years old &bull; Male</p>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn-secondary btn-small"><i class="fa-solid fa-eye"></i> View</button>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                        <span class="badge badge-success">Vaccinated</span>
+                        <span class="badge badge-success">Dewormed</span>
+                        <span class="badge badge-success">Neutered</span>
+                    </div>
+                    <p style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.5rem;">Milo found his forever home with the Sharma family in Andheri! This listing is now archived. Thank you for helping Milo find love.</p>
+                    <div style="background: rgba(74, 222, 128, 0.08); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fa-solid fa-circle-check" style="color: #4ade80; font-size: 1.2rem;"></i>
+                            <div>
+                                <div style="font-weight: 600; color: #4ade80;">Successfully Adopted</div>
+                                <div style="font-size: 0.8rem; color: var(--text-dim);">Adopted by Sharma Family on 5 Aug 2026</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button class="btn-secondary btn-small"><i class="fa-solid fa-file"></i> Adoption Records</button>
+                        <button class="btn-secondary btn-small"><i class="fa-solid fa-star"></i> Leave Review</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<footer id="contact">
+    <div class="footer-grid">
+        <div class="footer-brand">
+            <h3><i class="fa-solid fa-paw"></i> TailMates</h3>
+            <p>Connecting loving families with rescued companions. Every paw deserves a forever home. Join our mission to make India a better place for animals.</p>
+            <div class="footer-newsletter">
+                <input type="email" placeholder="Enter your email">
+                <button><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+        <div class="footer-col">
+            <h4>Explore</h4>
+            <a href="index.html">Home</a>
+            <a href="Adopt.html">Adopt</a>
+            <a href="PawMate.html">PawMate AI</a>
+            <a href="services.html">Services</a>
+            <a href="shop.html">Shop</a>
+            <a href="index.html#about">About Us</a>
+            <a href="register.html">Register a Pet</a>
+        </div>
+        <div class="footer-col">
+            <h4>Support</h4>
+            <a href="#">Help Center</a>
+            <a href="#">Contact Us</a>
+            <a href="#">FAQ</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+        </div>
+        <div class="footer-col">
+            <h4>Follow Us</h4>
+            <div class="socials">
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-x-twitter"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <i class="fa-solid fa-paw"></i> &copy; 2026 TailMates — Designed with <i class="fa-solid fa-heart"></i> for every rescued companion. <i class="fa-solid fa-paw"></i>
+    </div>
+</footer>
+
+<div class="chat-widget">
+    <div class="chat-panel" id="chatPanel">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="chat-avatar"><i class="fa-solid fa-paw"></i></div>
+                <div><strong>TailBot</strong><span>TailMates companion assistant</span></div>
+            </div>
+            <button class="chat-close" id="chatClose">&times;</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-message bot">
+                <div class="chat-bubble">Hey there! I'm TailBot. I can help you discover pets, understand adoption, or find a companion that fits your lifestyle!</div>
+            </div>
+        </div>
+        <div class="chat-quick">
+            <button data-message="Show me dogs">Dogs</button>
+            <button data-message="Show me cats">Cats</button>
+            <button data-message="Help me find my match">Match Me</button>
+        </div>
+        <form class="chat-input" id="chatForm">
+            <input id="chatInput" type="text" autocomplete="off" placeholder="Ask TailBot anything...">
+            <button type="submit"><i class="fa-solid fa-arrow-up"></i></button>
+        </form>
+    </div>
+    <button class="chat-launcher" id="chatLauncher"><i class="fa-solid fa-paw"></i></button>
+</div>
+
+<script>
+const cursor = document.getElementById('cursor');
+const cursorFollower = document.getElementById('cursorFollower');
+let mouseX = 0, mouseY = 0, followerX = 0, followerY = 0;
+document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX; mouseY = e.clientY;
+    cursor.style.left = mouseX - 6 + 'px';
+    cursor.style.top = mouseY - 6 + 'px';
+});
+function animateFollower() {
+    followerX += (mouseX - followerX) * 0.1;
+    followerY += (mouseY - followerY) * 0.1;
+    cursorFollower.style.left = followerX - 20 + 'px';
+    cursorFollower.style.top = followerY - 20 + 'px';
+    requestAnimationFrame(animateFollower);
+}
+animateFollower();
+document.querySelectorAll('a, button, .card, .pet-card, .service-card, .shop-card').forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.classList.add('hover'); cursorFollower.classList.add('hover'); });
+    el.addEventListener('mouseleave', () => { cursor.classList.remove('hover'); cursorFollower.classList.remove('hover'); });
+});
+
+const scrollProgress = document.getElementById('scrollProgress');
+window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    scrollProgress.style.width = (scrollTop / docHeight) * 100 + '%';
+});
+
+const profileTrigger = document.getElementById('profileTrigger');
+const profileDropdown = document.getElementById('profileDropdown');
+if (profileTrigger && profileDropdown) {
+    profileTrigger.addEventListener('click', (e) => { e.stopPropagation(); profileDropdown.classList.toggle('active'); });
+    document.addEventListener('click', (e) => { if (!profileTrigger.contains(e.target) && !profileDropdown.contains(e.target)) profileDropdown.classList.remove('active'); });
+}
+
+const chatLauncher = document.getElementById('chatLauncher');
+const chatPanel = document.getElementById('chatPanel');
+const chatClose = document.getElementById('chatClose');
+const chatForm = document.getElementById('chatForm');
+const chatInput = document.getElementById('chatInput');
+const chatMessages = document.getElementById('chatMessages');
+chatLauncher.addEventListener('click', () => chatPanel.classList.toggle('active'));
+chatClose.addEventListener('click', () => chatPanel.classList.remove('active'));
+function addMessage(text, isUser = false) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'chat-message ' + (isUser ? 'user' : 'bot');
+    msgDiv.innerHTML = '<div class="chat-bubble">' + text + '</div>';
+    chatMessages.appendChild(msgDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+chatForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = chatInput.value.trim();
+    if (text) {
+        addMessage(text, true); chatInput.value = '';
+        setTimeout(() => {
+            const responses = [
+                "I'd love to help you find the perfect pet! What type of companion are you looking for?",
+                "That's a great question! Our PawMate AI can analyze your lifestyle to suggest the best matches.",
+                "We have many wonderful pets waiting for homes. Would you like to browse dogs, cats, or small pets?",
+                "All our pets come with complete health records and are from verified shelters. You can trust the process!"
+            ];
+            addMessage(responses[Math.floor(Math.random() * responses.length)]);
+        }, 1000);
+    }
+});
+document.querySelectorAll('.chat-quick button').forEach(btn => {
+    btn.addEventListener('click', () => {
+        addMessage(btn.getAttribute('data-message'), true);
+        setTimeout(() => {
+            const msg = btn.getAttribute('data-message');
+            let response = '';
+            if (msg.includes('dogs')) response = "We have over 120 dogs waiting for homes! From playful Labradors to loyal Indies.";
+            else if (msg.includes('cats')) response = "Our cat family has 80+ beautiful felines! From calm British Shorthairs to energetic tabbies.";
+            else response = "Let's find your perfect match! I'll need to know about your living situation, work schedule, and experience with pets.";
+            addMessage(response);
+        }, 1000);
+    });
+});
+
+const userData = JSON.parse(localStorage.getItem('tailmates_user') || '{}');
+if (userData.displayName) {
+    document.getElementById('profileName').textContent = userData.displayName;
+    document.getElementById('dropdownUserName').textContent = userData.displayName;
+}
+
+</script>
+</body>
+</html>
