@@ -1861,7 +1861,6 @@
     const chatForm = document.getElementById('chatForm');
     const chatInput = document.getElementById('chatInput');
     const chatMessages = document.getElementById('chatMessages');
-    const API_KEY = 'AQ.Ab8RN6I57FNRvqO6h6qF_ixXktyfK0HGZ2DtaFZyV5Jc-1UZTQ';
 
     chatLauncher.addEventListener('click', () => {
         chatPanel.classList.toggle('active');
@@ -1900,62 +1899,41 @@
     }
 
     async function sendToAI(message) {
-        addLoading();
-        try {
-            const response = await fetch(
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent',
-    {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': API_KEY
-        },
-                body: JSON.stringify({
-                    contents: [{ role: 'user', parts: [{ text: message }] }],
-                    systemInstruction: {
-                        parts: [{ text: 'You are TailBot, the AI assistant for TailMates, a pet adoption platform based in India. You help users find pets, answer questions about adoption, pet care, breeds, shelters, and the platform services. Be friendly, helpful, and concise. Do not use emojis in your responses. Keep responses under 150 words when possible.' }]
-                    },
-                    safetySettings: [
-                        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-                        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-                        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-                        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' }
-                    ]
-                })
-            });
+    addLoading();
 
-            const data = await response.json();
-            removeLoading();
+    try {
+        const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: message
+            })
+        });
 
-            if (!response.ok) {
-                console.error('API Error Status:', response.status, response.statusText);
-                console.error('API Error Body:', data);
-                if (data.error && data.error.message) {
-                    addMessage('API Error: ' + data.error.message);
-                } else {
-                    addMessage('Sorry, the API returned an error (Status ' + response.status + '). Please check your API key and try again.');
-                }
-                return;
-            }
+        const data = await response.json();
 
-            if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
-                const reply = data.candidates[0].content.parts[0].text;
-                addMessage(reply);
-            } else if (data.candidates && data.candidates[0] && data.candidates[0].finishReason === 'SAFETY') {
-                addMessage('I cannot answer that question due to safety settings. Please ask something else about pet adoption or care.');
-            } else if (data.error) {
-                console.error('API Error:', data.error);
-                addMessage('Sorry, I encountered an error: ' + (data.error.message || 'Unknown error'));
-            } else {
-                console.error('Unexpected API response:', data);
-                addMessage('I received an unexpected response. Please try rephrasing your question.');
-            }
-        } catch (error) {
-            removeLoading();
-            console.error('Network or parsing error:', error);
-            addMessage('Sorry, I am having trouble connecting. Error: ' + error.message + '. Please check your internet connection and API key.');
+        removeLoading();
+
+        if (!response.ok) {
+            console.error("TailBot error:", data);
+            addMessage("Sorry, TailBot is temporarily unavailable.");
+            return;
         }
+
+        if (data.reply) {
+            addMessage(data.reply);
+        } else {
+            addMessage("I received an unexpected response.");
+        }
+
+    } catch (error) {
+        removeLoading();
+        console.error("Connection error:", error);
+        addMessage("Sorry, I cannot connect to TailBot right now.");
     }
+}
 
     chatForm.addEventListener('submit', (e) => {
         e.preventDefault();
