@@ -1,202 +1,2091 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>TailMates Shop</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f9f9f9;
-      margin: 0;
-      padding-top: 100px;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    .navbar {
-      background-color: #7E0CF5;
-      padding: 20px 50px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      color: white;
-      font-size: 22px;
-      font-weight: bold;
-      position: fixed;
-      width: 100%;
-      top: 0;
-      left: 0;
-      z-index: 1000;
-    }
+    <title>TailMates | Pet Shop</title>
 
-    .nav-links {
-      display: flex;
-      gap: 24px;
-    }
+    <!-- Google Fonts - Same style as TailMates -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    .nav-links a {
-      color: white;
-      text-decoration: none;
-      font-size: 17px;
-      transition: opacity 0.3s;
-    }
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    .nav-links a:hover {
-      opacity: 0.85;
-    }
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
-    h1 {
-      text-align: center;
-      color: #7E0CF5;
-      font-size: 36px;
-      margin: 30px 0;
-    }
+    <style>
 
-    .shop-section {
-      max-width: 1100px;
-      margin: auto;
-      padding: 20px;
-    }
+        /* =========================================================
+           ROOT
+        ========================================================= */
 
-    .section-title {
-      font-size: 24px;
-      margin: 40px 0 20px;
-      color: #4a326a;
-      border-left: 6px solid #7E0CF5;
-      padding-left: 12px;
-    }
+        :root {
+            --bg: #0d0d14;
+            --bg-soft: #11111b;
+            --card: #1b1b25;
+            --card-hover: #22222e;
 
-    .product-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 30px;
-      justify-content: center;
-    }
+            --primary: #00f5ff;
+            --primary-soft: rgba(0, 245, 255, 0.15);
 
-    .product-card {
-      background-color: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      width: 260px;
-      text-align: center;
-      padding: 20px;
-      transition: transform 0.3s;
-    }
+            --accent: #8b5cf6;
+            --accent-soft: rgba(139, 92, 246, 0.18);
 
-    .product-card:hover {
-      transform: translateY(-6px);
-    }
+            --pink: #f472b6;
+            --green: #4ade80;
+            --yellow: #fbbf24;
+            --red: #ff6b6b;
 
-    .product-card h3 {
-      margin-bottom: 10px;
-      color: #333;
-      font-size: 18px;
-    }
+            --text: #f5f5f7;
+            --text-dim: #9ca3b5;
+            --border: rgba(255, 255, 255, 0.09);
 
-    .product-card p {
-      color: #666;
-      font-size: 14px;
-      margin-bottom: 12px;
-    }
+            --radius: 22px;
+        }
 
-    .buy-btn {
-      padding: 10px 20px;
-      background-color: #7E0CF5;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 15px;
-      transition: background-color 0.3s ease;
-      text-decoration: none;
-      display: inline-block;
-    }
 
-    .buy-btn:hover {
-      background-color: #5e00c9;
-    }
-  </style>
+        /* =========================================================
+           RESET
+        ========================================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+
+        /* =========================================================
+           BACKGROUND
+        ========================================================= */
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -2;
+
+            background:
+                radial-gradient(
+                    circle at 10% 20%,
+                    rgba(0, 245, 255, 0.07),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 85% 70%,
+                    rgba(139, 92, 246, 0.10),
+                    transparent 35%
+                );
+        }
+
+        .bg-orbs {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.16;
+        }
+
+        .orb-1 {
+            width: 300px;
+            height: 300px;
+            background: #00f5ff;
+            top: 15%;
+            left: -120px;
+        }
+
+        .orb-2 {
+            width: 400px;
+            height: 400px;
+            background: #8b5cf6;
+            right: -150px;
+            top: 40%;
+        }
+
+        .orb-3 {
+            width: 250px;
+            height: 250px;
+            background: #f472b6;
+            left: 40%;
+            bottom: -100px;
+        }
+
+
+        /* =========================================================
+           NAVBAR
+        ========================================================= */
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+
+            background: rgba(10, 10, 16, 0.92);
+            backdrop-filter: blur(18px);
+
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .nav-inner {
+            max-width: 1450px;
+            margin: auto;
+
+            min-height: 88px;
+            padding: 0 4%;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 25px;
+        }
+
+
+        /* LOGO */
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 16px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #00f5ff,
+                    #8b5cf6
+                );
+
+            color: #071016;
+
+            font-size: 1.35rem;
+
+            box-shadow:
+                0 0 25px rgba(0, 245, 255, 0.25);
+        }
+
+        .logo-text h2 {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.55rem;
+            line-height: 1;
+        }
+
+        .logo-text span {
+            display: block;
+
+            margin-top: 5px;
+
+            color: var(--text-dim);
+
+            font-size: 0.68rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+
+        /* NAV LINKS */
+
+        .nav-links {
+            list-style: none;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 34px;
+        }
+
+        .nav-links a {
+            position: relative;
+
+            color: var(--text-dim);
+
+            font-size: 0.95rem;
+            font-weight: 500;
+
+            padding: 8px 0;
+
+            transition: 0.25s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--text);
+        }
+
+        .nav-links a.active::after {
+            content: "";
+
+            position: absolute;
+
+            left: 0;
+            right: 0;
+            bottom: -6px;
+
+            height: 3px;
+
+            border-radius: 10px;
+
+            background: var(--primary);
+
+            box-shadow:
+                0 0 12px rgba(0, 245, 255, 0.7);
+        }
+
+
+        /* =========================================================
+           PROFILE
+        ========================================================= */
+
+        .nav-profile {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            padding: 8px 14px 8px 8px;
+
+            border: 1px solid var(--border);
+            border-radius: 30px;
+
+            background: rgba(255, 255, 255, 0.035);
+
+            cursor: pointer;
+
+            transition: 0.25s ease;
+        }
+
+        .profile-trigger:hover {
+            border-color: rgba(0, 245, 255, 0.35);
+
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .profile-avatar-icon {
+            width: 40px;
+            height: 40px;
+
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #00f5ff,
+                    #8b5cf6
+                );
+
+            color: #071016;
+        }
+
+        .profile-name {
+            max-width: 110px;
+
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+            font-weight: 600;
+            font-size: 0.88rem;
+        }
+
+        .profile-dropdown {
+            position: absolute;
+
+            right: 0;
+            top: calc(100% + 12px);
+
+            width: 230px;
+
+            padding: 8px;
+
+            border-radius: 18px;
+
+            background: rgba(25, 25, 34, 0.98);
+
+            border: 1px solid var(--border);
+
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.45);
+
+            backdrop-filter: blur(20px);
+
+            opacity: 0;
+            visibility: hidden;
+
+            transform: translateY(-8px);
+
+            transition: 0.2s ease;
+        }
+
+        .profile-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+
+            transform: translateY(0);
+        }
+
+        .profile-dropdown a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 11px 13px;
+
+            border-radius: 10px;
+
+            color: var(--text-dim);
+
+            font-size: 0.88rem;
+
+            transition: 0.2s ease;
+        }
+
+        .profile-dropdown a:hover {
+            color: var(--text);
+
+            background: rgba(0, 245, 255, 0.07);
+        }
+
+        .profile-dropdown i {
+            width: 18px;
+            text-align: center;
+        }
+
+        .profile-divider {
+            height: 1px;
+
+            margin: 7px 4px;
+
+            background: var(--border);
+        }
+
+        .profile-login {
+            color: var(--text) !important;
+        }
+
+        .profile-logout {
+            color: #ff7777 !important;
+        }
+
+
+        /* =========================================================
+           SHOP HERO
+        ========================================================= */
+
+        .shop-page {
+            min-height: 100vh;
+
+            padding: 150px 5% 80px;
+        }
+
+        .shop-header {
+            max-width: 850px;
+
+            margin: 0 auto 65px;
+
+            text-align: center;
+        }
+
+        .section-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+
+            padding: 9px 17px;
+
+            border: 1px solid rgba(0, 245, 255, 0.3);
+
+            border-radius: 30px;
+
+            color: var(--primary);
+
+            background: rgba(0, 245, 255, 0.07);
+
+            font-size: 0.75rem;
+            font-weight: 700;
+
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .shop-header h1 {
+            margin-top: 25px;
+
+            font-family: 'Space Grotesk', sans-serif;
+
+            font-size: clamp(2.8rem, 6vw, 5rem);
+
+            line-height: 1.05;
+
+            letter-spacing: -2px;
+        }
+
+        .shop-header h1 span {
+            background:
+                linear-gradient(
+                    90deg,
+                    #00f5ff,
+                    #8b5cf6,
+                    #f472b6
+                );
+
+            -webkit-background-clip: text;
+            background-clip: text;
+
+            color: transparent;
+        }
+
+        .shop-header p {
+            max-width: 700px;
+
+            margin: 25px auto 0;
+
+            color: var(--text-dim);
+
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+
+
+        /* =========================================================
+           SHOP FILTER / CATEGORY
+        ========================================================= */
+
+        .shop-categories {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+
+            gap: 12px;
+
+            margin-bottom: 40px;
+        }
+
+        .category-pill {
+            padding: 9px 17px;
+
+            border: 1px solid var(--border);
+            border-radius: 30px;
+
+            background: rgba(255, 255, 255, 0.035);
+
+            color: var(--text-dim);
+
+            font-size: 0.82rem;
+
+            cursor: pointer;
+
+            transition: 0.25s ease;
+        }
+
+        .category-pill:hover,
+        .category-pill.active {
+            color: #061014;
+
+            border-color: var(--primary);
+
+            background: var(--primary);
+
+            box-shadow:
+                0 0 20px rgba(0, 245, 255, 0.18);
+        }
+
+
+        /* =========================================================
+           PRODUCTS
+        ========================================================= */
+
+        .shop-grid {
+            max-width: 1450px;
+
+            margin: auto;
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, minmax(0, 1fr));
+
+            gap: 25px;
+        }
+
+        .shop-card {
+            position: relative;
+
+            overflow: hidden;
+
+            border-radius: var(--radius);
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255, 255, 255, 0.055),
+                    rgba(255, 255, 255, 0.025)
+                );
+
+            border: 1px solid var(--border);
+
+            box-shadow:
+                0 15px 35px rgba(0, 0, 0, 0.18);
+
+            transition:
+                transform 0.3s ease,
+                border-color 0.3s ease,
+                box-shadow 0.3s ease;
+        }
+
+        .shop-card:hover {
+            transform: translateY(-8px);
+
+            border-color: rgba(0, 245, 255, 0.3);
+
+            box-shadow:
+                0 20px 45px rgba(0, 0, 0, 0.28),
+                0 0 30px rgba(0, 245, 255, 0.07);
+        }
+
+
+        /* PRODUCT IMAGE */
+
+        .shop-image {
+            position: relative;
+
+            height: 245px;
+
+            overflow: hidden;
+
+            background: #181820;
+        }
+
+        .shop-image img {
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
+
+            transition: transform 0.45s ease;
+        }
+
+        .shop-card:hover .shop-image img {
+            transform: scale(1.06);
+        }
+
+
+        /* BADGE */
+
+        .shop-tag {
+            position: absolute;
+
+            top: 15px;
+            left: 15px;
+
+            padding: 7px 12px;
+
+            border-radius: 20px;
+
+            font-size: 0.7rem;
+            font-weight: 800;
+
+            backdrop-filter: blur(8px);
+        }
+
+        .tag-popular {
+            color: #001315;
+            background: #00f5ff;
+        }
+
+        .tag-new {
+            color: white;
+            background: #8b5cf6;
+        }
+
+        .tag-bestseller {
+            color: white;
+            background: #ff6b6b;
+        }
+
+        .tag-sale {
+            color: #06200e;
+            background: #4ade80;
+        }
+
+        .tag-choice {
+            color: #211400;
+            background: #fbbf24;
+        }
+
+
+        /* PRODUCT CONTENT */
+
+        .shop-content {
+            padding: 22px;
+        }
+
+        .product-category {
+            margin-bottom: 7px;
+
+            color: var(--primary);
+
+            font-size: 0.68rem;
+            font-weight: 700;
+
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .shop-content h3 {
+            font-family: 'Space Grotesk', sans-serif;
+
+            font-size: 1.12rem;
+
+            margin-bottom: 8px;
+        }
+
+        .shop-content p {
+            min-height: 43px;
+
+            color: var(--text-dim);
+
+            font-size: 0.82rem;
+
+            line-height: 1.55;
+        }
+
+
+        /* PRICE */
+
+        .shop-price-row {
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 12px;
+
+            margin-top: 20px;
+        }
+
+        .shop-price {
+            color: var(--primary);
+
+            font-size: 1.15rem;
+            font-weight: 800;
+        }
+
+        .price-note {
+            display: block;
+
+            margin-top: 4px;
+
+            color: #72798b;
+
+            font-size: 0.65rem;
+        }
+
+
+        /* BUY BUTTON */
+
+        .buy-btn {
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            gap: 8px;
+
+            padding: 11px 15px;
+
+            border-radius: 12px;
+
+            border: 1px solid rgba(255, 153, 0, 0.35);
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #ffad33,
+                    #ff8c00
+                );
+
+            color: #17100a;
+
+            font-size: 0.76rem;
+            font-weight: 800;
+
+            transition: 0.25s ease;
+        }
+
+        .buy-btn:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 8px 20px rgba(255, 153, 0, 0.18);
+        }
+
+
+        /* =========================================================
+           AMAZON NOTE
+        ========================================================= */
+
+        .amazon-note {
+            max-width: 900px;
+
+            margin: 55px auto 0;
+
+            padding: 20px 24px;
+
+            display: flex;
+            align-items: center;
+            gap: 15px;
+
+            border-radius: 17px;
+
+            background: rgba(255, 255, 255, 0.035);
+
+            border: 1px solid var(--border);
+
+            color: var(--text-dim);
+
+            font-size: 0.78rem;
+            line-height: 1.6;
+        }
+
+        .amazon-note i {
+            color: #ffad33;
+
+            font-size: 1.4rem;
+        }
+
+
+        /* =========================================================
+           FOOTER
+        ========================================================= */
+
+        footer {
+            margin-top: 50px;
+
+            padding: 60px 5% 35px;
+
+            border-top: 1px solid var(--border);
+
+            background:
+                linear-gradient(
+                    180deg,
+                    rgba(255, 255, 255, 0.015),
+                    rgba(139, 92, 246, 0.04)
+                );
+        }
+
+        .footer-inner {
+            max-width: 1400px;
+
+            margin: auto;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 30px;
+        }
+
+        .footer-brand h3 {
+            font-family: 'Fredoka', sans-serif;
+
+            font-size: 1.4rem;
+
+            margin-bottom: 8px;
+        }
+
+        .footer-brand h3 i {
+            color: var(--primary);
+        }
+
+        .footer-brand p {
+            max-width: 450px;
+
+            color: var(--text-dim);
+
+            font-size: 0.8rem;
+            line-height: 1.6;
+        }
+
+        .footer-copy {
+            color: #6f7483;
+
+            font-size: 0.75rem;
+        }
+
+
+        /* =========================================================
+           RESPONSIVE
+        ========================================================= */
+
+        @media (max-width: 1200px) {
+
+            .nav-links {
+                gap: 20px;
+            }
+
+            .shop-grid {
+                grid-template-columns:
+                    repeat(3, minmax(0, 1fr));
+            }
+        }
+
+
+        @media (max-width: 1024px) {
+
+            .nav-links {
+                gap: 15px;
+            }
+
+            .nav-links a {
+                font-size: 0.82rem;
+            }
+
+            .logo-text {
+                display: none;
+            }
+
+            .shop-grid {
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+        }
+
+
+        @media (max-width: 768px) {
+
+            .nav-inner {
+                min-height: 75px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .shop-page {
+                padding: 120px 20px 60px;
+            }
+
+            .shop-header h1 {
+                font-size: 2.7rem;
+            }
+
+            .shop-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .shop-image {
+                height: 260px;
+            }
+
+            .footer-inner {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+    </style>
 </head>
+
+
 <body>
 
-  <!-- Navbar -->
-  <div class="navbar">
-    <div>TailMates</div>
-    <div class="nav-links">
-      <a href="index">Home</a>
-      <a href="Adopt">Adopt</a>
-      <a href="register">Register</a>
-      <a href="services">Services</a>
-      <a href="shop">Shop</a>
-      <a href="login">Login</a>
-    </div>
-  </div>
+    <!-- =========================================================
+         BACKGROUND
+    ========================================================= -->
 
-  <!-- Shop Content -->
-  <h1>Shop TailMates</h1>
-  <div class="shop-section">
-
-    <!-- Pet Food -->
-    <div>
-      <div class="section-title"> Pet Food Picks</div>
-      <div class="product-grid">
-
-        <div class="product-card">
-          <h3>Pedigree Adult</h3>
-          <p>Wholesome dry dog food packed with vitamins. 3kg pack.</p>
-          <a class="buy-btn" href="https://www.amazon.in/s?k=Pedigree+Adult+Dog+Food" target="_blank">Search on Amazon</a>
-        </div>
-
-        <div class="product-card">
-          <h3>Whiskas Tuna</h3>
-          <p>Tender tuna chunks in jelly. A cat’s gourmet dream. 85g pack.</p>
-          <a class="buy-btn" href="https://www.amazon.in/s?k=Whiskas+Tuna+Cat+Food" target="_blank">Search on Amazon</a>
-        </div>
-
-        <div class="product-card">
-          <h3>Drools Chicken</h3>
-          <p>Protein-rich chicken and egg formula. Perfect for active pups.</p>
-          <a class="buy-btn" href="https://www.amazon.in/s?k=Drools+Chicken+Dog+Food" target="_blank">Search on Amazon</a>
-        </div>
-
-        <div class="product-card">
-          <h3>Purepet Ocean Fish</h3>
-          <p>Crunchy dry food infused with ocean fish flavor. 1.2kg pack.</p>
-          <a class="buy-btn" href="https://www.amazon.in/s?k=Purepet+Ocean+Fish+Cat+Food" target="_blank">Search on Amazon</a>
-        </div>
-
-      </div>
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
     </div>
 
-    <!-- Merch -->
-    <div>
-      <div class="section-title"> TailMates Merch</div>
-      <div class="product-grid">
-        <div class="product-card">
-          <h3>TailMates T-shirt</h3>
-          <p>TailMates official merch. 100% cotton. Sizes S to XXL.</p>
-          <a class="buy-btn" href="#">Coming Soon</a>
-        </div>
-        <div class="product-card">
-          <h3>TailMates Mug</h3>
-          <p>Sip in style with our purple pup love mug </p>
-          <a class="buy-btn" href="#">Coming Soon</a>
-        </div>
-      </div>
-    </div>
 
-    <!-- Personalized Pet Tags -->
-    <div>
-      <div class="section-title"> Personalized Pet Name Tags</div>
-      <div class="product-grid">
-        <div class="product-card">
-          <h3>Custom Tag</h3>
-          <p>Elegant engraved tags with your pet's name and your contact info.</p>
-          <a class="buy-btn" href="#">Coming Soon</a>
-        </div>
-      </div>
-    </div>
+    <!-- =========================================================
+         NAVIGATION
+    ========================================================= -->
 
-  </div>
+    <nav class="navbar">
+
+        <div class="nav-inner">
+
+            <!-- LOGO -->
+
+            <a href="index.html" class="logo">
+
+                <div class="logo-icon">
+                    <i class="fa-solid fa-paw"></i>
+                </div>
+
+                <div class="logo-text">
+                    <h2>TailMates</h2>
+                    <span>Every Paw Deserves Home</span>
+                </div>
+
+            </a>
+
+
+            <!-- NAVIGATION LINKS -->
+
+            <ul class="nav-links">
+
+                <li>
+                    <a href="index.html">
+                        Home
+                    </a>
+                </li>
+
+                <li>
+                    <a href="Adopt.html">
+                        Adopt
+                    </a>
+                </li>
+
+                <li>
+                    <a href="PawMate.html">
+                        PawMate AI
+                    </a>
+                </li>
+
+                <li>
+                    <a href="services.html">
+                        Services
+                    </a>
+                </li>
+
+                <li>
+                    <a href="shop.html" class="active">
+                        Shop
+                    </a>
+                </li>
+
+                <li>
+                    <a href="index.html#about">
+                        About
+                    </a>
+                </li>
+
+                <li>
+                    <a href="register.html">
+                        Register a Pet
+                    </a>
+                </li>
+
+            </ul>
+
+
+            <!-- PROFILE -->
+
+            <div class="nav-profile">
+
+                <div class="profile-trigger" id="profileTrigger">
+
+                    <div class="profile-avatar-icon" id="profileAvatar">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+
+                    <span class="profile-name" id="profileName">
+                        Account
+                    </span>
+
+                    <i class="fa-solid fa-chevron-down"
+                       style="font-size:0.7rem;color:var(--text-dim);">
+                    </i>
+
+                </div>
+
+
+                <div class="profile-dropdown" id="profileDropdown">
+
+                    <!-- LOGGED OUT -->
+
+                    <div id="profileDropdownLoggedOut">
+
+                        <div style="
+                            padding:0.7rem 1.2rem;
+                            font-size:0.75rem;
+                            color:var(--text-dim);
+                            text-transform:uppercase;
+                            letter-spacing:1px;
+                            font-weight:600;
+                        ">
+
+                            <i class="fa-solid fa-user"
+                               style="margin-right:6px;">
+                            </i>
+
+                            Account
+
+                        </div>
+
+                        <div class="profile-divider"></div>
+
+                        <a href="login.html" class="profile-login">
+
+                            <i class="fa-solid fa-right-to-bracket"></i>
+
+                            Log In
+
+                        </a>
+
+                        <a href="createacc.html"
+                           class="profile-login"
+                           style="color:var(--primary) !important;">
+
+                            <i class="fa-solid fa-user-plus"></i>
+
+                            Create Account
+
+                        </a>
+
+                    </div>
+
+
+                    <!-- LOGGED IN -->
+
+                    <div id="profileDropdownLoggedIn"
+                         style="display:none;">
+
+                        <div style="
+                            padding:0.7rem 1.2rem;
+                            font-size:0.75rem;
+                            color:var(--text-dim);
+                            text-transform:uppercase;
+                            letter-spacing:1px;
+                            font-weight:600;
+                        ">
+
+                            <i class="fa-solid fa-user"
+                               style="margin-right:6px;">
+                            </i>
+
+                            <span id="dropdownUserName">
+                                Profile
+                            </span>
+
+                        </div>
+
+                        <div class="profile-divider"></div>
+
+                        <a href="profile.html">
+                            <i class="fa-regular fa-user"></i>
+                            My Profile
+                        </a>
+
+                        <a href="saved-pets.html">
+                            <i class="fa-solid fa-heart"></i>
+                            Saved Pets
+                        </a>
+
+                        <a href="applications.html">
+                            <i class="fa-solid fa-clipboard-list"></i>
+                            My Applications
+                        </a>
+
+                        <a href="my-pets.html">
+                            <i class="fa-solid fa-paw"></i>
+                            My Registered Pets
+                        </a>
+
+                        <a href="settings.html">
+                            <i class="fa-solid fa-gear"></i>
+                            Settings
+                        </a>
+
+                        <div class="profile-divider"></div>
+
+                        <a href="#"
+                           class="profile-logout"
+                           id="logoutBtn">
+
+                            <i class="fa-solid fa-right-from-bracket"></i>
+
+                            Log Out
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+
+    <!-- =========================================================
+         SHOP
+    ========================================================= -->
+
+    <main class="shop-page">
+
+
+        <!-- SHOP HEADER -->
+
+        <div class="shop-header">
+
+            <span class="section-tag">
+
+                <i class="fa-solid fa-store"></i>
+
+                TailMates Shop
+
+            </span>
+
+            <h1>
+                Everything Your Pet Needs.
+                <br>
+                <span>Delivered With Love!</span>
+            </h1>
+
+            <p>
+                Explore useful pet essentials, food, toys and accessories
+                from Amazon. Choose a product and continue your purchase
+                directly on Amazon.
+            </p>
+
+        </div>
+
+
+
+        <!-- CATEGORY BUTTONS -->
+
+        <div class="shop-categories">
+
+            <button class="category-pill active"
+                    onclick="filterProducts('all', this)">
+                All
+            </button>
+
+            <button class="category-pill"
+                    onclick="filterProducts('food', this)">
+                <i class="fa-solid fa-bowl-food"></i>
+                Food
+            </button>
+
+            <button class="category-pill"
+                    onclick="filterProducts('toys', this)">
+                <i class="fa-solid fa-baseball"></i>
+                Toys
+            </button>
+
+            <button class="category-pill"
+                    onclick="filterProducts('accessories', this)">
+                <i class="fa-solid fa-paw"></i>
+                Accessories
+            </button>
+
+            <button class="category-pill"
+                    onclick="filterProducts('care', this)">
+                <i class="fa-solid fa-pump-soap"></i>
+                Care
+            </button>
+
+        </div>
+
+
+
+        <!-- =====================================================
+             PRODUCT GRID
+        ====================================================== -->
+
+        <div class="shop-grid" id="productGrid">
+
+
+            <!-- PRODUCT 1 -->
+
+            <div class="shop-card"
+                 data-category="food">
+
+                <div class="shop-image">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1589924691995-400dc9ecc119?auto=format&fit=crop&w=700&q=85"
+                        alt="Dog food">
+
+                    <span class="shop-tag tag-bestseller">
+                        Bestseller
+                    </span>
+
+                </div>
+
+                <div class="shop-content">
+
+                    <div class="product-category">
+                        Dog Food
+                    </div>
+
+                    <h3>
+                        Pedigree Adult Dog Food
+                    </h3>
+
+                    <p>
+                        Adult dog food with balanced nutrition
+                        for everyday feeding.
+                    </p>
+
+                    <div class="shop-price-row">
+
+                        <div>
+
+                            <span class="shop-price">
+                                ₹365
+                            </span>
+
+                            <span class="price-note">
+                                Price may vary
+                            </span>
+
+                        </div>
+
+                        <a
+                            href="https://www.amazon.in/s?k=Pedigree+Adult+Dog+Food"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="buy-btn">
+
+                            <i class="fa-brands fa-amazon"></i>
+
+                            Buy
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- PRODUCT 2 -->
+
+            <div class="shop-card"
+                 data-category="food">
+
+                <div class="shop-image">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=700&q=85"
+                        alt="Cat food">
+
+                    <span class="shop-tag tag-popular">
+                        Popular
+                    </span>
+
+                </div>
+
+                <div class="shop-content">
+
+                    <div class="product-category">
+                        Cat Food
+                    </div>
+
+                    <h3>
+                        Whiskas Adult Cat Food
+                    </h3>
+
+                    <p>
+                        Complete adult cat nutrition with
+                        an appealing ocean fish flavour.
+                    </p>
+
+                    <div class="shop-price-row">
+
+                        <div>
+
+                            <span class="shop-price">
+                                ₹200
+                            </span>
+
+                            <span class="price-note">
+                                Price may vary
+                            </span>
+
+                        </div>
+
+                        <a
+                            href="https://www.amazon.in/s?k=Whiskas+Adult+Cat+Food"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="buy-btn">
+
+                            <i class="fa-brands fa-amazon"></i>
+
+                            Buy
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- PRODUCT 3 -->
+
+            <div class="shop-card"
+                 data-category="food">
+
+                <div class="shop-image">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=700&q=85"
+                        alt="Drools dog food">
+
+                    <span class="shop-tag tag-new">
+                        Popular
+                    </span>
+
+                </div>
+
+                <div class="shop-content">
+
+                    <div class="product-category">
+                        Puppy Food
+                    </div>
+
+                    <h3>
+                        Drools Chicken & Egg
+                    </h3>
+
+                    <p>
+                        Chicken and egg based dry food
+                        designed for growing puppies.
+                    </p>
+
+                    <div class="shop-price-row">
+
+                        <div>
+
+                            <span class="shop-price">
+                                ₹680
+                            </span>
+
+                            <span class="price-note">
+                                Amazon price checked
+                            </span>
+
+                        </div>
+
+                        <a
+                            href="https://www.amazon.in/s?k=Drools+Puppy+Chicken+Egg+3kg"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="buy-btn">
+
+                            <i class="fa-brands fa-amazon"></i>
+
+                            Buy
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- PRODUCT 4 -->
+
+            <div class="shop-card"
+                 data-category="accessories">
+
+                <div class="shop-image">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1558788353-f76d92427f16?auto=format&fit=crop&w=700&q=85"
+                        alt="Dog leash">
+
+                    <span class="shop-tag tag-sale">
+                        Pet Pick
+                    </span>
+
+                </div>
+
+                <div class="shop-content">
+
+                    <div class="product-category">
+                        Dog Accessories
+                    </div>
+
+                    <h3>
+                        Amazon Basics Dog Leash
+                    </h3>
+
+                    <p>
+                        Durable leash designed for everyday
+                        walks and outdoor use.
+                    </p>
+
+                    <div class="shop-price-row">
+
+                        <div>
+
+                            <span class="shop-price">
+                                ₹399
+                            </span>
+
+                            <span class="price-note">
+                                Price may vary
+                            </span>
+
+                        </div>
+
+                        <a
+                            href="https://www.amazon.in/s?k=Amazon+Basics+Dog+Leash"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="buy-btn">
+
+                            <i class="fa-brands fa-amazon"></i>
+
+                            Buy
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- PRODUCT 5 -->
+
+            <div class="shop-card"
+                 data-category="accessories">
+
+                <div class="shop-image">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=700&q=85"
+                        alt="Dog collar">
+
+                    <span class="shop-tag tag-choice">
+                        Recommended
+                    </span>
+
+                </div>
+
+                <div class="shop-content">
+
+                    <div class="product-category">
+                        Accessories
+                    </div>
+
+                    <h3>
+                        Reflective Dog Collar
+                    </h3>
+
+                    <p>
+                        Reflective collar suitable for
+                        safer evening walks.
+                    </p>
+
+                    <div class="shop-price-row">
+
+                        <div>
+
+                            <span class="shop-price">
+                                ₹299
+                            </span>
+
+                            <span class="price-note">
+                                Price may vary
+                            </span>
+
+                        </div>
+
+                        <a
+                            href="https://www.amazon.in/s?k=reflective+dog+collar"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="buy-btn">
+
+                            <i class="fa-brands fa-amazon"></i>
+
+                            Buy
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- PRODUCT 6 -->
+
+            <div class="shop-card"
+                 data-category="toys">
+
+                <div class="shop-image">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1601758174114-e711c0cbaa69?auto=format&fit=crop&w=700&q=85"
+                        alt="Dog toy">
+
+                    <span class="shop-tag tag-new">
+                        New
+                    </span>
+
+                </div>
+
+                <div class="shop-content">
+
+                    <div class="product-category">
+                        Pet Toys
+                    </div>
+
+                    <h3>
+                        Interactive Dog Toy
+                    </h3>
+
+                    <p>
+                        Interactive play toy to help keep
+                        dogs mentally engaged.
+                    </p>
+
+                    <div class="shop-price-row">
+
+                        <div>
+
+                            <span class="shop-price">
+                                ₹499
+                            </span>
+
+                            <span class="price-note">
+                                Price may vary
+                            </span>
+
+                        </div>
+
+                        <a
+                            href="https://www.amazon.in/s?k=interactive+dog+toy"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="buy-btn">
+
+                            <i class="fa-brands fa-amazon"></i>
+
+                            Buy
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- PRODUCT 7 -->
+
+            <div class="shop-card"
+                 data-category="toys">
+
+                <div class="shop-image">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1601758064226-0c1c8a0b5f9b?auto=format&fit=crop&w=700&q=85"
+                        alt="Cat toy">
+
+                    <span class="shop-tag tag-popular">
+                        Cat Favourite
+                    </span>
+
+                </div>
+
+                <div class="shop-content">
+
+                    <div class="product-category">
+                        Cat Toys
+                    </div>
+
+                    <h3>
+                        Interactive Cat Toy
+                    </h3>
+
+                    <p>
+                        Fun interactive toy designed to
+                        keep indoor cats active.
+                    </p>
+
+                    <div class="shop-price-row">
+
+                        <div>
+
+                            <span class="shop-price">
+                                ₹349
+                            </span>
+
+                            <span class="price-note">
+                                Price may vary
+                            </span>
+
+                        </div>
+
+                        <a
+                            href="https://www.amazon.in/s?k=interactive+cat+toy"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="buy-btn">
+
+                            <i class="fa-brands fa-amazon"></i>
+
+                            Buy
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- PRODUCT 8 -->
+
+            <div class="shop-card"
+                 data-category="care">
+
+                <div class="shop-image">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1583336663277-620dc1996580?auto=format&fit=crop&w=700&q=85"
+                        alt="Pet grooming">
+
+                    <span class="shop-tag tag-sale">
+                        Pet Care
+                    </span>
+
+                </div>
+
+                <div class="shop-content">
+
+                    <div class="product-category">
+                        Grooming
+                    </div>
+
+                    <h3>
+                        Pet Grooming Brush
+                    </h3>
+
+                    <p>
+                        Everyday grooming accessory for
+                        maintaining your pet's coat.
+                    </p>
+
+                    <div class="shop-price-row">
+
+                        <div>
+
+                            <span class="shop-price">
+                                ₹299
+                            </span>
+
+                            <span class="price-note">
+                                Price may vary
+                            </span>
+
+                        </div>
+
+                        <a
+                            href="https://www.amazon.in/s?k=pet+grooming+brush"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="buy-btn">
+
+                            <i class="fa-brands fa-amazon"></i>
+
+                            Buy
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- AMAZON NOTICE -->
+
+        <div class="amazon-note">
+
+            <i class="fa-brands fa-amazon"></i>
+
+            <p>
+                TailMates does not process payments directly.
+                When you click <strong>Buy</strong>, you are redirected
+                to Amazon in a separate tab to view the product and
+                complete your purchase there. Product prices and
+                availability may change on Amazon.
+            </p>
+
+        </div>
+
+    </main>
+
+
+
+    <!-- =========================================================
+         FOOTER
+    ========================================================= -->
+
+    <footer>
+
+        <div class="footer-inner">
+
+            <div class="footer-brand">
+
+                <h3>
+                    <i class="fa-solid fa-paw"></i>
+                    TailMates
+                </h3>
+
+                <p>
+                    Connecting loving families with rescued companions.
+                    Every paw deserves a forever home.
+                </p>
+
+            </div>
+
+            <div class="footer-copy">
+
+                © 2026 TailMates. All rights reserved.
+
+            </div>
+
+        </div>
+
+    </footer>
+
+
+
+    <!-- =========================================================
+         FIREBASE AUTHENTICATION
+    ========================================================= -->
+
+    <script type="module">
+
+        import {
+            initializeApp
+        } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+
+        import {
+            getAuth,
+            onAuthStateChanged,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+
+        /* Firebase configuration */
+
+        const firebaseConfig = {
+
+            apiKey: "AIzaSyBifu5Te7paXOFUFrDUtogIPpi5H0xR7rY",
+
+            authDomain: "tailmatess.firebaseapp.com",
+
+            projectId: "tailmatess",
+
+            storageBucket: "tailmatess.firebasestorage.app",
+
+            messagingSenderId: "445299543083",
+
+            appId: "1:445299543083:web:e7be85a3eae32f8ba5ee6",
+
+            measurementId: "G-ZLQG062LVE"
+
+        };
+
+
+        /* Initialize Firebase */
+
+        const app = initializeApp(firebaseConfig);
+
+        const auth = getAuth(app);
+
+
+        /* Profile elements */
+
+        const profileTrigger =
+            document.getElementById("profileTrigger");
+
+        const profileDropdown =
+            document.getElementById("profileDropdown");
+
+        const profileName =
+            document.getElementById("profileName");
+
+        const profileAvatar =
+            document.getElementById("profileAvatar");
+
+        const dropdownUserName =
+            document.getElementById("dropdownUserName");
+
+        const loggedOutMenu =
+            document.getElementById("profileDropdownLoggedOut");
+
+        const loggedInMenu =
+            document.getElementById("profileDropdownLoggedIn");
+
+        const logoutBtn =
+            document.getElementById("logoutBtn");
+
+
+        /* =====================================================
+           PROFILE DROPDOWN
+        ===================================================== */
+
+        profileTrigger.addEventListener("click", function (event) {
+
+            event.stopPropagation();
+
+            profileDropdown.classList.toggle("active");
+
+        });
+
+
+        document.addEventListener("click", function (event) {
+
+            if (!profileDropdown.contains(event.target) &&
+                !profileTrigger.contains(event.target)) {
+
+                profileDropdown.classList.remove("active");
+
+            }
+
+        });
+
+
+        /* =====================================================
+           FIREBASE AUTH STATE
+        ===================================================== */
+
+        onAuthStateChanged(auth, (user) => {
+
+            if (user) {
+
+                /* User is logged in */
+
+                const displayName =
+                    user.displayName ||
+                    (user.email
+                        ? user.email.split("@")[0]
+                        : "User");
+
+                profileName.textContent =
+                    displayName;
+
+                dropdownUserName.textContent =
+                    displayName;
+
+                profileAvatar.innerHTML =
+                    '<i class="fa-solid fa-user-check"></i>';
+
+                loggedOutMenu.style.display =
+                    "none";
+
+                loggedInMenu.style.display =
+                    "block";
+
+
+                /* Save user information */
+
+                localStorage.setItem(
+                    "tailmates_user",
+                    JSON.stringify({
+
+                        uid: user.uid,
+
+                        email: user.email,
+
+                        displayName: displayName,
+
+                        photoURL: user.photoURL || null
+
+                    })
+                );
+
+            }
+
+            else {
+
+                /* User is logged out */
+
+                profileName.textContent =
+                    "Account";
+
+                dropdownUserName.textContent =
+                    "Profile";
+
+                profileAvatar.innerHTML =
+                    '<i class="fa-solid fa-user"></i>';
+
+                loggedOutMenu.style.display =
+                    "block";
+
+                loggedInMenu.style.display =
+                    "none";
+
+
+                localStorage.removeItem(
+                    "tailmates_user"
+                );
+
+            }
+
+        });
+
+
+        /* =====================================================
+           LOGOUT
+        ===================================================== */
+
+        logoutBtn.addEventListener("click", async function (event) {
+
+            event.preventDefault();
+
+            try {
+
+                await signOut(auth);
+
+                profileDropdown.classList.remove(
+                    "active"
+                );
+
+                window.location.reload();
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "Logout error:",
+                    error
+                );
+
+            }
+
+        });
+
+
+        /* =====================================================
+           PRODUCT FILTER
+        ===================================================== */
+
+        window.filterProducts = function (
+            category,
+            button
+        ) {
+
+            const cards =
+                document.querySelectorAll(
+                    ".shop-card"
+                );
+
+            const buttons =
+                document.querySelectorAll(
+                    ".category-pill"
+                );
+
+
+            buttons.forEach(btn => {
+
+                btn.classList.remove("active");
+
+            });
+
+            button.classList.add("active");
+
+
+            cards.forEach(card => {
+
+                if (
+                    category === "all" ||
+                    card.dataset.category === category
+                ) {
+
+                    card.style.display = "block";
+
+                }
+
+                else {
+
+                    card.style.display = "none";
+
+                }
+
+            });
+
+        };
+
+    </script>
 
 </body>
 </html>
