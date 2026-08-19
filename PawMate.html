@@ -881,7 +881,7 @@
       .opt, .btn, .profile-trigger, .chat-launcher, .chat-close, .chat-input button, .chat-quick button, .footer-newsletter button, .socials a { cursor: pointer; }
     }
   </style>
-
+<base target="_blank">
 </head>
 <body>
 
@@ -1173,72 +1173,118 @@
 
   // ===================== PAWMATE QUIZ LOGIC =====================
 
-const DB_URL =
-  "https://tailmatess-default-rtdb.asia-southeast1.firebasedatabase.app";
-
-let P = [];
-
-async function loadPetsFromFirebase() {
-
-    try {
-
-        const response = await fetch(DB_URL + "/.json");
-
-        if (!response.ok) {
-            throw new Error("Firebase connection failed");
-        }
-
-        const data = await response.json();
-
-        P = [];
-
-        for (const key in data) {
-
-            const pet = data[key];
-
-            if (!pet) continue;
-
-            /*
-             * Convert Firebase object into
-             * PawMate's existing array format.
-             */
-
-            P.push([
-                pet.pet_id,                         // 0
-                pet.name,                            // 1
-                pet.species,                         // 2
-                pet.breed,                           // 3
-                Number(pet.weight_kg),               // 4
-                Number(pet.lifespan_years),         // 5
-                pet.care_level
-                    ? pet.care_level.charAt(0).toUpperCase()
-                    : "M",                           // 6
-                Number(pet.avg_monthly_cost_inr),   // 7
-                pet.exercise_needs
-                    ? pet.exercise_needs.charAt(0).toUpperCase()
-                    : "M",                           // 8
-                pet.grooming_needs
-                    ? pet.grooming_needs.charAt(0).toUpperCase()
-                    : "M",                           // 9
-                pet.good_with_kids === true,         // 10
-                pet.good_with_other_pets === true,   // 11
-                pet.temperament || ""                // 12
-            ]);
-        }
-
-        console.log("Pets loaded from Firebase:", P);
-
-        return true;
-
-    } catch (error) {
-
-        console.error("Firebase error:", error);
-
-        P = [];
-
-        return false;
-    }
-}
+  const P = [
+    [1,"Whiskers","Cat","Siamese",4.2,15,"L",3780,"L","L",1,1,"Vocal, Affectionate, Intelligent"],
+    [2,"Luna","Cat","Persian",3.8,12,"M",4620,"L","H",1,1,"Calm, Gentle, Regal"],
+    [3,"Simba","Cat","Maine Coon",6.5,13,"M",4200,"L","H",1,1,"Gentle Giant, Friendly, Playful"],
+    [4,"Milo","Cat","Bengal",5,14,"M",4032,"L","L",1,1,"Active, Curious, Vocal"],
+    [5,"Oliver","Cat","Ragdoll",5.5,15,"L",4368,"L","M",1,1,"Relaxed, Affectionate, Docile"],
+    [6,"Leo","Cat","British Shorthair",5,14,"L",3864,"L","L",1,1,"Easygoing, Loyal, Quiet"],
+    [7,"Shadow","Cat","Bombay",4,15,"L",3696,"L","L",1,1,"Playful, Affectionate, Social"],
+    [8,"Bella","Cat","Sphynx",3.5,12,"H",4872,"L","H",1,1,"Energetic, Friendly, Clingy"],
+    [9,"Loki","Cat","Scottish Fold",4.5,14,"M",3948,"L","M",1,1,"Sweet, Quiet, Adaptable"],
+    [10,"Nala","Cat","Abyssinian",4,14,"M",4116,"L","L",1,1,"Active, Intelligent, Playful"],
+    [11,"Jasper","Cat","Russian Blue",4,15,"L",3780,"L","L",1,1,"Shy, Loyal, Gentle"],
+    [12,"Cleo","Cat","Birman",4.5,14,"L",4200,"L","M",1,1,"Gentle, Social, Quiet"],
+    [13,"Felix","Cat","American Shorthair",4.5,15,"L",3528,"L","L",1,1,"Easygoing, Friendly, Independent"],
+    [14,"Chloe","Cat","Norwegian Forest",5.5,14,"M",4284,"L","H",1,1,"Independent, Adventurous, Friendly"],
+    [15,"Tiger","Cat","Tabby (Domestic)",4.5,15,"L",2940,"L","L",1,1,"Friendly, Active, Adaptable"],
+    [16,"Lily","Cat","Turkish Angora",4,14,"M",4032,"L","M",1,1,"Intelligent, Playful, Affectionate"],
+    [17,"Oreo","Cat","Tuxedo (Domestic)",4.5,15,"L",2940,"L","L",1,1,"Social, Playful, Vocal"],
+    [18,"Misty","Cat","Himalayan",4.5,12,"M",4536,"L","H",1,1,"Calm, Affectionate, Quiet"],
+    [19,"Smokey","Cat","Chartreux",4.5,14,"L",3948,"L","L",1,1,"Quiet, Intelligent, Loyal"],
+    [20,"Ginger","Cat","Exotic Shorthair",4,12,"M",4452,"L","M",1,1,"Sweet, Calm, Playful"],
+    [21,"Coco","Cat","Devon Rex",3,12,"M",4200,"L","L",1,1,"Mischievous, Loyal, Active"],
+    [22,"Pumpkin","Cat","Manx",4.5,14,"L",3864,"L","L",1,1,"Playful, Loyal, Hunter"],
+    [23,"Snowball","Cat","Turkish Van",5,14,"M",4116,"L","M",1,1,"Active, Intelligent, Independent"],
+    [24,"Pepper","Cat","Cornish Rex",3,12,"M",4284,"L","L",1,1,"Playful, Affectionate, Curious"],
+    [25,"Muffin","Cat","Singapura",2.5,14,"L",4032,"L","L",1,1,"Active, Affectionate, Playful"],
+    [26,"Whiskey","Cat","Somali",4,14,"M",4200,"L","M",1,1,"Active, Social, Intelligent"],
+    [27,"Daisy","Cat","Burmese",4,15,"L",3948,"L","L",1,1,"Social, Vocal, Affectionate"],
+    [28,"Mochi","Cat","Japanese Bobtail",3.5,14,"L",3864,"L","L",1,1,"Active, Friendly, Intelligent"],
+    [29,"Salem","Cat","Oriental Shorthair",4,14,"M",4116,"L","L",1,1,"Vocal, Intelligent, Social"],
+    [30,"Pixie","Cat","LaPerm",3.5,13,"L",4032,"L","L",1,1,"Affectionate, Active, Curly Coat"],
+    [31,"Ash","Cat","Korat",3.5,15,"L",3948,"L","L",1,1,"Loyal, Quiet, Intelligent"],
+    [32,"Buddy","Dog","Golden Retriever",28.5,12,"M",7140,"H","H",1,1,"Friendly, Loyal, Patient"],
+    [33,"Max","Dog","Labrador Retriever",30,12,"M",6720,"H","M",1,1,"Outgoing, Even-tempered, Gentle"],
+    [34,"Bella","Dog","Beagle",10.5,13,"M",5040,"H","L",1,1,"Curious, Merry, Friendly"],
+    [35,"Rocky","Dog","German Shepherd",32,11,"H",7560,"H","M",1,1,"Confident, Courageous, Smart"],
+    [36,"Charlie","Dog","Poodle (Standard)",22,13,"M",6300,"H","H",1,1,"Intelligent, Active, Alert"],
+    [37,"Cooper","Dog","Bulldog",23,9,"H",5880,"H","L",1,1,"Docile, Willful, Friendly"],
+    [38,"Daisy","Dog","Pomeranian",2.5,14,"M",4620,"H","H",1,1,"Playful, Intelligent, Friendly"],
+    [39,"Bailey","Dog","Rottweiler",45,10,"H",7392,"H","L",1,1,"Loyal, Confident, Courageous"],
+    [40,"Luna","Dog","Yorkshire Terrier",3,14,"M",4872,"H","H",1,1,"Sprightly, Affectionate, Intelligent"],
+    [41,"Teddy","Dog","Shih Tzu",5.5,13,"M",5208,"H","H",1,1,"Affectionate, Playful, Outgoing"],
+    [42,"Milo","Dog","Boxer",28,11,"M",6552,"H","L",1,1,"Fun-loving, Bright, Active"],
+    [43,"Lucy","Dog","Dachshund",8,13,"M",4872,"H","L",1,1,"Clever, Stubborn, Devoted"],
+    [44,"Jack","Dog","Siberian Husky",25,12,"H",6888,"H","M",1,1,"Outgoing, Mischievous, Loyal"],
+    [45,"Lola","Dog","Chihuahua",2,16,"L",4200,"H","L",1,1,"Graceful, Charming, Sassy"],
+    [46,"Bear","Dog","Great Dane",60,8,"H",7980,"H","L",1,1,"Friendly, Patient, Dependable"],
+    [47,"Duke","Dog","Doberman Pinscher",35,11,"H",7140,"H","L",1,1,"Alert, Fearless, Loyal"],
+    [48,"Sadie","Dog","Cocker Spaniel",12,13,"M",5712,"H","H",1,1,"Gentle, Smart, Happy"],
+    [49,"Tucker","Dog","Australian Shepherd",22,13,"H",6720,"H","M",1,1,"Smart, Work-oriented, Exuberant"],
+    [50,"Maggie","Dog","Pug",7.5,13,"M",4620,"H","L",1,1,"Charming, Mischievous, Loving"],
+    [51,"Oliver","Dog","Corgi (Pembroke)",11,12,"M",5460,"H","M",1,1,"Affectionate, Smart, Alert"],
+    [52,"Rex","Dog","Dalmatian",25,12,"H",6048,"H","L",1,1,"Outgoing, Dignified, Intelligent"],
+    [53,"Zoe","Dog","Maltese",3,14,"M",5040,"H","H",1,1,"Gentle, Playful, Charming"],
+    [54,"Buster","Dog","Saint Bernard",70,9,"H",7728,"H","H",1,1,"Gentle, Watchful, Friendly"],
+    [55,"Ruby","Dog","Shetland Sheepdog",7,13,"M",5460,"H","H",1,1,"Playful, Intelligent, Loyal"],
+    [56,"Oscar","Dog","Basset Hound",25,12,"M",5208,"H","L",1,1,"Charming, Patient, Low-key"],
+    [57,"Penny","Dog","French Bulldog",11,11,"H",6300,"H","L",1,1,"Playful, Smart, Adaptable"],
+    [58,"Bruno","Dog","Bernese Mountain Dog",45,8,"H",7392,"H","H",1,1,"Good-natured, Calm, Strong"],
+    [59,"Rosie","Dog","Bichon Frise",4.5,14,"M",5208,"H","H",1,1,"Playful, Curious, Peppy"],
+    [60,"Scout","Dog","Border Collie",18,13,"H",6552,"H","M",1,1,"Energetic, Smart, Tenacious"],
+    [61,"Molly","Dog","Schnauzer (Miniature)",6,14,"M",5376,"H","H",1,1,"Friendly, Smart, Obedient"],
+    [62,"Diesel","Dog","Great Pyrenees",50,10,"H",7560,"H","H",1,1,"Patient, Calm, Smart"],
+    [63,"Coco","Dog","Cavalier King Charles Spaniel",6.5,12,"M",5712,"H","M",1,1,"Affectionate, Graceful, Gentle"],
+    [64,"Hunter","Dog","Weimaraner",28,11,"H",6888,"H","L",1,1,"Friendly, Fearless, Obedient"],
+    [65,"Lily","Dog","Shiba Inu",9,13,"M",5880,"H","M",1,1,"Alert, Active, Attentive"],
+    [66,"Thor","Dog","Akita",40,11,"H",7224,"H","M",1,1,"Courageous, Dignified, Loyal"],
+    [67,"Pepper","Dog","Whippet",14,13,"M",5460,"H","L",1,1,"Affectionate, Gentle, Lively"],
+    [68,"King","Dog","Indian Pariah Dog",18,14,"L",2940,"H","L",1,1,"Alert, Social, Intelligent"],
+    [69,"Raja","Dog","Rajapalayam",25,12,"M",4620,"H","L",1,1,"Loyal, Independent, Courageous"],
+    [70,"Champ","Dog","Mudhol Hound",22,12,"M",4200,"H","L",1,1,"Elegant, Reserved, Loyal"],
+    [71,"Sheru","Dog","Indian Spitz",10,13,"L",3360,"H","M",1,1,"Loyal, Active, Intelligent"],
+    [72,"Tiger","Dog","Kanni",20,12,"M",4032,"H","L",1,1,"Loyal, Reserved, Agile"],
+    [73,"Komban","Dog","Kombai",24,12,"M",4368,"H","L",1,1,"Loyal, Courageous, Protective"],
+    [74,"Bhairav","Dog","Bully Kutta",55,10,"H",6300,"H","L",1,1,"Powerful, Alert, Dominant"],
+    [75,"Leo","Dog","Chippiparai",20,13,"M",3780,"H","L",1,1,"Loyal, Reserved, Hunter"],
+    [76,"Sultan","Dog","Rampur Greyhound",24,12,"M",4620,"H","L",1,1,"Elegant, Reserved, Fast"],
+    [77,"Rani","Dog","Pashmi Hound",18,12,"M",4200,"H","L",1,1,"Graceful, Loyal, Hunter"],
+    [78,"Bruno","Dog","Gaddi Kutta",45,11,"H",5880,"H","M",1,1,"Fearless, Loyal, Protective"],
+    [79,"Shadow","Dog","Jonangi",16,13,"L",3528,"H","L",1,1,"Loyal, Active, Reserved"],
+    [80,"Bholu","Dog","Bakharwal Dog",35,11,"H",5040,"H","H",1,1,"Loyal, Protective, Hardy"],
+    [81,"Dholu","Dog","Kumaon Mastiff",40,10,"H",5460,"H","L",1,1,"Powerful, Loyal, Courageous"],
+    [82,"Shera","Dog","Himalayan Sheepdog",38,11,"H",5712,"H","H",1,1,"Loyal, Hardy, Protective"],
+    [83,"Rambo","Dog","Alangu Mastiff",50,10,"H",6048,"H","L",1,1,"Powerful, Alert, Dominant"],
+    [84,"Tara","Dog","Pandikona",20,13,"L",3192,"H","L",1,1,"Loyal, Independent, Hunter"],
+    [85,"Moti","Dog","Indian Mastiff",48,10,"H",5880,"H","L",1,1,"Powerful, Loyal, Courageous"],
+    [86,"Nibbles","Hamster","Syrian (Teddy Bear)",0.12,2.5,"L",1260,"L","L",1,0,"Nocturnal, Gentle, Active"],
+    [87,"Pip","Hamster","Dwarf Campbell's Russian",0.04,2,"L",1176,"L","L",1,0,"Active, Social, Nippy"],
+    [88,"Snow","Hamster","Dwarf Winter White Russian",0.04,2,"L",1260,"L","L",1,0,"Friendly, Active, Seasonal"],
+    [89,"Flash","Hamster","Roborovski",0.025,3,"L",1344,"L","L",1,0,"Hyperactive, Shy, Fast"],
+    [90,"Mochi","Hamster","Chinese (Striped)",0.035,2.5,"L",1260,"L","L",1,0,"Gentle, Shy, Climber"],
+    [91,"Hazel","Hamster","European",0.1,2,"L",1512,"L","L",1,0,"Wild, Active, Solitary"],
+    [92,"Cotton","Rabbit","Holland Lop",1.8,10,"M",2520,"M","M",1,1,"Gentle, Social, Playful"],
+    [93,"Thumper","Rabbit","Mini Lop",2.2,10,"M",2688,"M","M",1,1,"Affectionate, Playful, Calm"],
+    [94,"Tiny","Rabbit","Netherland Dwarf",0.9,10,"M",2940,"M","L",1,1,"Energetic, Shy, Intelligent"],
+    [95,"Fluffy","Rabbit","Lionhead",1.3,9,"M",2772,"M","H",1,1,"Friendly, Docile, Social"],
+    [96,"Goliath","Rabbit","Flemish Giant",7,9,"M",3780,"M","M",1,1,"Gentle Giant, Laid-back, Friendly"],
+    [97,"Velvet","Rabbit","Rex (Mini)",1.6,10,"M",2856,"M","L",1,1,"Curious, Intelligent, Playful"],
+    [98,"Cloud","Rabbit","English Angora",2.5,10,"H",3360,"M","H",1,1,"Gentle, Calm, High-maintenance"],
+    [99,"Oreo","Rabbit","Dutch",1.8,10,"M",2520,"M","L",1,1,"Sociable, Calm, Intelligent"],
+    [100,"Spike","Hedgehog","African Pygmy",0.35,5,"M",2100,"L","L",0,0,"Shy, Curious, Quiet"],
+    [101,"Sahara","Hedgehog","Algerian",0.4,5,"M",2352,"L","L",0,0,"Active, Friendly, Explorer"],
+    [102,"Echo","Hedgehog","Egyptian Long-eared",0.3,6,"M",2520,"L","L",0,0,"Nocturnal, Shy, Insect-loving"],
+    [103,"Indy","Hedgehog","Indian Long-eared",0.25,5,"M",2184,"L","L",0,0,"Solitary, Alert, Fast"],
+    [104,"Thorn","Hedgehog","European",0.8,5,"M",2688,"L","L",0,0,"Wild, Active, Forager"],
+    [105,"Karma","Chameleon","Veiled (Yemen)",0.09,7,"H",3360,"L","L",0,0,"Solitary, Territorial, Slow-moving"],
+    [106,"Rainbow","Chameleon","Panther",0.15,7,"H",4620,"L","L",0,0,"Colorful, Active, Shy"],
+    [107,"Trihorn","Chameleon","Jackson's (Three-horned)",0.08,8,"H",4200,"L","L",0,0,"Slow, Deliberate, Arboreal"],
+    [108,"Camo","Chameleon","Carpet (Jeweled)",0.25,6,"H",4032,"L","L",0,0,"Aggressive, Colorful, Arboreal"],
+    [109,"Giant","Chameleon","Meller's (Giant One-horned)",0.4,8,"H",5040,"L","L",0,0,"Gentle, Slow, Arboreal"],
+    [110,"Pebble","Chameleon","Pygmy (Spectral)",0.02,3,"H",3192,"L","L",0,0,"Tiny, Active, Shy"]
+  ];
 
   const Q = [
     { id: 'sp', t: 'What type of pet are you looking for?', type: 's',
@@ -1403,220 +1449,44 @@ async function loadPetsFromFirebase() {
     return Math.round((s / max) * 100);
   }
 
-async function showRes() {
-
-    // Show loading screen
-    $('C').innerHTML = `
-        <div class="card" style="text-align:center;padding:40px;">
-            <i class="fa-solid fa-paw"
-               style="font-size:2.5rem;color:var(--primary);"></i>
-
-            <h3 style="margin-top:15px;">
-                Finding your perfect PawMate...
-            </h3>
-
-            <p style="color:var(--text-dim);">
-                Checking our available pets.
-            </p>
-        </div>
-    `;
-
-    // Load pets from Firebase
-    const loaded = await loadPetsFromFirebase();
-
-    if (!loaded || P.length === 0) {
-
-        $('C').innerHTML = `
-            <div class="card" style="text-align:center;padding:40px;">
-
-                <i class="fa-solid fa-triangle-exclamation"
-                   style="font-size:2rem;color:var(--secondary);">
-                </i>
-
-                <h3 style="margin-top:15px;">
-                    Unable to load pets
-                </h3>
-
-                <p style="color:var(--text-dim);">
-                    Please check your Firebase connection.
-                </p>
-
-                <button class="rst" onclick="restart()">
-                    Try Again
-                </button>
-
-            </div>
-        `;
-
-        return;
-    }
-
-
-    // Calculate matches
+  function showRes() {
     const ranked = P.map(p => {
+      const sc = score(p);
+      return sc >= 0 ? { p, sc } : null;
+    }).filter(x => x).sort((a, b) => b.sc - a.sc).slice(0, 5);
 
-        const sc = score(p);
-
-        return sc >= 0
-            ? { p, sc }
-            : null;
-
-    })
-    .filter(x => x)
-    .sort((a, b) => b.sc - a.sc)
-    .slice(0, 5);
-
-
-    // Create result page
-    let html = `
-        <div class="res">
-
-            <div class="rh">
-
-                <h3>
-                    <i class="fa-solid fa-sparkles"
-                       style="margin-right:8px"></i>
-
-                    Your Top Matches
-                </h3>
-
-                <p>
-                    Based on your preferences, here are your best companions
-                </p>
-
-            </div>
-    `;
-
+    let html = `<div class="res"><div class="rh"><h3><i class="fa-solid fa-sparkles" style="margin-right:8px"></i>Your Top Matches</h3><p>Based on your preferences, here are your best companions</p></div>`;
 
     ranked.forEach((r, i) => {
+      const p = r.p;
+      const g = i === 0 ? 'g1' : i === 1 ? 'g2' : i === 2 ? 'g3' : 'gx';
+      const sz = p[4] < 1 ? (p[4] * 1000) + 'g' : p[4] + ' kg';
 
-        const p = r.p;
-
-        const g =
-            i === 0 ? 'g1' :
-            i === 1 ? 'g2' :
-            i === 2 ? 'g3' : 'gx';
-
-        const sz =
-            p[4] < 1
-                ? (p[4] * 1000) + 'g'
-                : p[4] + ' kg';
-
-
-        html += `
-            <div class="mc">
-
-                <div class="rk ${g}">
-                    ${i + 1}
-                </div>
-
-                <div class="inf">
-
-                    <div class="pn">
-                        ${p[1]}
-
-                        <span style="
-                            color:var(--text-dim);
-                            font-weight:400;">
-                            (${p[2]})
-                        </span>
-                    </div>
-
-                    <div class="pb">
-                        ${p[3]}
-                        &middot;
-                        ${sz}
-                        &middot;
-                        ${p[5]} yrs lifespan
-                    </div>
-
-                    <div class="tags">
-
-                        <span class="tag">
-                            Care:
-                            ${
-                                p[6] === 'L'
-                                    ? 'Low'
-                                    : p[6] === 'M'
-                                    ? 'Medium'
-                                    : 'High'
-                            }
-                        </span>
-
-                        <span class="tag">
-                            Rs.${p[7]}/mo
-                        </span>
-
-                        <span class="tag">
-                            ${
-                                p[8] === 'L'
-                                    ? 'Low'
-                                    : p[8] === 'M'
-                                    ? 'Medium'
-                                    : 'High'
-                            }
-                            exercise
-                        </span>
-
-                        <span class="tag">
-                            ${
-                                p[9] === 'L'
-                                    ? 'Low'
-                                    : p[9] === 'M'
-                                    ? 'Medium'
-                                    : 'High'
-                            }
-                            grooming
-                        </span>
-
-                    </div>
-
-                </div>
-
-                <div class="sc">
-
-                    <div class="sn">
-                        ${r.sc}%
-                    </div>
-
-                    <div class="sl">
-                        match
-                    </div>
-
-                    <div class="bar">
-                        <div class="bf"
-                             style="width:${r.sc}%">
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
-        `;
+      html += `<div class="mc">
+        <div class="rk ${g}">${i + 1}</div>
+        <div class="inf">
+          <div class="pn">${p[1]} <span style="color:var(--text-dim);font-weight:400">(${p[2]})</span></div>
+          <div class="pb">${p[3]} &middot; ${sz} &middot; ${p[5]} yrs lifespan</div>
+          <div class="tags">
+            <span class="tag">Care: ${p[6] === 'L' ? 'Low' : p[6] === 'M' ? 'Medium' : 'High'}</span>
+            <span class="tag">Rs.${p[7]}/mo</span>
+            <span class="tag">${p[8] === 'L' ? 'Low' : p[8] === 'M' ? 'Medium' : 'High'} exercise</span>
+            <span class="tag">${p[9] === 'L' ? 'Low' : p[9] === 'M' ? 'Medium' : 'High'} grooming</span>
+          </div>
+        </div>
+        <div class="sc">
+          <div class="sn">${r.sc}%</div>
+          <div class="sl">match</div>
+          <div class="bar"><div class="bf" style="width:${r.sc}%"></div></div>
+        </div>
+      </div>`;
     });
 
-
-    html += `
-            <button class="rst" onclick="restart()">
-
-                <i class="fa-solid fa-rotate-right"
-                   style="margin-right:6px"></i>
-
-                Start over
-
-            </button>
-
-        </div>
-    `;
-
-
+    html += `<button class="rst" onclick="restart()"><i class="fa-solid fa-rotate-right" style="margin-right:6px"></i>Start over</button></div>`;
     $('C').innerHTML = html;
+    $('D').innerHTML = Q.map(() => '<div class="dot d"></div>').join('');
+  }
 
-    $('D').innerHTML =
-        Q.map(() => '<div class="dot d"></div>').join('');
-}
-
-  
   function restart() {
     cur = 0;
     ans = {};
