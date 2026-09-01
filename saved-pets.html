@@ -441,163 +441,22 @@
         <p>Pets you've saved for later. Come back anytime to review or start an application.</p>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;">
-        <div class="card" style="overflow: hidden;">
-            <div style="position: relative; height: 220px; overflow: hidden;">
-                <img src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=800&q=80" alt="Golden Retriever" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;">
-                <div style="position: absolute; top: 1rem; left: 1rem; padding: 0.4rem 1rem; background: rgba(74, 222, 128, 0.2); border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 50px; font-size: 0.75rem; color: #4ade80; font-weight: 600; backdrop-filter: blur(10px);">Available</div>
-                <button style="position: absolute; top: 1rem; right: 1rem; width: 40px; height: 40px; border-radius: 50%; background: var(--secondary); border: 1px solid var(--secondary); color: #fff; display: flex; align-items: center; justify-content: center; cursor: none; transition: all 0.3s ease;" onclick="this.closest('.card').style.opacity='0'; setTimeout(()=>this.closest('.card').remove(), 300);"><i class="fa-solid fa-heart"></i></button>
-            </div>
-            <div style="padding: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-                    <h3 style="font-size: 1.1rem;">Golden Retriever</h3>
-                    <span style="font-size: 0.8rem; color: var(--text-dim); background: var(--bg); padding: 0.3rem 0.8rem; border-radius: 50px;">2 yrs</span>
-                </div>
-                <div style="display: flex; gap: 0.5rem; margin-bottom: 1.2rem; flex-wrap: wrap;">
-                    <span style="font-size: 0.75rem; padding: 0.3rem 0.8rem; background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 50px; color: var(--primary);">Playful</span>
-                    <span style="font-size: 0.75rem; padding: 0.3rem 0.8rem; background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 50px; color: var(--primary);">Friendly</span>
-                    <span style="font-size: 0.75rem; padding: 0.3rem 0.8rem; background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 50px; color: var(--primary);">Big</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 0.85rem; color: var(--text-dim); display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-location-dot" style="color: var(--secondary);"></i> Mumbai</span>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn-secondary btn-small" onclick="alert('Removed from saved pets')">Remove</button>
-                        <button class="btn-primary btn-small" onclick="window.location.href='Adopt.html'">Adopt</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div
+    id="savedPetsGrid"
+    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;"
+>
+</div>
 
-        <div class="card" style="overflow: hidden;">
-            <div style="position: relative; height: 220px; overflow: hidden;">
-                <img src="https://images.unsplash.com/photo-1519052537078-e6302a4968d4?auto=format&fit=crop&w=800&q=80" alt="British Shorthair" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;">
-                <div style="position: absolute; top: 1rem; left: 1rem; padding: 0.4rem 1rem; background: rgba(74, 222, 128, 0.2); border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 50px; font-size: 0.75rem; color: #4ade80; font-weight: 600; backdrop-filter: blur(10px);">Available</div>
-                <button style="position: absolute; top: 1rem; right: 1rem; width: 40px; height: 40px; border-radius: 50%; background: var(--secondary); border: 1px solid var(--secondary); color: #fff; display: flex; align-items: center; justify-content: center; cursor: none; transition: all 0.3s ease;" onclick="this.closest('.card').style.opacity='0'; setTimeout(()=>this.closest('.card').remove(), 300);"><i class="fa-solid fa-heart"></i></button>
-            </div>
-            <div style="padding: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-                    <h3 style="font-size: 1.1rem;">British Shorthair</h3>
-                    <span style="font-size: 0.8rem; color: var(--text-dim); background: var(--bg); padding: 0.3rem 0.8rem; border-radius: 50px;">1 yr</span>
-                </div>
-                <div style="display: flex; gap: 0.5rem; margin-bottom: 1.2rem; flex-wrap: wrap;">
-                    <span style="font-size: 0.75rem; padding: 0.3rem 0.8rem; background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 50px; color: var(--primary);">Calm</span>
-                    <span style="font-size: 0.75rem; padding: 0.3rem 0.8rem; background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 50px; color: var(--primary);">Indoor</span>
-                    <span style="font-size: 0.75rem; padding: 0.3rem 0.8rem; background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 50px; color: var(--primary);">Quiet</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 0.85rem; color: var(--text-dim); display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-location-dot" style="color: var(--secondary);"></i> Delhi</span>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn-secondary btn-small" onclick="alert('Removed from saved pets')">Remove</button>
-                        <button class="btn-primary btn-small" onclick="window.location.href='Adopt.html'">Adopt</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card" style="overflow: hidden;">
-            <div style="position: relative; height: 220px; overflow: hidden;">
-                <img src="https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=800&q=80" alt="Snow Bunny" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;">
-                <div style="position: absolute; top: 1rem; left: 1rem; padding: 0.4rem 1rem; background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 50px; font-size: 0.75rem; color: #fbbf24; font-weight: 600; backdrop-filter: blur(10px);">Reserved</div>
-                <button style="position: absolute; top: 1rem; right: 1rem; width: 40px; height: 40px; border-radius: 50%; background: var(--secondary); border: 1px solid var(--secondary); color: #fff; display: flex; align-items: center; justify-content: center; cursor: none; transition: all 0.3s ease;" onclick="this.closest('.card').style.opacity='0'; setTimeout(()=>this.closest('.card').remove(), 300);"><i class="fa-solid fa-heart"></i></button>
-            </div>
-            <div style="padding: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-                    <h3 style="font-size: 1.1rem;">Snow Bunny</h3>
-                    <span style="font-size: 0.8rem; color: var(--text-dim); background: var(--bg); padding: 0.3rem 0.8rem; border-radius: 50px;">8 mos</span>
-                </div>
-                <div style="display: flex; gap: 0.5rem; margin-bottom: 1.2rem; flex-wrap: wrap;">
-                    <span style="font-size: 0.75rem; padding: 0.3rem 0.8rem; background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 50px; color: var(--primary);">Tiny</span>
-                    <span style="font-size: 0.75rem; padding: 0.3rem 0.8rem; background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 50px; color: var(--primary);">Curious</span>
-                    <span style="font-size: 0.75rem; padding: 0.3rem 0.8rem; background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 50px; color: var(--primary);">Soft</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 0.85rem; color: var(--text-dim); display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-location-dot" style="color: var(--secondary);"></i> Bangalore</span>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn-secondary btn-small" onclick="alert('Removed from saved pets')">Remove</button>
-                        <button class="btn-primary btn-small" onclick="window.location.href='Adopt.html'">Adopt</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card" style="overflow: hidden;">
-            <div style="position: relative; height: 220px; overflow: hidden;">
-                <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=800&q=80" alt="Beagle" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;">
-                <div style="position: absolute; top: 1rem; left: 1rem; padding: 0.4rem 1rem; background: rgba(74, 222, 128, 0.2); border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 50px; font-size: 0.75rem; color: #4ade80; font-weight: 600; backdrop-filter: blur(10px);">Available</div>
-                <button style="position: absolute; top: 1rem; right: 1rem; width: 40px; height: 40px; border-radius: 50%; background: var(--secondary); border: 1px solid var(--secondary); color: #fff; display: flex; align-items: center; justify-content: center; cursor: none; transition: all 0.3s ease;" onclick="this.closest('.card').style.opacity='0'; setTimeout(()=>this.closest('.card').remove(), 300);"><i class="fa-solid fa-heart"></i></button>
-            </div>
-            <div style="padding: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-                    <h3 style="font-size: 1.1rem;">Beagle Pup</h3>
-                    <span style="font-size: 0.8rem; color: var(--text-dim); background: var(--bg); padding: 0.3rem 0.8rem; border-radius: 50px;">4 mos</span>
-                </div>
-                <div style="display: flex; gap: 0.5rem; margin-bottom: 1.2rem; flex-wrap: wrap;">
-                    <span style="font-size: 0.75rem; padding: 0.3rem 0.8rem; background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 50px; color: var(--primary);">Curious</span>
-                    <span style="font-size: 0.75rem; padding: 0.3rem 0.8rem; background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 50px; color: var(--primary);">Happy</span>
-                    <span style="font-size: 0.75rem; padding: 0.3rem 0.8rem; background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 50px; color: var(--primary);">Small</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 0.85rem; color: var(--text-dim); display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-location-dot" style="color: var(--secondary);"></i> Kolkata</span>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn-secondary btn-small" onclick="alert('Removed from saved pets')">Remove</button>
-                        <button class="btn-primary btn-small" onclick="window.location.href='Adopt.html'">Adopt</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card" style="overflow: hidden;">
-            <div style="position: relative; height: 220px; overflow: hidden;">
-                <img src="https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=800&q=80" alt="Persian Cat" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;">
-                <div style="position: absolute; top: 1rem; left: 1rem; padding: 0.4rem 1rem; background: rgba(74, 222, 128, 0.2); border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 50px; font-size: 0.75rem; color: #4ade80; font-weight: 600; backdrop-filter: blur(10px);">Available</div>
-                <button style="position: absolute; top: 1rem; right: 1rem; width: 40px; height: 40px; border-radius: 50%; background: var(--secondary); border: 1px solid var(--secondary); color: #fff; display: flex; align-items: center; justify-content: center; cursor: none; transition: all 0.3s ease;" onclick="this.closest('.card').style.opacity='0'; setTimeout(()=>this.closest('.card').remove(), 300);"><i class="fa-solid fa-heart"></i></button>
-            </div>
-            <div style="padding: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-                    <h3 style="font-size: 1.1rem;">Persian Cat</h3>
-                    <span style="font-size: 0.8rem; color: var(--text-dim); background: var(--bg); padding: 0.3rem 0.8rem; border-radius: 50px;">3 yrs</span>
-                </div>
-                <div style="display: flex; gap: 0.5rem; margin-bottom: 1.2rem; flex-wrap: wrap;">
-                    <span style="font-size: 0.75rem; padding: 0.3rem 0.8rem; background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 50px; color: var(--primary);">Fluffy</span>
-                    <span style="font-size: 0.75rem; padding: 0.3rem 0.8rem; background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 50px; color: var(--primary);">Gentle</span>
-                    <span style="font-size: 0.75rem; padding: 0.3rem 0.8rem; background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 50px; color: var(--primary);">Lap Cat</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 0.85rem; color: var(--text-dim); display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-location-dot" style="color: var(--secondary);"></i> Jaipur</span>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn-secondary btn-small" onclick="alert('Removed from saved pets')">Remove</button>
-                        <button class="btn-primary btn-small" onclick="window.location.href='Adopt.html'">Adopt</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card" style="overflow: hidden;">
-            <div style="position: relative; height: 220px; overflow: hidden;">
-                <img src="https://images.unsplash.com/photo-1548695602-40c177c4e24d?auto=format&fit=crop&w=800&q=80" alt="Hedgehog" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;">
-                <div style="position: absolute; top: 1rem; left: 1rem; padding: 0.4rem 1rem; background: rgba(74, 222, 128, 0.2); border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 50px; font-size: 0.75rem; color: #4ade80; font-weight: 600; backdrop-filter: blur(10px);">Available</div>
-                <button style="position: absolute; top: 1rem; right: 1rem; width: 40px; height: 40px; border-radius: 50%; background: var(--secondary); border: 1px solid var(--secondary); color: #fff; display: flex; align-items: center; justify-content: center; cursor: none; transition: all 0.3s ease;" onclick="this.closest('.card').style.opacity='0'; setTimeout(()=>this.closest('.card').remove(), 300);"><i class="fa-solid fa-heart"></i></button>
-            </div>
-            <div style="padding: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-                    <h3 style="font-size: 1.1rem;">Hedgehog</h3>
-                    <span style="font-size: 0.8rem; color: var(--text-dim); background: var(--bg); padding: 0.3rem 0.8rem; border-radius: 50px;">1 yr</span>
-                </div>
-                <div style="display: flex; gap: 0.5rem; margin-bottom: 1.2rem; flex-wrap: wrap;">
-                    <span style="font-size: 0.75rem; padding: 0.3rem 0.8rem; background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 50px; color: var(--primary);">Quiet</span>
-                    <span style="font-size: 0.75rem; padding: 0.3rem 0.8rem; background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 50px; color: var(--primary);">Nocturnal</span>
-                    <span style="font-size: 0.75rem; padding: 0.3rem 0.8rem; background: var(--primary-dim); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 50px; color: var(--primary);">Cute</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 0.85rem; color: var(--text-dim); display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-location-dot" style="color: var(--secondary);"></i> Pune</span>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn-secondary btn-small" onclick="alert('Removed from saved pets')">Remove</button>
-                        <button class="btn-primary btn-small" onclick="window.location.href='Adopt.html'">Adopt</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div
+    id="savedPetsStatus"
+    style="
+        text-align:center;
+        padding:4rem 2rem;
+        color:var(--text-dim);
+        display:none;
+    "
+>
+</div>
 
     <div style="text-align: center; margin-top: 3rem;">
         <button class="btn-secondary" onclick="window.location.href='Adopt.html'">
@@ -677,91 +536,890 @@
     <button class="chat-launcher" id="chatLauncher"><i class="fa-solid fa-paw"></i></button>
 </div>
 
-<script>
-const cursor = document.getElementById('cursor');
-const cursorFollower = document.getElementById('cursorFollower');
-let mouseX = 0, mouseY = 0, followerX = 0, followerY = 0;
-document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX; mouseY = e.clientY;
-    cursor.style.left = mouseX - 6 + 'px';
-    cursor.style.top = mouseY - 6 + 'px';
-});
-function animateFollower() {
-    followerX += (mouseX - followerX) * 0.1;
-    followerY += (mouseY - followerY) * 0.1;
-    cursorFollower.style.left = followerX - 20 + 'px';
-    cursorFollower.style.top = followerY - 20 + 'px';
-    requestAnimationFrame(animateFollower);
-}
-animateFollower();
-document.querySelectorAll('a, button, .card, .pet-card, .service-card, .shop-card').forEach(el => {
-    el.addEventListener('mouseenter', () => { cursor.classList.add('hover'); cursorFollower.classList.add('hover'); });
-    el.addEventListener('mouseleave', () => { cursor.classList.remove('hover'); cursorFollower.classList.remove('hover'); });
-});
+<script type="module">
 
-const scrollProgress = document.getElementById('scrollProgress');
-window.addEventListener('scroll', () => {
-    const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    scrollProgress.style.width = (scrollTop / docHeight) * 100 + '%';
-});
+import {
+    auth,
+    db,
+    onAuthStateChanged,
+    signOut,
+    collection,
+    getDocs,
+    deleteDoc,
+    doc
+} from "./firebase.js";
 
-const profileTrigger = document.getElementById('profileTrigger');
-const profileDropdown = document.getElementById('profileDropdown');
-if (profileTrigger && profileDropdown) {
-    profileTrigger.addEventListener('click', (e) => { e.stopPropagation(); profileDropdown.classList.toggle('active'); });
-    document.addEventListener('click', (e) => { if (!profileTrigger.contains(e.target) && !profileDropdown.contains(e.target)) profileDropdown.classList.remove('active'); });
-}
 
-const chatLauncher = document.getElementById('chatLauncher');
-const chatPanel = document.getElementById('chatPanel');
-const chatClose = document.getElementById('chatClose');
-const chatForm = document.getElementById('chatForm');
-const chatInput = document.getElementById('chatInput');
-const chatMessages = document.getElementById('chatMessages');
-chatLauncher.addEventListener('click', () => chatPanel.classList.toggle('active'));
-chatClose.addEventListener('click', () => chatPanel.classList.remove('active'));
-function addMessage(text, isUser = false) {
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'chat-message ' + (isUser ? 'user' : 'bot');
-    msgDiv.innerHTML = '<div class="chat-bubble">' + text + '</div>';
-    chatMessages.appendChild(msgDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-chatForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const text = chatInput.value.trim();
-    if (text) {
-        addMessage(text, true); chatInput.value = '';
-        setTimeout(() => {
-            const responses = [
-                "I'd love to help you find the perfect pet! What type of companion are you looking for?",
-                "That's a great question! Our PawMate AI can analyze your lifestyle to suggest the best matches.",
-                "We have many wonderful pets waiting for homes. Would you like to browse dogs, cats, or small pets?",
-                "All our pets come with complete health records and are from verified shelters. You can trust the process!"
-            ];
-            addMessage(responses[Math.floor(Math.random() * responses.length)]);
-        }, 1000);
+// ===================== CURSOR =====================
+
+const cursor =
+    document.getElementById('cursor');
+
+const cursorFollower =
+    document.getElementById('cursorFollower');
+
+let mouseX = 0;
+let mouseY = 0;
+
+let followerX = 0;
+let followerY = 0;
+
+
+document.addEventListener(
+    'mousemove',
+    (e) => {
+
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+
+        cursor.style.left =
+            mouseX - 6 + 'px';
+
+        cursor.style.top =
+            mouseY - 6 + 'px';
+
     }
-});
-document.querySelectorAll('.chat-quick button').forEach(btn => {
-    btn.addEventListener('click', () => {
-        addMessage(btn.getAttribute('data-message'), true);
-        setTimeout(() => {
-            const msg = btn.getAttribute('data-message');
-            let response = '';
-            if (msg.includes('dogs')) response = "We have over 120 dogs waiting for homes! From playful Labradors to loyal Indies.";
-            else if (msg.includes('cats')) response = "Our cat family has 80+ beautiful felines! From calm British Shorthairs to energetic tabbies.";
-            else response = "Let's find your perfect match! I'll need to know about your living situation, work schedule, and experience with pets.";
-            addMessage(response);
-        }, 1000);
-    });
-});
+);
 
-const userData = JSON.parse(localStorage.getItem('tailmates_user') || '{}');
-if (userData.displayName) {
-    document.getElementById('profileName').textContent = userData.displayName;
-    document.getElementById('dropdownUserName').textContent = userData.displayName;
+
+function animateFollower() {
+
+    followerX +=
+        (mouseX - followerX) * 0.1;
+
+    followerY +=
+        (mouseY - followerY) * 0.1;
+
+
+    cursorFollower.style.left =
+        followerX - 20 + 'px';
+
+    cursorFollower.style.top =
+        followerY - 20 + 'px';
+
+
+    requestAnimationFrame(
+        animateFollower
+    );
+
+}
+
+animateFollower();
+
+
+// ===================== PROFILE DROPDOWN =====================
+
+const profileTrigger =
+    document.getElementById(
+        'profileTrigger'
+    );
+
+const profileDropdown =
+    document.getElementById(
+        'profileDropdown'
+    );
+
+
+if (
+    profileTrigger &&
+    profileDropdown
+) {
+
+    profileTrigger.addEventListener(
+        'click',
+        (e) => {
+
+            e.stopPropagation();
+
+            profileDropdown.classList.toggle(
+                'active'
+            );
+
+        }
+    );
+
+
+    document.addEventListener(
+        'click',
+        (e) => {
+
+            if (
+                !profileTrigger.contains(
+                    e.target
+                ) &&
+                !profileDropdown.contains(
+                    e.target
+                )
+            ) {
+
+                profileDropdown.classList.remove(
+                    'active'
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+// ===================== SCROLL =====================
+
+const scrollProgress =
+    document.getElementById(
+        'scrollProgress'
+    );
+
+
+window.addEventListener(
+    'scroll',
+    () => {
+
+        const scrollTop =
+            window.scrollY;
+
+        const docHeight =
+            document.documentElement
+                .scrollHeight -
+            window.innerHeight;
+
+
+        if (docHeight > 0) {
+
+            scrollProgress.style.width =
+                (
+                    scrollTop /
+                    docHeight *
+                    100
+                ) + '%';
+
+        }
+
+    }
+);
+
+
+// ===================== CHAT =====================
+
+const chatLauncher =
+    document.getElementById(
+        'chatLauncher'
+    );
+
+const chatPanel =
+    document.getElementById(
+        'chatPanel'
+    );
+
+const chatClose =
+    document.getElementById(
+        'chatClose'
+    );
+
+const chatForm =
+    document.getElementById(
+        'chatForm'
+    );
+
+const chatInput =
+    document.getElementById(
+        'chatInput'
+    );
+
+const chatMessages =
+    document.getElementById(
+        'chatMessages'
+    );
+
+
+if (
+    chatLauncher &&
+    chatPanel
+) {
+
+    chatLauncher.addEventListener(
+        'click',
+        () =>
+            chatPanel.classList.toggle(
+                'active'
+            )
+    );
+
+}
+
+
+if (
+    chatClose &&
+    chatPanel
+) {
+
+    chatClose.addEventListener(
+        'click',
+        () =>
+            chatPanel.classList.remove(
+                'active'
+            )
+    );
+
+}
+
+
+function addMessage(
+    text,
+    isUser = false
+) {
+
+    if (!chatMessages) return;
+
+
+    const msgDiv =
+        document.createElement(
+            'div'
+        );
+
+
+    msgDiv.className =
+        'chat-message ' +
+        (isUser
+            ? 'user'
+            : 'bot'
+        );
+
+
+    msgDiv.innerHTML =
+        '<div class="chat-bubble">' +
+        text +
+        '</div>';
+
+
+    chatMessages.appendChild(
+        msgDiv
+    );
+
+
+    chatMessages.scrollTop =
+        chatMessages.scrollHeight;
+
+}
+
+
+if (chatForm) {
+
+    chatForm.addEventListener(
+        'submit',
+        (e) => {
+
+            e.preventDefault();
+
+            const text =
+                chatInput.value.trim();
+
+            if (!text) return;
+
+            addMessage(
+                text,
+                true
+            );
+
+            chatInput.value = '';
+
+            setTimeout(
+                () => {
+
+                    addMessage(
+                        "I'd love to help you find the perfect pet! What type of companion are you looking for?"
+                    );
+
+                },
+                800
+            );
+
+        }
+    );
+
+}
+
+
+// ===================== FIREBASE USER =====================
+
+let currentUser = null;
+
+
+onAuthStateChanged(
+    auth,
+    async (user) => {
+
+        if (!user) {
+
+            window.location.href =
+                "login.html";
+
+            return;
+
+        }
+
+
+        currentUser = user;
+
+
+        const displayName =
+            user.displayName ||
+            user.email.split('@')[0];
+
+
+        const profileName =
+            document.getElementById(
+                'profileName'
+            );
+
+        const dropdownUserName =
+            document.getElementById(
+                'dropdownUserName'
+            );
+
+
+        if (profileName) {
+
+            profileName.textContent =
+                displayName;
+
+        }
+
+
+        if (dropdownUserName) {
+
+            dropdownUserName.textContent =
+                displayName;
+
+        }
+
+
+        await loadSavedPets();
+
+    }
+);
+
+
+// ===================== LOAD SAVED PETS =====================
+
+async function loadSavedPets() {
+
+    const grid =
+        document.getElementById(
+            'savedPetsGrid'
+        );
+
+    const status =
+        document.getElementById(
+            'savedPetsStatus'
+        );
+
+
+    grid.innerHTML = '';
+
+
+    status.style.display =
+        'block';
+
+    status.innerHTML =
+        '<i class="fa-solid fa-circle-notch fa-spin" style="font-size:2rem;color:var(--primary);display:block;margin-bottom:1rem;"></i>' +
+        'Loading your saved pets...';
+
+
+    try {
+
+        const savedPetsRef =
+            collection(
+                db,
+                "users",
+                currentUser.uid,
+                "savedPets"
+            );
+
+
+        const snapshot =
+            await getDocs(
+                savedPetsRef
+            );
+
+
+        if (snapshot.empty) {
+
+            status.innerHTML =
+                '<i class="fa-regular fa-heart" style="font-size:3rem;color:var(--primary);display:block;margin-bottom:1rem;"></i>' +
+                '<strong style="font-size:1.2rem;color:var(--text);display:block;margin-bottom:0.5rem;">No saved pets yet</strong>' +
+                '<span>Go to Adopt and tap the heart on a pet you love.</span>';
+
+            return;
+
+        }
+
+
+        status.style.display =
+            'none';
+
+
+        snapshot.forEach(
+            (petDoc) => {
+
+                const pet =
+                    petDoc.data();
+
+                renderSavedPet(
+                    pet,
+                    petDoc.id
+                );
+
+            }
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Error loading saved pets:",
+            error
+        );
+
+
+        status.innerHTML =
+            '<i class="fa-solid fa-triangle-exclamation" style="font-size:2rem;color:var(--secondary);display:block;margin-bottom:1rem;"></i>' +
+            'Could not load saved pets.<br><small>' +
+            error.message +
+            '</small>';
+
+    }
+
+}
+
+
+// ===================== RENDER SAVED PET =====================
+
+function renderSavedPet(
+    pet,
+    petId
+) {
+
+    const grid =
+        document.getElementById(
+            'savedPetsGrid'
+        );
+
+
+    const card =
+        document.createElement(
+            'div'
+        );
+
+
+    card.className =
+        'card';
+
+
+    card.style.overflow =
+        'hidden';
+
+
+    const age =
+        pet.age_months
+            ? (
+                pet.age_months /
+                12
+            ).toFixed(1) +
+              ' yrs'
+            : 'Age unknown';
+
+
+    const image =
+        pet.image_url ||
+        '';
+
+
+    const name =
+        pet.name ||
+        'Unknown Pet';
+
+
+    const breed =
+        pet.breed ||
+        'Mixed breed';
+
+
+    const location =
+        pet.location ||
+        'India';
+
+
+    const statusText =
+        'Available';
+
+
+    card.innerHTML = `
+
+        <div
+            style="
+                position:relative;
+                height:220px;
+                overflow:hidden;
+            "
+        >
+
+            ${
+                image
+                ?
+                `<img
+                    src="${escapeHtml(image)}"
+                    alt="${escapeHtml(name)}"
+                    style="
+                        width:100%;
+                        height:100%;
+                        object-fit:cover;
+                        transition:transform 0.5s ease;
+                    "
+                >`
+                :
+                `<div
+                    style="
+                        width:100%;
+                        height:100%;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:4rem;
+                        background:var(--primary-dim);
+                    "
+                >
+                    🐾
+                </div>`
+            }
+
+
+            <div
+                style="
+                    position:absolute;
+                    top:1rem;
+                    left:1rem;
+                    padding:0.4rem 1rem;
+                    background:rgba(74,222,128,0.2);
+                    border:1px solid rgba(74,222,128,0.3);
+                    border-radius:50px;
+                    font-size:0.75rem;
+                    color:#4ade80;
+                    font-weight:600;
+                "
+            >
+                ${statusText}
+            </div>
+
+
+            <button
+                class="remove-saved-btn"
+                data-pet-id="${escapeHtml(petId)}"
+                style="
+                    position:absolute;
+                    top:1rem;
+                    right:1rem;
+                    width:40px;
+                    height:40px;
+                    border-radius:50%;
+                    background:var(--secondary);
+                    border:1px solid var(--secondary);
+                    color:#fff;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    cursor:pointer;
+                "
+            >
+                <i class="fa-solid fa-heart"></i>
+            </button>
+
+        </div>
+
+
+        <div style="padding:1.5rem;">
+
+            <div
+                style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    margin-bottom:0.8rem;
+                "
+            >
+
+                <h3
+                    style="
+                        font-size:1.1rem;
+                    "
+                >
+                    ${escapeHtml(name)}
+                </h3>
+
+
+                <span
+                    style="
+                        font-size:0.8rem;
+                        color:var(--text-dim);
+                        background:var(--bg);
+                        padding:0.3rem 0.8rem;
+                        border-radius:50px;
+                    "
+                >
+                    ${age}
+                </span>
+
+            </div>
+
+
+            <div
+                style="
+                    color:var(--primary);
+                    font-size:0.85rem;
+                    margin-bottom:1rem;
+                "
+            >
+                ${escapeHtml(breed)}
+            </div>
+
+
+            <div
+                style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                "
+            >
+
+                <span
+                    style="
+                        font-size:0.85rem;
+                        color:var(--text-dim);
+                        display:flex;
+                        align-items:center;
+                        gap:6px;
+                    "
+                >
+                    <i
+                        class="fa-solid fa-location-dot"
+                        style="color:var(--secondary);"
+                    ></i>
+
+                    ${escapeHtml(location)}
+
+                </span>
+
+
+                <div
+                    style="
+                        display:flex;
+                        gap:0.5rem;
+                    "
+                >
+
+                    <button
+                        class="btn-secondary btn-small remove-text-btn"
+                        data-pet-id="${escapeHtml(petId)}"
+                    >
+                        Remove
+                    </button>
+
+
+                    <button
+                        class="btn-primary btn-small"
+                        onclick="window.location.href='Adopt.html'"
+                    >
+                        Adopt
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    grid.appendChild(
+        card
+    );
+
+
+    // Heart remove button
+
+    card
+        .querySelector(
+            '.remove-saved-btn'
+        )
+        .addEventListener(
+            'click',
+            () =>
+                removeSavedPet(
+                    petId,
+                    card
+                )
+        );
+
+
+    // Text remove button
+
+    card
+        .querySelector(
+            '.remove-text-btn'
+        )
+        .addEventListener(
+            'click',
+            () =>
+                removeSavedPet(
+                    petId,
+                    card
+                )
+        );
+
+}
+
+
+// ===================== REMOVE =====================
+
+async function removeSavedPet(
+    petId,
+    card
+) {
+
+    try {
+
+        await deleteDoc(
+            doc(
+                db,
+                "users",
+                currentUser.uid,
+                "savedPets",
+                petId
+            )
+        );
+
+
+        card.style.transition =
+            "opacity 0.3s ease, transform 0.3s ease";
+
+        card.style.opacity =
+            "0";
+
+        card.style.transform =
+            "scale(0.95)";
+
+
+        setTimeout(
+            () => {
+
+                card.remove();
+
+
+                const grid =
+                    document.getElementById(
+                        'savedPetsGrid'
+                    );
+
+
+                if (
+                    grid.children.length === 0
+                ) {
+
+                    const status =
+                        document.getElementById(
+                            'savedPetsStatus'
+                        );
+
+                    status.style.display =
+                        'block';
+
+                    status.innerHTML =
+                        '<i class="fa-regular fa-heart" style="font-size:3rem;color:var(--primary);display:block;margin-bottom:1rem;"></i>' +
+                        '<strong style="font-size:1.2rem;color:var(--text);display:block;margin-bottom:0.5rem;">No saved pets yet</strong>' +
+                        '<span>Go to Adopt and tap the heart on a pet you love.</span>';
+
+                }
+
+            },
+            300
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Error removing saved pet:",
+            error
+        );
+
+        alert(
+            "Could not remove this pet: " +
+            error.message
+        );
+
+    }
+
+}
+
+
+// ===================== ESCAPE HTML =====================
+
+function escapeHtml(text) {
+
+    const div =
+        document.createElement(
+            'div'
+        );
+
+    div.textContent =
+        text ?? '';
+
+    return div.innerHTML;
+
+}
+
+
+// ===================== LOGOUT =====================
+
+const logoutBtn =
+    document.getElementById(
+        'logoutBtn'
+    );
+
+
+if (logoutBtn) {
+
+    logoutBtn.addEventListener(
+        'click',
+        async (e) => {
+
+            e.preventDefault();
+
+            try {
+
+                await signOut(auth);
+
+                window.location.href =
+                    'login.html';
+
+            } catch (error) {
+
+                console.error(
+                    "Logout error:",
+                    error
+                );
+
+                alert(
+                    "Could not log out."
+                );
+
+            }
+
+        }
+    );
+
 }
 
 </script>
