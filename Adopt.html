@@ -572,257 +572,1027 @@
   </button>
 </div>
 
-<script>
+<script type="module">
 
-  // ===================== CURSOR =====================
-  const cursor = document.getElementById('cursor');
-  const cursorFollower = document.getElementById('cursorFollower');
-  let mouseX = 0, mouseY = 0, followerX = 0, followerY = 0;
+import {
+    auth,
+    db,
+    onAuthStateChanged,
+    signOut,
+    doc,
+    getDoc,
+    setDoc,
+    deleteDoc
+} from "./firebase.js";
 
-  document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX; mouseY = e.clientY;
+
+// ===================== CURSOR =====================
+
+const cursor = document.getElementById('cursor');
+const cursorFollower = document.getElementById('cursorFollower');
+
+let mouseX = 0;
+let mouseY = 0;
+let followerX = 0;
+let followerY = 0;
+
+document.addEventListener('mousemove', (e) => {
+
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+
     cursor.style.left = mouseX - 6 + 'px';
     cursor.style.top = mouseY - 6 + 'px';
-  });
-  function animateFollower() {
+
+});
+
+function animateFollower() {
+
     followerX += (mouseX - followerX) * 0.1;
     followerY += (mouseY - followerY) * 0.1;
+
     cursorFollower.style.left = followerX - 20 + 'px';
     cursorFollower.style.top = followerY - 20 + 'px';
+
     requestAnimationFrame(animateFollower);
-  }
-  animateFollower();
+}
 
-  const hoverEls = document.querySelectorAll('a, button, .pet-card, .filter-btn, .pet-fav, .adopt-btn, .chat-launcher, .chat-close, .chat-input button, .chat-quick button, .footer-newsletter button, .socials a');
-  hoverEls.forEach(el => {
-    el.addEventListener('mouseenter', () => { cursor.classList.add('hover'); cursorFollower.classList.add('hover'); });
-    el.addEventListener('mouseleave', () => { cursor.classList.remove('hover'); cursorFollower.classList.remove('hover'); });
-  });
+animateFollower();
 
-  // ===================== SCROLL PROGRESS =====================
-  const scrollProgress = document.getElementById('scrollProgress');
-  window.addEventListener('scroll', () => {
-    const st = window.scrollY;
-    const dh = document.documentElement.scrollHeight - window.innerHeight;
-    scrollProgress.style.width = (st / dh * 100) + '%';
-  });
 
-  // ===================== CHAT WIDGET =====================
-  const chatLauncher = document.getElementById('chatLauncher');
-  const chatPanel = document.getElementById('chatPanel');
-  const chatClose = document.getElementById('chatClose');
-  const chatForm = document.getElementById('chatForm');
-  const chatInput = document.getElementById('chatInput');
-  const chatMessages = document.getElementById('chatMessages');
+// ===================== PROFILE DROPDOWN =====================
 
-  chatLauncher.addEventListener('click', () => chatPanel.classList.toggle('active'));
-  chatClose.addEventListener('click', () => chatPanel.classList.remove('active'));
+const profileTrigger =
+    document.getElementById('profileTrigger');
 
-  function addMessage(text, isUser = false) {
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'chat-message ' + (isUser ? 'user' : 'bot');
-    msgDiv.innerHTML = '<div class="chat-bubble">' + text + '</div>';
-    chatMessages.appendChild(msgDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
+const profileDropdown =
+    document.getElementById('profileDropdown');
 
-  chatForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const text = chatInput.value.trim();
-    if (text) {
-      addMessage(text, true);
-      chatInput.value = '';
-      setTimeout(() => {
-        const responses = [
-          "I'd love to help you find the perfect pet! What type of companion are you looking for?",
-          "That's a great question! Our PawMate AI can analyze your lifestyle to suggest the best matches.",
-          "We have many wonderful pets waiting for homes. Would you like to browse dogs, cats, or small pets?",
-          "All our pets come with complete health records and are from verified shelters. You can trust the process!"
-        ];
-        addMessage(responses[Math.floor(Math.random() * responses.length)]);
-      }, 1000);
-    }
-  });
+if (profileTrigger && profileDropdown) {
 
-  document.querySelectorAll('.chat-quick button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      addMessage(btn.getAttribute('data-message'), true);
-      setTimeout(() => {
-        const msg = btn.getAttribute('data-message');
-        let response = '';
-        if (msg.includes('dogs')) response = "We have over 120 dogs waiting for homes! From playful Labradors to loyal Indies. Browse our dog section to find your match.";
-        else if (msg.includes('cats')) response = "Our cat family has 80+ beautiful felines! From calm British Shorthairs to energetic tabbies. Check them out!";
-        else response = "Let's find your perfect match! I'll need to know about your living situation, work schedule, and experience with pets. Ready to start?";
-        addMessage(response);
-      }, 1000);
+    profileTrigger.addEventListener('click', (e) => {
+
+        e.stopPropagation();
+
+        profileDropdown.classList.toggle('active');
+
     });
-  });
 
-  // ===================== PET DATA FETCHING =====================
-  const DB_URL = "https://tailmatess-default-rtdb.asia-southeast1.firebasedatabase.app/.json";
-  let allPets = [];
+    document.addEventListener('click', (e) => {
 
-  function getSpeciesCategory(species) {
-    const s = (species || '').toLowerCase();
-    if (s.includes('dog')) return 'dog';
-    if (s.includes('cat')) return 'cat';
-    if (s.includes('hamster') || s.includes('rabbit') || s.includes('hedgehog')) return 'small';
-    if (s.includes('chameleon') || s.includes('reptile') || s.includes('bird')) return 'exotic';
+        if (
+            !profileTrigger.contains(e.target) &&
+            !profileDropdown.contains(e.target)
+        ) {
+
+            profileDropdown.classList.remove('active');
+
+        }
+
+    });
+
+}
+
+
+// ===================== SCROLL =====================
+
+const scrollProgress =
+    document.getElementById('scrollProgress');
+
+window.addEventListener('scroll', () => {
+
+    const st = window.scrollY;
+
+    const dh =
+        document.documentElement.scrollHeight -
+        window.innerHeight;
+
+    if (dh > 0) {
+
+        scrollProgress.style.width =
+            (st / dh * 100) + '%';
+
+    }
+
+});
+
+
+// ===================== CHAT =====================
+
+const chatLauncher =
+    document.getElementById('chatLauncher');
+
+const chatPanel =
+    document.getElementById('chatPanel');
+
+const chatClose =
+    document.getElementById('chatClose');
+
+const chatForm =
+    document.getElementById('chatForm');
+
+const chatInput =
+    document.getElementById('chatInput');
+
+const chatMessages =
+    document.getElementById('chatMessages');
+
+
+if (chatLauncher && chatPanel) {
+
+    chatLauncher.addEventListener(
+        'click',
+        () => chatPanel.classList.toggle('active')
+    );
+
+}
+
+if (chatClose && chatPanel) {
+
+    chatClose.addEventListener(
+        'click',
+        () => chatPanel.classList.remove('active')
+    );
+
+}
+
+
+function addMessage(text, isUser = false) {
+
+    if (!chatMessages) return;
+
+    const msgDiv =
+        document.createElement('div');
+
+    msgDiv.className =
+        'chat-message ' +
+        (isUser ? 'user' : 'bot');
+
+    msgDiv.innerHTML =
+        '<div class="chat-bubble">' +
+        text +
+        '</div>';
+
+    chatMessages.appendChild(msgDiv);
+
+    chatMessages.scrollTop =
+        chatMessages.scrollHeight;
+
+}
+
+
+if (chatForm) {
+
+    chatForm.addEventListener('submit', (e) => {
+
+        e.preventDefault();
+
+        const text =
+            chatInput.value.trim();
+
+        if (!text) return;
+
+        addMessage(text, true);
+
+        chatInput.value = '';
+
+        setTimeout(() => {
+
+            const responses = [
+
+                "I'd love to help you find the perfect pet! What type of companion are you looking for?",
+
+                "That's a great question! Our PawMate AI can analyze your lifestyle to suggest the best matches.",
+
+                "We have many wonderful pets waiting for homes. Would you like to browse dogs, cats, or small pets?",
+
+                "All our pets come with complete health records and are from verified shelters. You can trust the process!"
+
+            ];
+
+            addMessage(
+                responses[
+                    Math.floor(
+                        Math.random() * responses.length
+                    )
+                ]
+            );
+
+        }, 1000);
+
+    });
+
+}
+
+
+document
+    .querySelectorAll('.chat-quick button')
+    .forEach(btn => {
+
+        btn.addEventListener('click', () => {
+
+            const message =
+                btn.getAttribute('data-message');
+
+            addMessage(message, true);
+
+            setTimeout(() => {
+
+                let response = '';
+
+                if (message.includes('dogs')) {
+
+                    response =
+                        "We have over 120 dogs waiting for homes! From playful Labradors to loyal Indies.";
+
+                } else if (message.includes('cats')) {
+
+                    response =
+                        "Our cat family has 80+ beautiful felines! From calm British Shorthairs to energetic tabbies.";
+
+                } else {
+
+                    response =
+                        "Let's find your perfect match! I'll need to know about your living situation, work schedule, and experience with pets.";
+
+                }
+
+                addMessage(response);
+
+            }, 1000);
+
+        });
+
+    });
+
+
+// ===================== FIREBASE USER =====================
+
+let currentUser = null;
+
+onAuthStateChanged(auth, async (user) => {
+
+    currentUser = user;
+
+    if (user) {
+
+        console.log(
+            "Logged in as:",
+            user.email
+        );
+
+        document.getElementById(
+            'profileName'
+        ).textContent =
+            user.displayName ||
+            user.email.split('@')[0];
+
+        document.getElementById(
+            'dropdownUserName'
+        ).textContent =
+            user.displayName ||
+            user.email.split('@')[0];
+
+    }
+
+});
+
+
+// ===================== PET DATA =====================
+
+const DB_URL =
+    "https://tailmatess-default-rtdb.asia-southeast1.firebasedatabase.app/.json";
+
+let allPets = [];
+
+
+// ===================== HELPERS =====================
+
+function getSpeciesCategory(species) {
+
+    const s =
+        (species || '').toLowerCase();
+
+    if (s.includes('dog'))
+        return 'dog';
+
+    if (s.includes('cat'))
+        return 'cat';
+
+    if (
+        s.includes('hamster') ||
+        s.includes('rabbit') ||
+        s.includes('hedgehog')
+    )
+        return 'small';
+
+    if (
+        s.includes('chameleon') ||
+        s.includes('reptile') ||
+        s.includes('bird')
+    )
+        return 'exotic';
+
     return 'other';
-  }
+}
 
-  function getCareLabel(level) {
+
+function getCareLabel(level) {
+
     if (!level) return 'Unknown';
-    const l = level.toString().toUpperCase();
+
+    const l =
+        level.toString().toUpperCase();
+
     if (l === 'L') return 'Low';
     if (l === 'M') return 'Medium';
     if (l === 'H') return 'High';
+
     return level;
-  }
 
-  function getExerciseLabel(level) {
+}
+
+
+function getExerciseLabel(level) {
+
     if (!level) return 'Medium';
-    const l = level.toString().toUpperCase();
+
+    const l =
+        level.toString().toUpperCase();
+
     if (l === 'L') return 'Low';
     if (l === 'M') return 'Medium';
     if (l === 'H') return 'High';
-    return 'Medium';
-  }
 
-  function renderPets(pets) {
-    const container = document.getElementById("petList");
-    const statusEl = document.getElementById("status");
+    return 'Medium';
+
+}
+
+
+function escapeHtml(text) {
+
+    const div =
+        document.createElement('div');
+
+    div.textContent = text;
+
+    return div.innerHTML;
+
+}
+
+
+// ===================== SAVED PET CHECK =====================
+
+async function isPetSaved(petId) {
+
+    if (!currentUser) {
+        return false;
+    }
+
+    try {
+
+        const ref = doc(
+            db,
+            "users",
+            currentUser.uid,
+            "savedPets",
+            petId
+        );
+
+        const snapshot =
+            await getDoc(ref);
+
+        return snapshot.exists();
+
+    } catch (error) {
+
+        console.error(
+            "Could not check saved pet:",
+            error
+        );
+
+        return false;
+
+    }
+
+}
+
+
+// ===================== TOGGLE FAVORITE =====================
+
+window.toggleFav = async function(btn, e) {
+
+    e.stopPropagation();
+
+    if (!currentUser) {
+
+        alert(
+            "Please log in to save pets."
+        );
+
+        window.location.href =
+            "login.html";
+
+        return;
+
+    }
+
+
+    const petId =
+        btn.dataset.petId;
+
+    const pet =
+        allPets.find(
+            p => p._id === petId
+        );
+
+    if (!pet) {
+
+        alert(
+            "Could not find this pet."
+        );
+
+        return;
+
+    }
+
+
+    const icon =
+        btn.querySelector('i');
+
+
+    try {
+
+        const savedRef =
+            doc(
+                db,
+                "users",
+                currentUser.uid,
+                "savedPets",
+                petId
+            );
+
+
+        const savedSnapshot =
+            await getDoc(savedRef);
+
+
+        if (savedSnapshot.exists()) {
+
+            await deleteDoc(savedRef);
+
+            icon.classList.remove(
+                'fa-solid'
+            );
+
+            icon.classList.add(
+                'fa-regular'
+            );
+
+            btn.style.background =
+                'rgba(0,0,0,0.5)';
+
+            btn.style.borderColor =
+                'var(--border)';
+
+
+        } else {
+
+            await setDoc(savedRef, {
+
+                petId: petId,
+
+                name: pet.name || "Unknown",
+
+                species: pet.species || "",
+
+                breed: pet.breed || "",
+
+                age_months:
+                    pet.age_months || null,
+
+                weight_kg:
+                    pet.weight_kg || null,
+
+                avg_monthly_cost_inr:
+                    pet.avg_monthly_cost_inr ||
+                    null,
+
+                image_url:
+                    pet.image_url || "",
+
+                temperament:
+                    pet.temperament || "",
+
+                care_level:
+                    pet.care_level || "",
+
+                exercise:
+                    pet.exercise || "",
+
+                location:
+                    pet.location || "",
+
+                savedAt:
+                    new Date()
+
+            });
+
+
+            icon.classList.remove(
+                'fa-regular'
+            );
+
+            icon.classList.add(
+                'fa-solid'
+            );
+
+            btn.style.background =
+                'var(--secondary)';
+
+            btn.style.borderColor =
+                'var(--secondary)';
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Error saving pet:",
+            error
+        );
+
+        alert(
+            "Could not update saved pets: " +
+            error.message
+        );
+
+    }
+
+};
+
+
+// ===================== RENDER PETS =====================
+
+async function renderPets(pets) {
+
+    const container =
+        document.getElementById(
+            "petList"
+        );
+
+    const statusEl =
+        document.getElementById(
+            "status"
+        );
+
+
     container.innerHTML = '';
 
+
     if (pets.length === 0) {
-      statusEl.style.display = 'block';
-      statusEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>No pets found matching your filter.';
-      statusEl.className = 'status';
-      return;
+
+        statusEl.style.display =
+            'block';
+
+        statusEl.innerHTML =
+            '<i class="fa-solid fa-circle-exclamation"></i>' +
+            'No pets found matching your filter.';
+
+        statusEl.className =
+            'status';
+
+        return;
+
     }
-    statusEl.style.display = 'none';
 
-    pets.forEach((pet, index) => {
-      if (!pet || typeof pet !== "object") return;
 
-      const age = pet.age_months ? (pet.age_months / 12).toFixed(1) : "?";
-      const cost = pet.avg_monthly_cost_inr ? "Rs." + pet.avg_monthly_cost_inr.toLocaleString() : "";
-      const weight = pet.weight_kg ? pet.weight_kg + " kg" : "?";
-      const species = pet.species || "";
-      const breed = pet.breed || "";
-      const name = pet.name || "Unknown";
-      const care = getCareLabel(pet.care_level);
-      const exercise = getExerciseLabel(pet.exercise);
-      const category = getSpeciesCategory(species);
-      const imgUrl = pet.image_url || "";
-      const temperament = pet.temperament || "";
+    statusEl.style.display =
+        'none';
 
-      const card = document.createElement("div");
-      card.className = "pet-card";
-      card.setAttribute("data-category", category);
-      card.style.animationDelay = (index * 0.05) + "s";
 
-      // Build tags from temperament
-      let tagsHtml = '';
-      if (temperament) {
-        const traits = temperament.split(',').slice(0, 3);
-        tagsHtml = traits.map(t => '<span>' + t.trim() + '</span>').join('');
-      } else {
-        tagsHtml = '<span>' + care + ' Care</span><span>' + exercise + ' Exercise</span>';
-      }
+    for (
+        let index = 0;
+        index < pets.length;
+        index++
+    ) {
 
-      card.innerHTML = `
-        <div class="img-box">
-          <img src="${imgUrl}" alt="${name}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\'emoji\'>🐾</span>';">
-          <div class="pet-badge">Available</div>
-          <button class="pet-fav" onclick="toggleFav(this, event)">
-            <i class="fa-regular fa-heart"></i>
-          </button>
-        </div>
-        <div class="pet-card-body">
-          <div class="pet-card-header">
-            <h3>${escapeHtml(name)}</h3>
-            <span class="pet-age">${age} yrs</span>
-          </div>
-          <div class="pet-breed">${escapeHtml(breed)}</div>
-          <div class="pet-tags">${tagsHtml}</div>
-          <div class="pet-meta">
-            <span><i class="fa-solid fa-weight-scale"></i> ${weight}</span>
-            <span><i class="fa-solid fa-indian-rupee-sign"></i> ${cost}/mo</span>
-          </div>
-          <button class="adopt-btn" onclick="adoptPet('${escapeHtml(name)}')">
-            <i class="fa-solid fa-heart"></i> Adopt Me
-          </button>
-        </div>
-      `;
+        const pet = pets[index];
 
-      container.appendChild(card);
-    });
-  }
-
-  function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  function adoptPet(name) {
-    alert("Interested in adopting " + name + "! The shelter will contact you shortly.");
-  }
-
-  function toggleFav(btn, e) {
-    e.stopPropagation();
-    const icon = btn.querySelector('i');
-    if (icon.classList.contains('fa-regular')) {
-      icon.classList.remove('fa-regular');
-      icon.classList.add('fa-solid');
-      btn.style.background = 'var(--secondary)';
-      btn.style.borderColor = 'var(--secondary)';
-    } else {
-      icon.classList.remove('fa-solid');
-      icon.classList.add('fa-regular');
-      btn.style.background = 'rgba(0,0,0,0.5)';
-      btn.style.borderColor = 'var(--border)';
-    }
-  }
-
-  // ===================== FILTERS =====================
-  const filterBtns = document.querySelectorAll('.filter-btn');
-  filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      filterBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const filter = btn.getAttribute('data-filter');
-      if (filter === 'all') {
-        renderPets(allPets);
-      } else {
-        const filtered = allPets.filter(p => {
-          if (!p || !p.species) return false;
-          return getSpeciesCategory(p.species) === filter;
-        });
-        renderPets(filtered);
-      }
-    });
-  });
-
-  // ===================== FETCH FROM FIREBASE =====================
-  fetch(DB_URL)
-    .then(response => response.json())
-    .then(data => {
-      allPets = [];
-      for (const key in data) {
-        if (data.hasOwnProperty(key) && data[key] !== null) {
-          allPets.push(data[key]);
+        if (
+            !pet ||
+            typeof pet !== "object"
+        ) {
+            continue;
         }
-      }
-      renderPets(allPets);
+
+
+        const petId =
+            pet._id ||
+            ("pet-" + index);
+
+
+        const age =
+            pet.age_months
+                ? (pet.age_months / 12).toFixed(1)
+                : "?";
+
+
+        const cost =
+            pet.avg_monthly_cost_inr
+                ? "Rs." +
+                  pet.avg_monthly_cost_inr
+                    .toLocaleString()
+                : "";
+
+
+        const weight =
+            pet.weight_kg
+                ? pet.weight_kg + " kg"
+                : "?";
+
+
+        const species =
+            pet.species || "";
+
+
+        const breed =
+            pet.breed || "";
+
+
+        const name =
+            pet.name || "Unknown";
+
+
+        const care =
+            getCareLabel(
+                pet.care_level
+            );
+
+
+        const exercise =
+            getExerciseLabel(
+                pet.exercise
+            );
+
+
+        const category =
+            getSpeciesCategory(
+                species
+            );
+
+
+        const imgUrl =
+            pet.image_url || "";
+
+
+        const temperament =
+            pet.temperament || "";
+
+
+        const saved =
+            await isPetSaved(petId);
+
+
+        const card =
+            document.createElement(
+                "div"
+            );
+
+        card.className =
+            "pet-card";
+
+        card.setAttribute(
+            "data-category",
+            category
+        );
+
+        card.style.animationDelay =
+            (index * 0.05) + "s";
+
+
+        let tagsHtml = '';
+
+
+        if (temperament) {
+
+            const traits =
+                temperament
+                    .split(',')
+                    .slice(0, 3);
+
+            tagsHtml =
+                traits
+                    .map(
+                        t =>
+                            '<span>' +
+                            escapeHtml(
+                                t.trim()
+                            ) +
+                            '</span>'
+                    )
+                    .join('');
+
+        } else {
+
+            tagsHtml =
+                '<span>' +
+                care +
+                ' Care</span>' +
+
+                '<span>' +
+                exercise +
+                ' Exercise</span>';
+
+        }
+
+
+        card.innerHTML = `
+
+            <div class="img-box">
+
+                <img
+                    src="${escapeHtml(imgUrl)}"
+                    alt="${escapeHtml(name)}"
+                    onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\\'emoji\\'>🐾</span>';"
+                >
+
+                <div class="pet-badge">
+                    Available
+                </div>
+
+                <button
+                    class="pet-fav"
+                    data-pet-id="${escapeHtml(petId)}"
+                    onclick="toggleFav(this, event)"
+                    style="${
+                        saved
+                        ? 'background:var(--secondary);border-color:var(--secondary);'
+                        : ''
+                    }"
+                >
+
+                    <i class="${
+                        saved
+                        ? 'fa-solid'
+                        : 'fa-regular'
+                    } fa-heart"></i>
+
+                </button>
+
+            </div>
+
+
+            <div class="pet-card-body">
+
+                <div class="pet-card-header">
+
+                    <h3>
+                        ${escapeHtml(name)}
+                    </h3>
+
+                    <span class="pet-age">
+                        ${age} yrs
+                    </span>
+
+                </div>
+
+
+                <div class="pet-breed">
+                    ${escapeHtml(breed)}
+                </div>
+
+
+                <div class="pet-tags">
+                    ${tagsHtml}
+                </div>
+
+
+                <div class="pet-meta">
+
+                    <span>
+                        <i class="fa-solid fa-weight-scale"></i>
+                        ${escapeHtml(weight)}
+                    </span>
+
+                    <span>
+                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                        ${cost}/mo
+                    </span>
+
+                </div>
+
+
+                <button
+                    class="adopt-btn"
+                    onclick="adoptPet('${escapeHtml(name)}')"
+                >
+                    <i class="fa-solid fa-heart"></i>
+                    Adopt Me
+                </button>
+
+            </div>
+
+        `;
+
+
+        // Store Firebase pet ID on object
+        pet._id = petId;
+
+
+        container.appendChild(card);
+
+    }
+
+}
+
+
+// ===================== ADOPT BUTTON =====================
+
+window.adoptPet = function(name) {
+
+    alert(
+        "Interested in adopting " +
+        name +
+        "! We'll take you through the application process next."
+    );
+
+};
+
+
+// ===================== FILTERS =====================
+
+const filterBtns =
+    document.querySelectorAll(
+        '.filter-btn'
+    );
+
+
+filterBtns.forEach(btn => {
+
+    btn.addEventListener(
+        'click',
+        () => {
+
+            filterBtns.forEach(
+                b =>
+                    b.classList.remove(
+                        'active'
+                    )
+            );
+
+            btn.classList.add(
+                'active'
+            );
+
+
+            const filter =
+                btn.getAttribute(
+                    'data-filter'
+                );
+
+
+            if (filter === 'all') {
+
+                renderPets(allPets);
+
+            } else {
+
+                const filtered =
+                    allPets.filter(
+                        p => {
+
+                            if (
+                                !p ||
+                                !p.species
+                            ) {
+                                return false;
+                            }
+
+                            return (
+                                getSpeciesCategory(
+                                    p.species
+                                ) === filter
+                            );
+
+                        }
+                    );
+
+
+                renderPets(filtered);
+
+            }
+
+        }
+    );
+
+});
+
+
+// ===================== LOGOUT =====================
+
+const logoutBtn =
+    document.getElementById(
+        "logoutBtn"
+    );
+
+if (logoutBtn) {
+
+    logoutBtn.addEventListener(
+        "click",
+        async (e) => {
+
+            e.preventDefault();
+
+            try {
+
+                await signOut(auth);
+
+                window.location.href =
+                    "login.html";
+
+            } catch (error) {
+
+                console.error(
+                    "Logout error:",
+                    error
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+// ===================== FETCH PETS =====================
+
+fetch(DB_URL)
+
+    .then(response => {
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Could not load pets."
+            );
+
+        }
+
+        return response.json();
+
     })
+
+    .then(data => {
+
+        allPets = [];
+
+        for (
+            const key in data
+        ) {
+
+            if (
+                data.hasOwnProperty(key) &&
+                data[key] !== null
+            ) {
+
+                const pet = {
+                    ...data[key],
+                    _id: key
+                };
+
+                allPets.push(pet);
+
+            }
+
+        }
+
+        renderPets(allPets);
+
+    })
+
     .catch(err => {
-      const statusEl = document.getElementById("status");
-      statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>Error loading pets: ' + escapeHtml(err.message);
-      statusEl.className = 'status error';
-      console.error(err);
+
+        const statusEl =
+            document.getElementById(
+                "status"
+            );
+
+        statusEl.innerHTML =
+            '<i class="fa-solid fa-triangle-exclamation"></i>' +
+            'Error loading pets: ' +
+            escapeHtml(
+                err.message
+            );
+
+        statusEl.className =
+            'status error';
+
+        console.error(err);
+
     });
+
 </script>
 </body>
 </html>
