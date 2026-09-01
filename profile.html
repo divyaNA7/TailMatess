@@ -646,116 +646,533 @@
     <button class="chat-launcher" id="chatLauncher"><i class="fa-solid fa-paw"></i></button>
 </div>
 
-<script>
+<script type="module">
+
+import {
+    auth,
+    db,
+    onAuthStateChanged,
+    signOut,
+    doc,
+    getDoc,
+    setDoc
+} from "./firebase.js";
+
+
+// ==========================================
+// BASIC UI
+// ==========================================
+
 const cursor = document.getElementById('cursor');
 const cursorFollower = document.getElementById('cursorFollower');
-let mouseX = 0, mouseY = 0, followerX = 0, followerY = 0;
+
+let mouseX = 0;
+let mouseY = 0;
+let followerX = 0;
+let followerY = 0;
+
 document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX; mouseY = e.clientY;
-    cursor.style.left = mouseX - 6 + 'px';
-    cursor.style.top = mouseY - 6 + 'px';
-});
-function animateFollower() {
-    followerX += (mouseX - followerX) * 0.1;
-    followerY += (mouseY - followerY) * 0.1;
-    cursorFollower.style.left = followerX - 20 + 'px';
-    cursorFollower.style.top = followerY - 20 + 'px';
-    requestAnimationFrame(animateFollower);
-}
-animateFollower();
-document.querySelectorAll('a, button, .card, .pet-card, .service-card, .shop-card').forEach(el => {
-    el.addEventListener('mouseenter', () => { cursor.classList.add('hover'); cursorFollower.classList.add('hover'); });
-    el.addEventListener('mouseleave', () => { cursor.classList.remove('hover'); cursorFollower.classList.remove('hover'); });
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+
+    if (cursor) {
+        cursor.style.left = mouseX - 6 + 'px';
+        cursor.style.top = mouseY - 6 + 'px';
+    }
 });
 
-const scrollProgress = document.getElementById('scrollProgress');
-window.addEventListener('scroll', () => {
-    const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    scrollProgress.style.width = (scrollTop / docHeight) * 100 + '%';
-});
+function animateFollower() {
+
+    followerX += (mouseX - followerX) * 0.1;
+    followerY += (mouseY - followerY) * 0.1;
+
+    if (cursorFollower) {
+        cursorFollower.style.left = followerX - 20 + 'px';
+        cursorFollower.style.top = followerY - 20 + 'px';
+    }
+
+    requestAnimationFrame(animateFollower);
+}
+
+animateFollower();
+
+
+// ==========================================
+// PROFILE DROPDOWN
+// ==========================================
 
 const profileTrigger = document.getElementById('profileTrigger');
 const profileDropdown = document.getElementById('profileDropdown');
+
 if (profileTrigger && profileDropdown) {
-    profileTrigger.addEventListener('click', (e) => { e.stopPropagation(); profileDropdown.classList.toggle('active'); });
-    document.addEventListener('click', (e) => { if (!profileTrigger.contains(e.target) && !profileDropdown.contains(e.target)) profileDropdown.classList.remove('active'); });
-}
 
-const chatLauncher = document.getElementById('chatLauncher');
-const chatPanel = document.getElementById('chatPanel');
-const chatClose = document.getElementById('chatClose');
-const chatForm = document.getElementById('chatForm');
-const chatInput = document.getElementById('chatInput');
-const chatMessages = document.getElementById('chatMessages');
-chatLauncher.addEventListener('click', () => chatPanel.classList.toggle('active'));
-chatClose.addEventListener('click', () => chatPanel.classList.remove('active'));
-function addMessage(text, isUser = false) {
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'chat-message ' + (isUser ? 'user' : 'bot');
-    msgDiv.innerHTML = '<div class="chat-bubble">' + text + '</div>';
-    chatMessages.appendChild(msgDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-chatForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const text = chatInput.value.trim();
-    if (text) {
-        addMessage(text, true); chatInput.value = '';
-        setTimeout(() => {
-            const responses = [
-                "I'd love to help you find the perfect pet! What type of companion are you looking for?",
-                "That's a great question! Our PawMate AI can analyze your lifestyle to suggest the best matches.",
-                "We have many wonderful pets waiting for homes. Would you like to browse dogs, cats, or small pets?",
-                "All our pets come with complete health records and are from verified shelters. You can trust the process!"
-            ];
-            addMessage(responses[Math.floor(Math.random() * responses.length)]);
-        }, 1000);
-    }
-});
-document.querySelectorAll('.chat-quick button').forEach(btn => {
-    btn.addEventListener('click', () => {
-        addMessage(btn.getAttribute('data-message'), true);
-        setTimeout(() => {
-            const msg = btn.getAttribute('data-message');
-            let response = '';
-            if (msg.includes('dogs')) response = "We have over 120 dogs waiting for homes! From playful Labradors to loyal Indies.";
-            else if (msg.includes('cats')) response = "Our cat family has 80+ beautiful felines! From calm British Shorthairs to energetic tabbies.";
-            else response = "Let's find your perfect match! I'll need to know about your living situation, work schedule, and experience with pets.";
-            addMessage(response);
-        }, 1000);
+    profileTrigger.addEventListener('click', (e) => {
+
+        e.stopPropagation();
+
+        profileDropdown.classList.toggle('active');
+
     });
+
+    document.addEventListener('click', (e) => {
+
+        if (
+            !profileTrigger.contains(e.target) &&
+            !profileDropdown.contains(e.target)
+        ) {
+            profileDropdown.classList.remove('active');
+        }
+
+    });
+}
+
+
+// ==========================================
+// SCROLL PROGRESS
+// ==========================================
+
+const scrollProgress = document.getElementById('scrollProgress');
+
+if (scrollProgress) {
+
+    window.addEventListener('scroll', () => {
+
+        const scrollTop = window.scrollY;
+
+        const docHeight =
+            document.documentElement.scrollHeight -
+            window.innerHeight;
+
+        if (docHeight > 0) {
+            scrollProgress.style.width =
+                (scrollTop / docHeight) * 100 + '%';
+        }
+
+    });
+
+}
+
+
+// ==========================================
+// FIREBASE PROFILE
+// ==========================================
+
+let currentUser = null;
+let originalProfile = {};
+
+onAuthStateChanged(auth, async (user) => {
+
+    if (!user) {
+
+        // Nobody is logged in.
+        // Send them back to login.
+
+        window.location.href = "login.html";
+
+        return;
+    }
+
+    currentUser = user;
+
+    console.log("Logged in Firebase user:", user.uid);
+
+    try {
+
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+
+        let profileData = {};
+
+        if (userSnap.exists()) {
+
+            profileData = userSnap.data();
+
+        } else {
+
+            // If the user has Auth but no Firestore profile,
+            // create one automatically.
+
+            profileData = {
+                name: user.displayName || "",
+                email: user.email || "",
+                phone: "",
+                dob: "",
+                bio: "",
+                createdAt: new Date()
+            };
+
+            await setDoc(userRef, profileData);
+
+        }
+
+        originalProfile = { ...profileData };
+
+        loadProfile(profileData, user);
+
+    } catch (error) {
+
+        console.error("Error loading profile:", error);
+
+        alert(
+            "Could not load your profile. Please check your Firebase connection."
+        );
+
+    }
+
 });
 
-const userData = JSON.parse(localStorage.getItem('tailmates_user') || '{}');
-if (userData.displayName) {
-    document.getElementById('profileName').textContent = userData.displayName;
-    document.getElementById('dropdownUserName').textContent = userData.displayName;
+
+// ==========================================
+// LOAD PROFILE INTO PAGE
+// ==========================================
+
+function loadProfile(data, user) {
+
+    const name =
+        data.name ||
+        user.displayName ||
+        "Adopter";
+
+    const email =
+        user.email ||
+        data.email ||
+        "";
+
+    const phone =
+        data.phone || "";
+
+    const dob =
+        data.dob || "";
+
+    const bio =
+        data.bio || "";
+
+
+    // Main profile card
+
+    const profileDisplayName =
+        document.getElementById("profileDisplayName");
+
+    const profileEmail =
+        document.getElementById("profileEmail");
+
+    if (profileDisplayName) {
+        profileDisplayName.textContent = name;
+    }
+
+    if (profileEmail) {
+        profileEmail.textContent = email;
+    }
+
+
+    // Navbar
+
+    const profileName =
+        document.getElementById("profileName");
+
+    const dropdownUserName =
+        document.getElementById("dropdownUserName");
+
+    if (profileName) {
+        profileName.textContent = name;
+    }
+
+    if (dropdownUserName) {
+        dropdownUserName.textContent = name;
+    }
+
+
+    // Form
+
+    document.getElementById("editName").value = name;
+    document.getElementById("editEmail").value = email;
+    document.getElementById("editPhone").value = phone;
+    document.getElementById("editDob").value = dob;
+    document.getElementById("editBio").value = bio;
+
 }
 
-function saveProfile() {
-    const name = document.getElementById('editName').value;
-    const email = document.getElementById('editEmail').value;
-    document.getElementById('profileDisplayName').textContent = name;
-    document.getElementById('profileEmail').textContent = email;
-    document.getElementById('profileName').textContent = name;
-    document.getElementById('dropdownUserName').textContent = name;
-    alert('Profile updated successfully!');
+
+// ==========================================
+// SAVE PROFILE
+// ==========================================
+
+window.saveProfile = async function () {
+
+    if (!currentUser) {
+
+        alert("Please log in first.");
+
+        return;
+    }
+
+
+    const name =
+        document.getElementById("editName").value.trim();
+
+    const phone =
+        document.getElementById("editPhone").value.trim();
+
+    const dob =
+        document.getElementById("editDob").value;
+
+    const bio =
+        document.getElementById("editBio").value.trim();
+
+
+    if (!name) {
+
+        alert("Please enter your name.");
+
+        return;
+    }
+
+
+    try {
+
+        const userRef =
+            doc(db, "users", currentUser.uid);
+
+
+        const updatedData = {
+
+            name: name,
+
+            // Keep the authenticated Firebase email.
+            email: currentUser.email || "",
+
+            phone: phone,
+
+            dob: dob,
+
+            bio: bio,
+
+            updatedAt: new Date()
+
+        };
+
+
+        await setDoc(
+            userRef,
+            updatedData,
+            { merge: true }
+        );
+
+
+        // Update the page immediately
+
+        document.getElementById(
+            "profileDisplayName"
+        ).textContent = name;
+
+        document.getElementById(
+            "profileEmail"
+        ).textContent = currentUser.email || "";
+
+        document.getElementById(
+            "profileName"
+        ).textContent = name;
+
+        document.getElementById(
+            "dropdownUserName"
+        ).textContent = name;
+
+
+        originalProfile = {
+            ...originalProfile,
+            ...updatedData
+        };
+
+
+        alert("Profile updated successfully!");
+
+
+    } catch (error) {
+
+        console.error("Error saving profile:", error);
+
+        alert(
+            "Could not save your profile: " +
+            error.message
+        );
+
+    }
+
+};
+
+
+// ==========================================
+// RESET PROFILE
+// ==========================================
+
+window.resetProfile = function () {
+
+    if (!currentUser) {
+        return;
+    }
+
+    loadProfile(
+        originalProfile,
+        currentUser
+    );
+
+};
+
+
+// ==========================================
+// LOGOUT
+// ==========================================
+
+const logoutBtn =
+    document.getElementById("logoutBtn");
+
+if (logoutBtn) {
+
+    logoutBtn.addEventListener("click", async (e) => {
+
+        e.preventDefault();
+
+        try {
+
+            await signOut(auth);
+
+            window.location.href = "login.html";
+
+        } catch (error) {
+
+            console.error(
+                "Logout error:",
+                error
+            );
+
+            alert(
+                "Could not log out. Please try again."
+            );
+
+        }
+
+    });
+
 }
-function resetProfile() {
-    document.getElementById('editName').value = 'Adopter Name';
-    document.getElementById('editEmail').value = 'adopter@email.com';
-    document.getElementById('editPhone').value = '+91 98765 43210';
-    document.getElementById('editBio').value = 'Animal lover based in Mumbai. Looking to adopt a furry companion and give them a forever home. Experienced with dogs and cats.';
+
+
+// ==========================================
+// CHATBOT
+// ==========================================
+
+const chatLauncher =
+    document.getElementById('chatLauncher');
+
+const chatPanel =
+    document.getElementById('chatPanel');
+
+const chatClose =
+    document.getElementById('chatClose');
+
+const chatForm =
+    document.getElementById('chatForm');
+
+const chatInput =
+    document.getElementById('chatInput');
+
+const chatMessages =
+    document.getElementById('chatMessages');
+
+
+if (chatLauncher && chatPanel) {
+
+    chatLauncher.addEventListener(
+        'click',
+        () => chatPanel.classList.toggle('active')
+    );
+
 }
-if (userData.displayName) {
-    document.getElementById('profileDisplayName').textContent = userData.displayName;
-    document.getElementById('editName').value = userData.displayName;
+
+if (chatClose && chatPanel) {
+
+    chatClose.addEventListener(
+        'click',
+        () => chatPanel.classList.remove('active')
+    );
+
 }
-if (userData.email) {
-    document.getElementById('profileEmail').textContent = userData.email;
-    document.getElementById('editEmail').value = userData.email;
+
+
+function addMessage(text, isUser = false) {
+
+    if (!chatMessages) {
+        return;
+    }
+
+    const msgDiv =
+        document.createElement('div');
+
+    msgDiv.className =
+        'chat-message ' +
+        (isUser ? 'user' : 'bot');
+
+    msgDiv.innerHTML =
+        '<div class="chat-bubble">' +
+        text +
+        '</div>';
+
+    chatMessages.appendChild(msgDiv);
+
+    chatMessages.scrollTop =
+        chatMessages.scrollHeight;
+
 }
+
+
+if (chatForm) {
+
+    chatForm.addEventListener(
+        'submit',
+        (e) => {
+
+            e.preventDefault();
+
+            const text =
+                chatInput.value.trim();
+
+            if (!text) {
+                return;
+            }
+
+            addMessage(text, true);
+
+            chatInput.value = '';
+
+            setTimeout(() => {
+
+                const responses = [
+
+                    "I'd love to help you find the perfect pet! What type of companion are you looking for?",
+
+                    "That's a great question! Our PawMate AI can analyze your lifestyle to suggest the best matches.",
+
+                    "We have many wonderful pets waiting for homes. Would you like to browse dogs, cats, or small pets?",
+
+                    "All our pets come with complete health records and are from verified shelters. You can trust the process!"
+
+                ];
+
+                addMessage(
+                    responses[
+                        Math.floor(
+                            Math.random() *
+                            responses.length
+                        )
+                    ]
+                );
+
+            }, 1000);
+
+        }
+    );
+
+}
+
 
 </script>
 </body>
