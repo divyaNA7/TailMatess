@@ -433,186 +433,52 @@
     </div>
 </nav>
 
+
 <div class="page-wrapper">
-<div class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
-    <div class="section-header">
-        <span class="section-tag"><i class="fa-solid fa-clipboard-list"></i> My Applications</span>
-        <h1>Adoption Applications</h1>
-        <p>Track the status of your adoption requests and connect with shelters.</p>
+    <div class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+
+        <div class="section-header">
+            <span class="section-tag">
+                <i class="fa-solid fa-clipboard-list"></i> My Applications
+            </span>
+            <h1>Adoption Applications</h1>
+            <p>View the pets you have applied to adopt.</p>
+        </div>
+
+        <!-- Simple application count -->
+        <div style="display: flex; justify-content: center; margin-bottom: 2rem;">
+            <div class="card" style="padding: 1.5rem; width: min(100%, 320px); text-align: center;">
+                <div id="totalApplications"
+                     style="font-size: 2rem; font-weight: 700; color: var(--primary); font-family: 'Space Grotesk', sans-serif;">
+                    0
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-dim); margin-top: 0.3rem;">
+                    Total Applications
+                </div>
+            </div>
+        </div>
+
+        <!-- Firebase status / loading -->
+        <div id="applicationsMessage"
+             class="card"
+             style="padding: 2rem; text-align: center; margin-bottom: 1.5rem;">
+            <i class="fa-solid fa-spinner fa-spin"
+               style="font-size: 1.5rem; color: var(--primary); margin-bottom: 1rem;"></i>
+            <p style="color: var(--text-dim);">Loading your applications...</p>
+        </div>
+
+        <!-- Real applications are inserted here -->
+        <div id="applicationsList"
+             style="display: flex; flex-direction: column; gap: 1.5rem;">
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem;">
+            <button class="btn-primary" onclick="window.location.href='Adopt.html'">
+                <i class="fa-solid fa-paw"></i> Browse Pets
+            </button>
+        </div>
+
     </div>
-
-    <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
-        <div class="card" style="padding: 1.5rem; flex: 1; min-width: 200px; text-align: center;">
-            <div style="font-size: 2rem; font-weight: 700; color: var(--primary); font-family: 'Space Grotesk', sans-serif;">3</div>
-            <div style="font-size: 0.85rem; color: var(--text-dim); margin-top: 0.3rem;">Total Applications</div>
-        </div>
-        <div class="card" style="padding: 1.5rem; flex: 1; min-width: 200px; text-align: center;">
-            <div style="font-size: 2rem; font-weight: 700; color: #4ade80; font-family: 'Space Grotesk', sans-serif;">1</div>
-            <div style="font-size: 0.85rem; color: var(--text-dim); margin-top: 0.3rem;">Approved</div>
-        </div>
-        <div class="card" style="padding: 1.5rem; flex: 1; min-width: 200px; text-align: center;">
-            <div style="font-size: 2rem; font-weight: 700; color: #fbbf24; font-family: 'Space Grotesk', sans-serif;">1</div>
-            <div style="font-size: 0.85rem; color: var(--text-dim); margin-top: 0.3rem;">Under Review</div>
-        </div>
-        <div class="card" style="padding: 1.5rem; flex: 1; min-width: 200px; text-align: center;">
-            <div style="font-size: 2rem; font-weight: 700; color: var(--secondary); font-family: 'Space Grotesk', sans-serif;">1</div>
-            <div style="font-size: 0.85rem; color: var(--text-dim); margin-top: 0.3rem;">Pending Visit</div>
-        </div>
-    </div>
-
-    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-        <!-- Application 1 -->
-        <div class="card" style="padding: 2rem;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
-                <div style="display: flex; gap: 1.5rem; align-items: center;">
-                    <img src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=200&q=80" alt="Golden Retriever" style="width: 80px; height: 80px; border-radius: 16px; object-fit: cover; border: 2px solid var(--border);">
-                    <div>
-                        <h3 style="font-size: 1.2rem; margin-bottom: 0.3rem;">Golden Retriever — Bruno</h3>
-                        <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-location-dot" style="color: var(--secondary); margin-right: 6px;"></i> Mumbai Animal Shelter, Bandra</p>
-                        <p style="color: var(--text-dim); font-size: 0.8rem;">Applied on 12 Aug 2026 &bull; Application #TM-8291</p>
-                    </div>
-                </div>
-                <div style="text-align: right;">
-                    <span class="badge badge-success" style="margin-bottom: 0.5rem;"><i class="fa-solid fa-circle-check"></i> Approved</span>
-                    <p style="font-size: 0.8rem; color: var(--text-dim);">Next: Home Visit Scheduled</p>
-                </div>
-            </div>
-            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
-                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: var(--bg); font-size: 0.75rem;"><i class="fa-solid fa-check"></i></div>
-                        <span style="font-size: 0.8rem; color: var(--text-dim);">Applied</span>
-                    </div>
-                    <div style="flex: 1; height: 3px; background: linear-gradient(90deg, var(--primary), #4ade80); border-radius: 3px;"></div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: var(--bg); font-size: 0.75rem;"><i class="fa-solid fa-check"></i></div>
-                        <span style="font-size: 0.8rem; color: var(--text-dim);">Reviewed</span>
-                    </div>
-                    <div style="flex: 1; height: 3px; background: linear-gradient(90deg, #4ade80, #4ade80); border-radius: 3px;"></div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <div style="width: 30px; height: 30px; border-radius: 50%; background: #4ade80; display: flex; align-items: center; justify-content: center; color: var(--bg); font-size: 0.75rem;"><i class="fa-solid fa-check"></i></div>
-                        <span style="font-size: 0.8rem; color: #4ade80; font-weight: 600;">Approved</span>
-                    </div>
-                    <div style="flex: 1; height: 3px; background: var(--border); border-radius: 3px;"></div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--bg-glass); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-size: 0.75rem;"><i class="fa-solid fa-house"></i></div>
-                        <span style="font-size: 0.8rem; color: var(--text-dim);">Home Visit</span>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <button class="btn-primary btn-small"><i class="fa-solid fa-calendar"></i> Schedule Visit</button>
-                    <button class="btn-secondary btn-small"><i class="fa-solid fa-message"></i> Message Shelter</button>
-                    <button class="btn-secondary btn-small"><i class="fa-solid fa-file"></i> View Documents</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Application 2 -->
-        <div class="card" style="padding: 2rem;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
-                <div style="display: flex; gap: 1.5rem; align-items: center;">
-                    <img src="https://images.unsplash.com/photo-1519052537078-e6302a4968d4?auto=format&fit=crop&w=200&q=80" alt="British Shorthair" style="width: 80px; height: 80px; border-radius: 16px; object-fit: cover; border: 2px solid var(--border);">
-                    <div>
-                        <h3 style="font-size: 1.2rem; margin-bottom: 0.3rem;">British Shorthair — Luna</h3>
-                        <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-location-dot" style="color: var(--secondary); margin-right: 6px;"></i> Delhi Cat Rescue, Saket</p>
-                        <p style="color: var(--text-dim); font-size: 0.8rem;">Applied on 8 Aug 2026 &bull; Application #TM-8275</p>
-                    </div>
-                </div>
-                <div style="text-align: right;">
-                    <span class="badge badge-warning" style="margin-bottom: 0.5rem;"><i class="fa-solid fa-clock"></i> Under Review</span>
-                    <p style="font-size: 0.8rem; color: var(--text-dim);">Est. response: 2-3 days</p>
-                </div>
-            </div>
-            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
-                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: var(--bg); font-size: 0.75rem;"><i class="fa-solid fa-check"></i></div>
-                        <span style="font-size: 0.8rem; color: var(--text-dim);">Applied</span>
-                    </div>
-                    <div style="flex: 1; height: 3px; background: linear-gradient(90deg, var(--primary), #fbbf24); border-radius: 3px;"></div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <div style="width: 30px; height: 30px; border-radius: 50%; background: #fbbf24; display: flex; align-items: center; justify-content: center; color: var(--bg); font-size: 0.75rem;"><i class="fa-solid fa-clock"></i></div>
-                        <span style="font-size: 0.8rem; color: #fbbf24; font-weight: 600;">Reviewing</span>
-                    </div>
-                    <div style="flex: 1; height: 3px; background: var(--border); border-radius: 3px;"></div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--bg-glass); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-size: 0.75rem;"><i class="fa-solid fa-check"></i></div>
-                        <span style="font-size: 0.8rem; color: var(--text-dim);">Decision</span>
-                    </div>
-                    <div style="flex: 1; height: 3px; background: var(--border); border-radius: 3px;"></div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--bg-glass); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-size: 0.75rem;"><i class="fa-solid fa-house"></i></div>
-                        <span style="font-size: 0.8rem; color: var(--text-dim);">Home Visit</span>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <button class="btn-secondary btn-small"><i class="fa-solid fa-message"></i> Message Shelter</button>
-                    <button class="btn-secondary btn-small"><i class="fa-solid fa-file"></i> View Documents</button>
-                    <button class="btn-danger btn-small" onclick="if(confirm('Withdraw this application?')) alert('Application withdrawn.')"><i class="fa-solid fa-xmark"></i> Withdraw</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Application 3 -->
-        <div class="card" style="padding: 2rem;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
-                <div style="display: flex; gap: 1.5rem; align-items: center;">
-                    <img src="https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=200&q=80" alt="Snow Bunny" style="width: 80px; height: 80px; border-radius: 16px; object-fit: cover; border: 2px solid var(--border);">
-                    <div>
-                        <h3 style="font-size: 1.2rem; margin-bottom: 0.3rem;">Snow Bunny — Snowball</h3>
-                        <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-location-dot" style="color: var(--secondary); margin-right: 6px;"></i> Bangalore Small Animal Rescue, Koramangala</p>
-                        <p style="color: var(--text-dim); font-size: 0.8rem;">Applied on 1 Aug 2026 &bull; Application #TM-8204</p>
-                    </div>
-                </div>
-                <div style="text-align: right;">
-                    <span class="badge badge-info" style="margin-bottom: 0.5rem;"><i class="fa-solid fa-house"></i> Visit Pending</span>
-                    <p style="font-size: 0.8rem; color: var(--text-dim);">Visit on 18 Aug 2026</p>
-                </div>
-            </div>
-            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
-                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: var(--bg); font-size: 0.75rem;"><i class="fa-solid fa-check"></i></div>
-                        <span style="font-size: 0.8rem; color: var(--text-dim);">Applied</span>
-                    </div>
-                    <div style="flex: 1; height: 3px; background: linear-gradient(90deg, var(--primary), var(--primary)); border-radius: 3px;"></div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: var(--bg); font-size: 0.75rem;"><i class="fa-solid fa-check"></i></div>
-                        <span style="font-size: 0.8rem; color: var(--text-dim);">Reviewed</span>
-                    </div>
-                    <div style="flex: 1; height: 3px; background: linear-gradient(90deg, var(--primary), var(--primary)); border-radius: 3px;"></div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: var(--bg); font-size: 0.75rem;"><i class="fa-solid fa-check"></i></div>
-                        <span style="font-size: 0.8rem; color: var(--text-dim);">Approved</span>
-                    </div>
-                    <div style="flex: 1; height: 3px; background: linear-gradient(90deg, var(--primary), var(--primary)); border-radius: 3px;"></div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: var(--bg); font-size: 0.75rem;"><i class="fa-solid fa-house"></i></div>
-                        <span style="font-size: 0.8rem; color: var(--primary); font-weight: 600;">Visit Scheduled</span>
-                    </div>
-                </div>
-                <div style="background: var(--bg-card); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; border: 1px solid var(--border);">
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.5rem;">
-                        <i class="fa-solid fa-calendar-day" style="color: var(--primary);"></i>
-                        <span style="font-size: 0.9rem; font-weight: 600;">Home Visit — 18 Aug 2026 at 11:00 AM</span>
-                    </div>
-                    <p style="font-size: 0.85rem; color: var(--text-dim);">A representative from Bangalore Small Animal Rescue will visit your home to ensure it's suitable for Snowball.</p>
-                </div>
-                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <button class="btn-primary btn-small"><i class="fa-solid fa-calendar"></i> Reschedule</button>
-                    <button class="btn-secondary btn-small"><i class="fa-solid fa-message"></i> Message Shelter</button>
-                    <button class="btn-secondary btn-small"><i class="fa-solid fa-file"></i> View Documents</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div style="text-align: center; margin-top: 3rem;">
-        <button class="btn-primary" onclick="window.location.href='Adopt.html'">
-            <i class="fa-solid fa-paw"></i> Browse More Pets
-        </button>
-    </div>
-</div>
 </div>
 
 <footer id="contact">
@@ -686,14 +552,20 @@
 </div>
 
 <script>
+/* =========================
+   CUSTOM CURSOR
+   ========================= */
 const cursor = document.getElementById('cursor');
 const cursorFollower = document.getElementById('cursorFollower');
 let mouseX = 0, mouseY = 0, followerX = 0, followerY = 0;
+
 document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX; mouseY = e.clientY;
+    mouseX = e.clientX;
+    mouseY = e.clientY;
     cursor.style.left = mouseX - 6 + 'px';
     cursor.style.top = mouseY - 6 + 'px';
 });
+
 function animateFollower() {
     followerX += (mouseX - followerX) * 0.1;
     followerY += (mouseY - followerY) * 0.1;
@@ -702,76 +574,317 @@ function animateFollower() {
     requestAnimationFrame(animateFollower);
 }
 animateFollower();
+
 document.querySelectorAll('a, button, .card, .pet-card, .service-card, .shop-card').forEach(el => {
-    el.addEventListener('mouseenter', () => { cursor.classList.add('hover'); cursorFollower.classList.add('hover'); });
-    el.addEventListener('mouseleave', () => { cursor.classList.remove('hover'); cursorFollower.classList.remove('hover'); });
+    el.addEventListener('mouseenter', () => {
+        cursor.classList.add('hover');
+        cursorFollower.classList.add('hover');
+    });
+    el.addEventListener('mouseleave', () => {
+        cursor.classList.remove('hover');
+        cursorFollower.classList.remove('hover');
+    });
 });
 
+/* =========================
+   SCROLL PROGRESS
+   ========================= */
 const scrollProgress = document.getElementById('scrollProgress');
+
 window.addEventListener('scroll', () => {
     const scrollTop = window.scrollY;
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    scrollProgress.style.width = (scrollTop / docHeight) * 100 + '%';
+
+    if (docHeight > 0) {
+        scrollProgress.style.width = (scrollTop / docHeight) * 100 + '%';
+    }
 });
 
+/* =========================
+   PROFILE DROPDOWN
+   ========================= */
 const profileTrigger = document.getElementById('profileTrigger');
 const profileDropdown = document.getElementById('profileDropdown');
+
 if (profileTrigger && profileDropdown) {
-    profileTrigger.addEventListener('click', (e) => { e.stopPropagation(); profileDropdown.classList.toggle('active'); });
-    document.addEventListener('click', (e) => { if (!profileTrigger.contains(e.target) && !profileDropdown.contains(e.target)) profileDropdown.classList.remove('active'); });
+    profileTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profileDropdown.classList.toggle('active');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!profileTrigger.contains(e.target) &&
+            !profileDropdown.contains(e.target)) {
+            profileDropdown.classList.remove('active');
+        }
+    });
 }
 
+/* =========================
+   CHAT
+   ========================= */
 const chatLauncher = document.getElementById('chatLauncher');
 const chatPanel = document.getElementById('chatPanel');
 const chatClose = document.getElementById('chatClose');
 const chatForm = document.getElementById('chatForm');
 const chatInput = document.getElementById('chatInput');
 const chatMessages = document.getElementById('chatMessages');
-chatLauncher.addEventListener('click', () => chatPanel.classList.toggle('active'));
-chatClose.addEventListener('click', () => chatPanel.classList.remove('active'));
+
+if (chatLauncher && chatPanel) {
+    chatLauncher.addEventListener('click', () => {
+        chatPanel.classList.toggle('active');
+    });
+}
+
+if (chatClose && chatPanel) {
+    chatClose.addEventListener('click', () => {
+        chatPanel.classList.remove('active');
+    });
+}
+
 function addMessage(text, isUser = false) {
     const msgDiv = document.createElement('div');
     msgDiv.className = 'chat-message ' + (isUser ? 'user' : 'bot');
-    msgDiv.innerHTML = '<div class="chat-bubble">' + text + '</div>';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble';
+    bubble.textContent = text;
+
+    msgDiv.appendChild(bubble);
     chatMessages.appendChild(msgDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
-chatForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const text = chatInput.value.trim();
-    if (text) {
-        addMessage(text, true); chatInput.value = '';
-        setTimeout(() => {
-            const responses = [
-                "I'd love to help you find the perfect pet! What type of companion are you looking for?",
-                "That's a great question! Our PawMate AI can analyze your lifestyle to suggest the best matches.",
-                "We have many wonderful pets waiting for homes. Would you like to browse dogs, cats, or small pets?",
-                "All our pets come with complete health records and are from verified shelters. You can trust the process!"
-            ];
-            addMessage(responses[Math.floor(Math.random() * responses.length)]);
-        }, 1000);
-    }
-});
+
+if (chatForm) {
+    chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const text = chatInput.value.trim();
+
+        if (text) {
+            addMessage(text, true);
+            chatInput.value = '';
+
+            setTimeout(() => {
+                addMessage(
+                    "I'd love to help you find the perfect pet! You can browse available pets from the Adopt page."
+                );
+            }, 700);
+        }
+    });
+}
+
 document.querySelectorAll('.chat-quick button').forEach(btn => {
     btn.addEventListener('click', () => {
-        addMessage(btn.getAttribute('data-message'), true);
+        const message = btn.getAttribute('data-message');
+        addMessage(message, true);
+
         setTimeout(() => {
-            const msg = btn.getAttribute('data-message');
-            let response = '';
-            if (msg.includes('dogs')) response = "We have over 120 dogs waiting for homes! From playful Labradors to loyal Indies.";
-            else if (msg.includes('cats')) response = "Our cat family has 80+ beautiful felines! From calm British Shorthairs to energetic tabbies.";
-            else response = "Let's find your perfect match! I'll need to know about your living situation, work schedule, and experience with pets.";
-            addMessage(response);
-        }, 1000);
+            addMessage(
+                "You can browse available pets and start an adoption application from the Adopt page."
+            );
+        }, 700);
     });
 });
 
-const userData = JSON.parse(localStorage.getItem('tailmates_user') || '{}');
-if (userData.displayName) {
-    document.getElementById('profileName').textContent = userData.displayName;
-    document.getElementById('dropdownUserName').textContent = userData.displayName;
+/* =========================
+   FIREBASE — MY APPLICATIONS
+   ========================= */
+import {
+    auth,
+    db,
+    onAuthStateChanged,
+    collection,
+    getDocs,
+    query,
+    where
+} from "./js/firebase.js";
+
+const totalApplications = document.getElementById('totalApplications');
+const applicationsMessage = document.getElementById('applicationsMessage');
+const applicationsList = document.getElementById('applicationsList');
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
+function formatDate(value) {
+    if (!value) return 'Date not available';
+
+    let date;
+
+    if (typeof value.toDate === 'function') {
+        date = value.toDate();
+    } else if (value.seconds) {
+        date = new Date(value.seconds * 1000);
+    } else {
+        date = new Date(value);
+    }
+
+    if (Number.isNaN(date.getTime())) {
+        return 'Date not available';
+    }
+
+    return date.toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    });
+}
+
+function showMessage(icon, message) {
+    applicationsMessage.innerHTML = `
+        <i class="fa-solid ${icon}"
+           style="font-size: 1.5rem; color: var(--primary); margin-bottom: 1rem;"></i>
+        <p style="color: var(--text-dim);">${escapeHtml(message)}</p>
+    `;
+    applicationsMessage.style.display = 'block';
+}
+
+function hideMessage() {
+    applicationsMessage.style.display = 'none';
+}
+
+function renderApplications(applications) {
+    totalApplications.textContent = applications.length;
+    applicationsList.innerHTML = '';
+
+    if (applications.length === 0) {
+        showMessage('fa-clipboard-list', 'You have not submitted any adoption applications yet.');
+        return;
+    }
+
+    hideMessage();
+
+    applications.forEach((application) => {
+        const data = application.data();
+
+        const petName = data.petName || data.name || 'Pet';
+        const breed = data.petBreed || data.breed || '';
+        const image = data.petImage || data.imageUrl || data.image || '';
+        const shelter = data.shelter || data.shelterName || data.location || 'Shelter information not available';
+        const appliedAt = data.appliedAt || data.createdAt || data.created || null;
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.padding = '2rem';
+
+        card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1.5rem; flex-wrap:wrap;">
+
+                <div style="display:flex; gap:1.5rem; align-items:center; min-width:0;">
+                    ${
+                        image
+                        ? `<img src="${escapeHtml(image)}"
+                                alt="${escapeHtml(petName)}"
+                                style="width:80px; height:80px; border-radius:16px; object-fit:cover; border:2px solid var(--border);">`
+                        : `<div style="width:80px; height:80px; border-radius:16px; background:var(--primary-dim); display:flex; align-items:center; justify-content:center; color:var(--primary); font-size:1.5rem;">
+                                <i class="fa-solid fa-paw"></i>
+                           </div>`
+                    }
+
+                    <div>
+                        <h3 style="font-size:1.2rem; margin-bottom:0.35rem;">
+                            ${escapeHtml(breed ? breed + ' — ' + petName : petName)}
+                        </h3>
+
+                        <p style="color:var(--text-dim); font-size:0.85rem; margin-bottom:0.5rem;">
+                            <i class="fa-solid fa-location-dot"
+                               style="color:var(--secondary); margin-right:6px;"></i>
+                            ${escapeHtml(shelter)}
+                        </p>
+
+                        <p style="color:var(--text-dim); font-size:0.8rem;">
+                            Applied on ${escapeHtml(formatDate(appliedAt))}
+                        </p>
+                    </div>
+                </div>
+
+                <div style="text-align:right;">
+                    <span class="badge badge-info">
+                        <i class="fa-solid fa-paper-plane"></i> Submitted
+                    </span>
+                </div>
+            </div>
+
+            <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border);">
+                <p style="color:var(--text-dim); font-size:0.85rem; line-height:1.6;">
+                    Your adoption application has been submitted. Shelter review and further steps can be added later.
+                </p>
+            </div>
+        `;
+
+        applicationsList.appendChild(card);
+    });
+}
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        totalApplications.textContent = '0';
+        applicationsList.innerHTML = '';
+
+        showMessage(
+            'fa-user-lock',
+            'Please log in to view your applications.'
+        );
+        return;
+    }
+
+    try {
+        const applicationsQuery = query(
+            collection(db, 'applications'),
+            where('userId', '==', user.uid)
+        );
+
+        const snapshot = await getDocs(applicationsQuery);
+
+        const applications = snapshot.docs.sort((a, b) => {
+            const aDate = a.data().appliedAt || a.data().createdAt;
+            const bDate = b.data().appliedAt || b.data().createdAt;
+
+            const aTime = aDate?.seconds
+                ? aDate.seconds
+                : new Date(aDate || 0).getTime() / 1000;
+
+            const bTime = bDate?.seconds
+                ? bDate.seconds
+                : new Date(bDate || 0).getTime() / 1000;
+
+            return bTime - aTime;
+        });
+
+        renderApplications(applications);
+
+    } catch (error) {
+        console.error('Error loading applications:', error);
+
+        totalApplications.textContent = '0';
+        applicationsList.innerHTML = '';
+
+        showMessage(
+            'fa-triangle-exclamation',
+            'Could not load your applications. Please try again.'
+        );
+    }
+});
+
+/* =========================
+   PROFILE NAME FALLBACK
+   ========================= */
+const userData = JSON.parse(localStorage.getItem('tailmates_user') || '{}');
+
+if (userData.displayName) {
+    const profileName = document.getElementById('profileName');
+    const dropdownUserName = document.getElementById('dropdownUserName');
+
+    if (profileName) profileName.textContent = userData.displayName;
+    if (dropdownUserName) dropdownUserName.textContent = userData.displayName;
+}
 </script>
 </body>
 </html>
