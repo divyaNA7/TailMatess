@@ -1,14 +1,12 @@
-// js/firebase.js
+// TailMates Firebase Configuration
 
-import { initializeApp } from
-    "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 
 import {
     getAuth,
     onAuthStateChanged,
     signOut
-} from
-    "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 import {
     getFirestore,
@@ -24,12 +22,12 @@ import {
     where,
     orderBy,
     serverTimestamp
-} from
-    "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "YOUR_EXISTING_API_KEY",
+    apiKey: "PASTE_YOUR_FIREBASE_API_KEY_HERE",
     authDomain: "tailmatess.firebaseapp.com",
+    databaseURL: "https://tailmatess-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "tailmatess",
     storageBucket: "tailmatess.firebasestorage.app",
     messagingSenderId: "445299543083",
