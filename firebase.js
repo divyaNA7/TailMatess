@@ -25,7 +25,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "PASTE_YOUR_FIREBASE_API_KEY_HERE",
+    apiKey: "AIzaSyBifu5Te7paXOFUFrDUtogIPpi5H0xR7rY",
     authDomain: "tailmatess.firebaseapp.com",
     databaseURL: "https://tailmatess-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "tailmatess",
