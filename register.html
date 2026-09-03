@@ -252,7 +252,7 @@
               <div class="grid sm:grid-cols-2 gap-4">
                 <div class="sm:col-span-2">
                   <label class="block text-xs text-gray-400 mb-1.5 ml-1">Pet's Name</label>
-                  <input type="text" name="name" placeholder="e.g. Luna" required
+                  <input type="text" name="name" placeholder="e.g. Whiskers" required
                          class="input-field w-full px-4 py-3 rounded-xl text-white placeholder-gray-600 outline-none">
                 </div>
                 <div>
@@ -266,11 +266,13 @@
                     <option value="Rabbit" class="bg-tm-card">Rabbit</option>
                     <option value="Hamster" class="bg-tm-card">Hamster</option>
                     <option value="Hedgehog" class="bg-tm-card">Hedgehog</option>
+                    <option value="Bird" class="bg-tm-card">Bird</option>
+                    <option value="Other" class="bg-tm-card">Other</option>
                   </select>
                 </div>
                 <div>
                   <label class="block text-xs text-gray-400 mb-1.5 ml-1">Breed</label>
-                  <input type="text" name="breed" placeholder="e.g. Persian" required
+                  <input type="text" name="breed" placeholder="e.g. Siamese" required
                          class="input-field w-full px-4 py-3 rounded-xl text-white placeholder-gray-600 outline-none">
                 </div>
               </div>
@@ -279,53 +281,27 @@
             <!-- Physical Traits -->
             <div class="mb-8">
               <div class="section-label flex items-center gap-2">
-                <i class="fas fa-ruler-combined"></i> Physical Traits
+                <i class="fas fa-ruler-combined"></i> Physical & Cost Details
               </div>
-              <div class="grid sm:grid-cols-3 gap-4">
+              <div class="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label class="block text-xs text-gray-400 mb-1.5 ml-1">Age (in months)</label>
-                  <input type="number" name="age_months" placeholder="e.g. 24" min="0" required
+                  <input type="number" name="age_months" placeholder="e.g. 18" min="0" required
                          class="input-field w-full px-4 py-3 rounded-xl text-white placeholder-gray-600 outline-none">
                 </div>
                 <div>
                   <label class="block text-xs text-gray-400 mb-1.5 ml-1">Weight (kg)</label>
-                  <input type="number" name="weight_kg" placeholder="e.g. 3.8" step="0.1" min="0" required
+                  <input type="number" name="weight_kg" placeholder="e.g. 4.2" step="0.1" min="0" required
                          class="input-field w-full px-4 py-3 rounded-xl text-white placeholder-gray-600 outline-none">
                 </div>
                 <div>
-                  <label class="block text-xs text-gray-400 mb-1.5 ml-1">Gender</label>
-                  <select name="gender" required
-                          class="input-field w-full px-4 py-3 rounded-xl text-white outline-none appearance-none cursor-pointer">
-                    <option value="" class="bg-tm-card">Select</option>
-                    <option value="Male" class="bg-tm-card">Male</option>
-                    <option value="Female" class="bg-tm-card">Female</option>
-                  </select>
+                  <label class="block text-xs text-gray-400 mb-1.5 ml-1">Expected Lifespan (years)</label>
+                  <input type="number" name="lifespan_years" placeholder="e.g. 15" step="0.1" min="0" required
+                         class="input-field w-full px-4 py-3 rounded-xl text-white placeholder-gray-600 outline-none">
                 </div>
-              </div>
-            </div>
-
-            <!-- Mumbai Location -->
-            <div class="mb-8">
-              <div class="section-label flex items-center gap-2">
-                <i class="fas fa-map-marker-alt"></i> Location in Mumbai
-              </div>
-              <div class="grid sm:grid-cols-2 gap-4">
-                <div class="sm:col-span-2">
-                  <select name="mumbai_area" required
-                          class="input-field w-full px-4 py-3 rounded-xl text-white outline-none appearance-none cursor-pointer">
-                    <option value="" class="bg-tm-card">Select Area in Mumbai</option>
-                    <option value="South Mumbai" class="bg-tm-card">South Mumbai (Colaba, Churchgate, Marine Lines)</option>
-                    <option value="Central Mumbai" class="bg-tm-card">Central Mumbai (Dadar, Matunga, Parel)</option>
-                    <option value="Western Suburbs" class="bg-tm-card">Western Suburbs (Bandra, Juhu, Andheri)</option>
-                    <option value="Eastern Suburbs" class="bg-tm-card">Eastern Suburbs (Chembur, Ghatkopar, Vikhroli)</option>
-                    <option value="Navi Mumbai" class="bg-tm-card">Navi Mumbai (Vashi, Nerul, Panvel)</option>
-                    <option value="Thane" class="bg-tm-card">Thane & Beyond</option>
-                    <option value="Borivali-Malad" class="bg-tm-card">Borivali to Malad (Western North)</option>
-                  </select>
-                </div>
-                <div class="sm:col-span-2">
-                  <label class="block text-xs text-gray-400 mb-1.5 ml-1">Specific Locality / Landmark</label>
-                  <input type="text" name="locality" placeholder="e.g. Near Carter Road, Bandra West" required
+                <div>
+                  <label class="block text-xs text-gray-400 mb-1.5 ml-1">Average Monthly Cost (₹)</label>
+                  <input type="number" name="avg_monthly_cost_inr" placeholder="e.g. 3780" min="0" required
                          class="input-field w-full px-4 py-3 rounded-xl text-white placeholder-gray-600 outline-none">
                 </div>
               </div>
@@ -364,7 +340,7 @@
                           class="input-field w-full px-4 py-3 rounded-xl text-white outline-none appearance-none cursor-pointer">
                     <option value="" class="bg-tm-card">Select Exercise Level</option>
                     <option value="Low" class="bg-tm-card">Low — Couch potato</option>
-                    <option value="Moderate" class="bg-tm-card">Moderate — Daily walks/play</option>
+                    <option value="Medium" class="bg-tm-card">Medium — Daily walks/play</option>
                     <option value="High" class="bg-tm-card">High — Very active, needs runs</option>
                   </select>
                 </div>
@@ -388,7 +364,7 @@
               </div>
               <div class="mb-4">
                 <label class="block text-xs text-gray-400 mb-1.5 ml-1">Temperament Tags (comma separated)</label>
-                <input type="text" name="temperament" placeholder="e.g. Calm, Gentle, Regal, Playful, Protective" required
+                <input type="text" name="temperament" placeholder="e.g. Vocal, Affectionate, Intelligent" required
                        class="input-field w-full px-4 py-3 rounded-xl text-white placeholder-gray-600 outline-none">
                 <p class="text-[11px] text-gray-500 mt-1.5 ml-1">Add 2-4 traits that best describe your pet's personality</p>
               </div>
@@ -400,7 +376,7 @@
                     <button type="button" class="toggle-btn flex-1 py-2.5 rounded-lg border border-white/10 text-sm text-gray-400 hover:border-cyan-500/50" data-field="good_with_kids" data-value="true">Yes</button>
                     <button type="button" class="toggle-btn flex-1 py-2.5 rounded-lg border border-white/10 text-sm text-gray-400 hover:border-cyan-500/50" data-field="good_with_kids" data-value="false">No</button>
                   </div>
-                  <input type="hidden" name="good_with_kids" id="good_with_kids">
+                  <input type="hidden" name="good_with_kids" id="good_with_kids" required>
                 </div>
                 <div class="bg-white/5 rounded-xl p-4 border border-white/5">
                   <label class="block text-sm text-gray-300 mb-3 font-medium">Good with Other Pets?</label>
@@ -408,7 +384,7 @@
                     <button type="button" class="toggle-btn flex-1 py-2.5 rounded-lg border border-white/10 text-sm text-gray-400 hover:border-cyan-500/50" data-field="good_with_other_pets" data-value="true">Yes</button>
                     <button type="button" class="toggle-btn flex-1 py-2.5 rounded-lg border border-white/10 text-sm text-gray-400 hover:border-cyan-500/50" data-field="good_with_other_pets" data-value="false">No</button>
                   </div>
-                  <input type="hidden" name="good_with_other_pets" id="good_with_other_pets">
+                  <input type="hidden" name="good_with_other_pets" id="good_with_other_pets" required>
                 </div>
               </div>
             </div>
@@ -431,15 +407,6 @@
                   <p class="text-xs text-gray-500 mt-1">JPG, PNG up to 5MB (compressed automatically)</p>
                 </div>
               </div>
-            </div>
-
-            <!-- Contact -->
-            <div class="mb-8">
-              <div class="section-label flex items-center gap-2">
-                <i class="fas fa-phone"></i> Contact Details
-              </div>
-              <input type="tel" name="contact" placeholder="Your WhatsApp / Phone Number" required
-                     class="input-field w-full px-4 py-3 rounded-xl text-white placeholder-gray-600 outline-none">
             </div>
 
             <!-- Submit -->
@@ -474,9 +441,15 @@
                     <span class="tag text-[10px] px-2 py-0.5 rounded-full">Age: -- months</span>
                     <span class="tag text-[10px] px-2 py-0.5 rounded-full">-- kg</span>
                   </div>
-                  <div class="flex items-center gap-1.5 text-xs text-gray-500">
-                    <i class="fas fa-map-marker-alt text-cyan-500/60"></i>
-                    <span id="previewLocation">Mumbai</span>
+                  <div class="grid grid-cols-2 gap-2 text-center">
+                    <div class="bg-white/5 rounded-lg p-2 border border-white/5">
+                      <p class="text-[10px] text-gray-500">Lifespan</p>
+                      <p class="text-xs text-gray-300 font-medium"><span id="previewLifespan">--</span> yrs</p>
+                    </div>
+                    <div class="bg-white/5 rounded-lg p-2 border border-white/5">
+                      <p class="text-[10px] text-gray-500">Monthly Cost</p>
+                      <p class="text-xs text-gray-300 font-medium">₹<span id="previewCost">--</span></p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -498,11 +471,11 @@
                 </li>
                 <li class="flex items-start gap-2">
                   <i class="fas fa-check-circle text-cyan-500/60 mt-0.5 text-[10px]"></i>
-                  Keep your contact number active for adoption inquiries
+                  Be accurate about care, exercise and grooming needs
                 </li>
                 <li class="flex items-start gap-2">
                   <i class="fas fa-check-circle text-cyan-500/60 mt-0.5 text-[10px]"></i>
-                  Mention specific landmarks for easier meetups in Mumbai
+                  Provide realistic monthly costs so adopters can plan ahead
                 </li>
               </ul>
             </div>
@@ -548,8 +521,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBifu5Te7paXOFUFrDUtogIPpi5H0xR7rY",
@@ -562,8 +534,11 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
     const auth = getAuth(app);
+
+    // Pet records are stored in the SAME Firebase Realtime Database used by Adopt.html.
+    // This keeps registration -> Adopt page -> Register page on one data source.
+    const DB_URL = "https://tailmatess-default-rtdb.asia-southeast1.firebasedatabase.app";
 
     // Profile dropdown + Firebase account state (same behavior as index.html)
     const profileTrigger = document.getElementById('profileTrigger');
@@ -689,13 +664,15 @@
     const previewSpecies = document.getElementById('previewSpecies');
     const previewBreed = document.getElementById('previewBreed');
     const previewTags = document.getElementById('previewTags');
-    const previewLocation = document.getElementById('previewLocation');
+    const previewLifespan = document.getElementById('previewLifespan');
+    const previewCost = document.getElementById('previewCost');
 
     form.addEventListener('input', () => {
       previewName.textContent = form.name.value || "Your Pet's Name";
       previewSpecies.textContent = form.species.value || "Species";
       previewBreed.textContent = form.breed.value || "Breed";
-      previewLocation.textContent = form.mumbai_area.value || "Mumbai";
+      if (previewLifespan) previewLifespan.textContent = form.lifespan_years.value || "--";
+      if (previewCost) previewCost.textContent = form.avg_monthly_cost_inr.value || "--";
 
       const age = form.age_months.value;
       const weight = form.weight_kg.value;
@@ -711,117 +688,122 @@
       window.location.href = "login.html";
     }
 
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text == null ? "" : String(text);
+      return div.innerHTML;
+    }
+
+    async function getAuthToken() {
+      if (!currentUser) throw new Error("You must be logged in to manage pets.");
+      return currentUser.getIdToken();
+    }
+
     async function loadUserPets(uid) {
-      // Fetch only this user's pets. We sort them in JavaScript so
-      // Firestore does NOT require a composite index for ownerId + timestamp.
       try {
-        const q = query(collection(db, "pets"), where("ownerId", "==", uid));
-        const snapshot = await getDocs(q);
+        const token = await getAuthToken();
+        const response = await fetch(`${DB_URL}/pets.json?auth=${encodeURIComponent(token)}`);
 
-      const pets = [];
-      snapshot.forEach(docSnap => {
-        pets.push({
-          id: docSnap.id,
-          data: docSnap.data()
+        if (!response.ok) {
+          throw new Error(`Could not load pets (${response.status}).`);
+        }
+
+        const data = await response.json();
+        const pets = [];
+
+        if (data && typeof data === "object") {
+          Object.entries(data).forEach(([id, pet]) => {
+            if (pet && (pet.owner_id === uid || pet.ownerId === uid)) {
+              pets.push({ id, data: pet });
+            }
+          });
+        }
+
+        pets.sort((a, b) => Number(b.data.timestamp || 0) - Number(a.data.timestamp || 0));
+
+        dashboard.innerHTML = "";
+
+        if (pets.length === 0) {
+          dashboard.innerHTML = `
+            <div class="col-span-full flex flex-col items-center justify-center py-16 text-gray-500">
+              <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                <i class="fas fa-paw text-2xl text-gray-700"></i>
+              </div>
+              <p class="text-sm">No pets registered yet</p>
+              <p class="text-xs text-gray-600 mt-1">Fill the form above to add your first pet</p>
+            </div>
+          `;
+          petCount.textContent = "0 pets";
+          return;
+        }
+
+        petCount.textContent = `${pets.length} pet${pets.length > 1 ? "s" : ""}`;
+
+        pets.forEach(({ id, data }) => {
+          const card = document.createElement("div");
+          card.className = "pet-card rounded-xl overflow-hidden";
+
+          const temperamentTags = data.temperament
+            ? String(data.temperament).split(",").slice(0, 3).map(t =>
+                `<span class="tag text-[10px] px-2 py-0.5 rounded-full">${escapeHtml(t.trim())}</span>`
+              ).join("")
+            : "";
+
+          const image = data.image_url || data.image || "";
+          const lifespan = data.lifespan_years ?? "?";
+          const cost = data.avg_monthly_cost_inr ?? "?";
+          const exercise = data.exercise || data.exercise_needs || "Unknown";
+
+          card.innerHTML = `
+            <div class="h-48 relative overflow-hidden">
+              <img src="${escapeHtml(image)}" alt="${escapeHtml(data.name || "Pet")}" class="w-full h-full object-cover" onerror="this.style.display='none';">
+              <div class="absolute top-3 right-3">
+                <span class="bg-black/60 backdrop-blur-sm text-white text-[10px] px-2.5 py-1 rounded-full font-medium border border-white/10">
+                  <i class="fas fa-heart text-cyan-400 mr-1"></i> Registered
+                </span>
+              </div>
+            </div>
+            <div class="p-5">
+              <div class="flex items-start justify-between mb-1">
+                <h3 class="text-lg font-bold text-white">${escapeHtml(data.name || "Unknown")}</h3>
+                <span class="text-[10px] bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/20">${escapeHtml(data.species || "")}</span>
+              </div>
+              <p class="text-xs text-gray-500 mb-3">${escapeHtml(data.breed || "Unknown")} &bull; ${escapeHtml(data.age_months ?? "?")} months &bull; ${escapeHtml(data.weight_kg ?? "?")} kg</p>
+              <div class="flex flex-wrap gap-1.5 mb-3">${temperamentTags}</div>
+              <div class="grid grid-cols-2 gap-2 mb-4">
+                <div class="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                  <p class="text-[10px] text-gray-500">Care</p>
+                  <p class="text-xs text-gray-300 font-medium">${escapeHtml(data.care_level || "Unknown")}</p>
+                </div>
+                <div class="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                  <p class="text-[10px] text-gray-500">Exercise</p>
+                  <p class="text-xs text-gray-300 font-medium">${escapeHtml(exercise)}</p>
+                </div>
+                <div class="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                  <p class="text-[10px] text-gray-500">Lifespan</p>
+                  <p class="text-xs text-gray-300 font-medium">${escapeHtml(lifespan)} yrs</p>
+                </div>
+                <div class="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                  <p class="text-[10px] text-gray-500">Monthly Cost</p>
+                  <p class="text-xs text-gray-300 font-medium">₹${escapeHtml(cost)}</p>
+                </div>
+              </div>
+              <button class="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-sm font-medium py-2.5 rounded-lg transition-all flex items-center justify-center gap-2" data-id="${escapeHtml(id)}">
+                <i class="fas fa-trash-alt text-xs"></i> Remove Pet
+              </button>
+            </div>
+          `;
+
+          card.querySelector("button").addEventListener("click", () => deletePet(id));
+          dashboard.appendChild(card);
         });
-      });
-
-      // Newest registrations first.
-      pets.sort((a, b) => {
-        const timeA = a.data.timestamp?.toDate
-          ? a.data.timestamp.toDate().getTime()
-          : new Date(a.data.timestamp || 0).getTime();
-
-        const timeB = b.data.timestamp?.toDate
-          ? b.data.timestamp.toDate().getTime()
-          : new Date(b.data.timestamp || 0).getTime();
-
-        return timeB - timeA;
-      });
-
-      dashboard.innerHTML = "";
-
-      if (pets.length === 0) {
-        dashboard.innerHTML = `
-          <div class="col-span-full flex flex-col items-center justify-center py-16 text-gray-500">
-            <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-              <i class="fas fa-paw text-2xl text-gray-700"></i>
-            </div>
-            <p class="text-sm">No pets registered yet</p>
-            <p class="text-xs text-gray-600 mt-1">Fill the form above to add your first pet</p>
-          </div>
-        `;
-        petCount.textContent = "0 pets";
-        return;
-      }
-
-      petCount.textContent = `${pets.length} pet${pets.length > 1 ? 's' : ''}`;
-
-      pets.forEach(pet => {
-        const data = pet.data;
-        const id = pet.id;
-
-        const card = document.createElement("div");
-        card.className = "pet-card rounded-xl overflow-hidden";
-
-        const temperamentTags = data.temperament ? data.temperament.split(',').slice(0, 3).map(t => 
-          `<span class="tag text-[10px] px-2 py-0.5 rounded-full">${t.trim()}</span>`
-        ).join('') : '';
-
-        card.innerHTML = `
-          <div class="h-48 relative overflow-hidden">
-            <img src="${data.image}" alt="${data.name}" class="w-full h-full object-cover">
-            <div class="absolute top-3 right-3">
-              <span class="bg-black/60 backdrop-blur-sm text-white text-[10px] px-2.5 py-1 rounded-full font-medium border border-white/10">
-                ${data.gender === 'Male' ? '<i class="fas fa-mars text-cyan-400 mr-1"></i>' : '<i class="fas fa-venus text-pink-400 mr-1"></i>'} ${data.gender}
-              </span>
-            </div>
-          </div>
-          <div class="p-5">
-            <div class="flex items-start justify-between mb-1">
-              <h3 class="text-lg font-bold text-white">${data.name}</h3>
-              <span class="text-[10px] bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/20">${data.species}</span>
-            </div>
-            <p class="text-xs text-gray-500 mb-3">${data.breed} &bull; ${data.age_months} months &bull; ${data.weight_kg} kg</p>
-
-            <div class="flex flex-wrap gap-1.5 mb-3">
-              ${temperamentTags}
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 mb-4">
-              <div class="bg-white/5 rounded-lg p-2 text-center border border-white/5">
-                <p class="text-[10px] text-gray-500">Care</p>
-                <p class="text-xs text-gray-300 font-medium">${data.care_level}</p>
-              </div>
-              <div class="bg-white/5 rounded-lg p-2 text-center border border-white/5">
-                <p class="text-[10px] text-gray-500">Exercise</p>
-                <p class="text-xs text-gray-300 font-medium">${data.exercise_needs}</p>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-1.5 text-xs text-gray-500 mb-4">
-              <i class="fas fa-map-marker-alt text-cyan-500/60"></i>
-              <span>${data.mumbai_area}${data.locality ? ' — ' + data.locality : ''}</span>
-            </div>
-
-            <button class="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-sm font-medium py-2.5 rounded-lg transition-all flex items-center justify-center gap-2" data-id="${id}">
-              <i class="fas fa-trash-alt text-xs"></i> Remove Pet
-            </button>
-          </div>
-        `;
-
-        const deleteBtn = card.querySelector("button");
-        deleteBtn.addEventListener("click", () => deletePet(id));
-
-        dashboard.appendChild(card);
-      });
       } catch (error) {
         console.error("Error loading registered pets:", error);
         dashboard.innerHTML = `
           <div class="col-span-full text-center py-12 text-gray-500">
             <i class="fas fa-circle-exclamation text-2xl mb-3"></i>
             <p>Could not load your registered pets.</p>
-            <p class="text-xs mt-1">Check the browser console for the Firebase error.</p>
+            <p class="text-xs mt-1">${escapeHtml(error.message)}</p>
           </div>
         `;
         petCount.textContent = "0 pets";
@@ -833,16 +815,24 @@
       if (!confirmDelete) return;
 
       try {
-        await deleteDoc(doc(db, "pets", id));
-        if (currentUser) loadUserPets(currentUser.uid);
+        const token = await getAuthToken();
+        const response = await fetch(`${DB_URL}/pets/${encodeURIComponent(id)}.json?auth=${encodeURIComponent(token)}`, {
+          method: "DELETE"
+        });
+
+        if (!response.ok) {
+          throw new Error(`Could not remove pet (${response.status}).`);
+        }
+
+        await loadUserPets(currentUser.uid);
       } catch (err) {
-        alert("Error removing pet.");
+        alert(`Error removing pet.\n\n${err.message}`);
         console.error(err);
       }
     }
 
-    // Compress images before saving them in Firestore. Firestore documents are
-    // limited to 1 MiB, so the original 5MB upload cannot be stored as base64.
+    // Compress the image before saving it in Realtime Database.
+    // This keeps the uploaded pet photo small enough for practical client-side use.
     async function compressImage(file) {
       const dataUrl = await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -905,6 +895,17 @@
           throw new Error("You must be logged in to register a pet.");
         }
 
+        const kidsValue = document.getElementById('good_with_kids').value;
+        const otherPetsValue = document.getElementById('good_with_other_pets').value;
+
+        if (kidsValue !== "true" && kidsValue !== "false") {
+          throw new Error("Please select whether the pet is good with kids.");
+        }
+
+        if (otherPetsValue !== "true" && otherPetsValue !== "false") {
+          throw new Error("Please select whether the pet is good with other pets.");
+        }
+
         const file = form.image.files[0];
         if (!file) {
           throw new Error("Please select a pet photo.");
@@ -918,34 +919,48 @@
           throw new Error("Please choose an image smaller than 5MB.");
         }
 
-        // The image is resized/compressed before it is written to Firestore.
+        // The image is resized/compressed before it is written to Realtime Database.
         const imageBase64 = await compressImage(file);
 
         const petData = {
           name: form.name.value.trim(),
+          species: form.species.value,
+          breed: form.breed.value.trim(),
           age_months: parseInt(form.age_months.value, 10),
           weight_kg: parseFloat(form.weight_kg.value),
-          gender: form.gender.value,
-          breed: form.breed.value.trim(),
-          species: form.species.value,
-          mumbai_area: form.mumbai_area.value,
-          locality: form.locality.value.trim(),
-          contact: form.contact.value.trim(),
+          lifespan_years: parseFloat(form.lifespan_years.value),
+          avg_monthly_cost_inr: parseFloat(form.avg_monthly_cost_inr.value),
           care_level: form.care_level.value,
           diet_type: form.diet_type.value,
           exercise_needs: form.exercise_needs.value,
+          exercise: form.exercise_needs.value,
           grooming_needs: form.grooming_needs.value,
-          temperament: form.temperament.value,
+          temperament: form.temperament.value.trim(),
           good_with_kids: document.getElementById('good_with_kids').value === 'true',
           good_with_other_pets: document.getElementById('good_with_other_pets').value === 'true',
-          image: imageBase64,
-          timestamp: new Date(),
-          ownerId: currentUser.uid,
-          ownerEmail: currentUser.email || ''
+          image_url: imageBase64,
+          owner_id: currentUser.uid,
+          owner_email: currentUser.email || '',
+          timestamp: Date.now()
         };
 
-        // This writes the pet to Firestore's "pets" collection.
-        await addDoc(collection(db, "pets"), petData);
+        // Write the pet to the SAME Realtime Database used by Adopt.html.
+        // The RTDB key is generated here so pet_id is also stored in the record.
+        const token = await getAuthToken();
+        const petId = Date.now();
+        petData.pet_id = petId;
+
+        const response = await fetch(`${DB_URL}/pets/${petId}.json?auth=${encodeURIComponent(token)}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(petData)
+        });
+
+        if (!response.ok) {
+          let details = "";
+          try { details = await response.text(); } catch (_) {}
+          throw new Error(`Firebase rejected the pet registration (${response.status}). ${details}`);
+        }
 
         form.reset();
         uploadPreview.classList.add('hidden');
@@ -959,7 +974,8 @@
         previewName.textContent = "Your Pet's Name";
         previewSpecies.textContent = "Species";
         previewBreed.textContent = "Breed";
-        previewLocation.textContent = "Mumbai";
+        if (previewLifespan) previewLifespan.textContent = "--";
+        if (previewCost) previewCost.textContent = "--";
         previewTags.innerHTML = `
           <span class="tag text-[10px] px-2 py-0.5 rounded-full">Age: -- months</span>
           <span class="tag text-[10px] px-2 py-0.5 rounded-full">-- kg</span>
