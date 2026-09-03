@@ -280,6 +280,91 @@
       box-shadow: 0 0 30px rgba(0,245,255,0.3);
     }
 
+    /* Profile */
+.nav-profile { position: relative; }
+        .profile-trigger {
+            display: flex; align-items: center; gap: 10px;
+            padding: 0.4rem 0.8rem 0.4rem 0.4rem;
+            background: var(--bg-glass); border: 1px solid var(--border);
+            border-radius: 50px; cursor: none; transition: all 0.3s ease;
+        }
+        .profile-trigger:hover { border-color: var(--primary); box-shadow: 0 0 20px rgba(0, 245, 255, 0.1); }
+        .profile-avatar-icon {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex; align-items: center; justify-content: center;
+            color: var(--bg); font-size: 0.9rem;
+        }
+        .profile-name { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+        .profile-dropdown {
+            position: absolute; top: calc(100% + 10px); right: 0;
+            width: 240px; background: var(--bg-glass); border: 1px solid var(--border);
+            border-radius: 16px; backdrop-filter: blur(30px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            padding: 0.8rem 0; opacity: 0; visibility: hidden;
+            transform: translateY(-10px); transition: all 0.3s ease; z-index: 1001;
+        }
+        .profile-dropdown.active { opacity: 1; visibility: visible; transform: translateY(0); }
+        .profile-dropdown a {
+            display: flex; align-items: center; gap: 10px;
+            padding: 0.7rem 1.2rem; color: var(--text-dim); text-decoration: none;
+            font-size: 0.85rem; transition: all 0.2s ease;
+        }
+        .profile-dropdown a:hover { color: var(--primary); background: var(--primary-dim); }
+        .profile-dropdown a i { width: 18px; text-align: center; }
+        .profile-divider { height: 1px; background: var(--border); margin: 0.5rem 0; }
+        .profile-login { color: var(--primary) !important; font-weight: 600; }
+        .profile-login:hover { background: var(--primary-dim) !important; }
+        .profile-login.accent { color: var(--accent) !important; }
+        .profile-login.accent:hover { background: rgba(168, 85, 247, 0.1) !important; }
+        .profile-logout { color: var(--secondary) !important; }
+        .profile-logout:hover { color: var(--secondary) !important; background: rgba(255, 107, 107, 0.1) !important; }
+/* Message button */
+    .pet-actions {
+      display: flex;
+      gap: 0.7rem;
+      width: 100%;
+    }
+
+    .pet-actions .adopt-btn,
+    .pet-actions .message-btn {
+      width: auto;
+      flex: 1;
+    }
+
+    .message-btn {
+      padding: 0.8rem;
+      background: rgba(168,85,247,0.12);
+      color: var(--accent);
+      border: 1px solid rgba(168,85,247,0.35);
+      border-radius: 50px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: none;
+      box-shadow: 0 0 20px rgba(168,85,247,0.08);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: inherit;
+    }
+
+    .message-btn:hover {
+      transform: translateY(-2px);
+      background: rgba(168,85,247,0.2);
+      border-color: var(--accent);
+      color: var(--text);
+      box-shadow: 0 0 30px rgba(168,85,247,0.2);
+    }
+
+    @media (max-width: 600px) {
+      .pet-actions {
+        flex-direction: column;
+      }
+    }
+
     /* Status / Loading */
     .status {
       text-align: center; padding: 4rem 2rem;
@@ -427,7 +512,7 @@
       .chat-panel { width: calc(100vw - 2rem); right: -1rem; }
       .cursor, .cursor-follower { display: none; }
       body { cursor: auto; }
-      .filter-btn, .pet-fav, .adopt-btn, .chat-launcher, .chat-close, .chat-input button, .chat-quick button, .footer-newsletter button, .socials a { cursor: pointer; }
+      .filter-btn, .pet-fav, .adopt-btn, .message-btn, .chat-launcher, .chat-close, .chat-input button, .chat-quick button, .footer-newsletter button, .socials a { cursor: pointer; }
     }
   </style>
 
@@ -476,6 +561,38 @@
       <li><a href="index.html#about">About</a></li>
       <li><a href="register.html">Register a Pet</a></li>
     </ul>
+        <div class="nav-profile" id="navProfile">
+            <div class="profile-trigger" id="profileTrigger">
+                <div class="profile-avatar-icon" id="profileAvatar"><i class="fa-solid fa-user"></i></div>
+                <span class="profile-name" id="profileName">Account</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; color: var(--text-dim);"></i>
+            </div>
+            <div class="profile-dropdown" id="profileDropdown">
+                <!-- Logged Out State -->
+                <div id="profileDropdownLoggedOut">
+                    <div style="padding: 0.7rem 1.2rem; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
+                        <i class="fa-solid fa-user" style="margin-right: 6px;"></i> Account
+                    </div>
+                    <div class="profile-divider"></div>
+                    <a href="login.html" class="profile-login"><i class="fa-solid fa-right-to-bracket"></i> Log In</a>
+                    <a href="createacc.html" class="profile-login" style="color: var(--accent) !important;"><i class="fa-solid fa-user-plus"></i> Create Account</a>
+                </div>
+                <!-- Logged In State -->
+                <div id="profileDropdownLoggedIn" style="display: none;">
+                    <div style="padding: 0.7rem 1.2rem; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
+                        <i class="fa-solid fa-user" style="margin-right: 6px;"></i> <span id="dropdownUserName">Profile</span>
+                    </div>
+                    <div class="profile-divider"></div>
+                    <a href="profile.html"><i class="fa-regular fa-user"></i> My Profile</a>
+                    <a href="saved-pets.html"><i class="fa-solid fa-heart"></i> Saved Pets</a>
+                    <a href="applications.html"><i class="fa-solid fa-clipboard-list"></i> My Applications</a>
+                    <a href="message.html"><i class="fa-solid fa-paw"></i> Messages</a>
+                    <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+                    <div class="profile-divider"></div>
+                    <a href="#" class="profile-logout" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Log Out</a>
+                </div>
+            </div>
+        </div>
   </div>
 </nav>
 
@@ -584,192 +701,116 @@ import {
     setDoc,
     deleteDoc
 } from "./firebase.js";
-
-
 // ===================== CURSOR =====================
-
 const cursor = document.getElementById('cursor');
 const cursorFollower = document.getElementById('cursorFollower');
-
 let mouseX = 0;
 let mouseY = 0;
 let followerX = 0;
 let followerY = 0;
-
 document.addEventListener('mousemove', (e) => {
-
     mouseX = e.clientX;
     mouseY = e.clientY;
-
     cursor.style.left = mouseX - 6 + 'px';
     cursor.style.top = mouseY - 6 + 'px';
-
 });
 
 function animateFollower() {
-
     followerX += (mouseX - followerX) * 0.1;
     followerY += (mouseY - followerY) * 0.1;
-
     cursorFollower.style.left = followerX - 20 + 'px';
     cursorFollower.style.top = followerY - 20 + 'px';
-
     requestAnimationFrame(animateFollower);
 }
-
 animateFollower();
-
-
 // ===================== PROFILE DROPDOWN =====================
-
 const profileTrigger =
     document.getElementById('profileTrigger');
-
 const profileDropdown =
     document.getElementById('profileDropdown');
-
 if (profileTrigger && profileDropdown) {
-
     profileTrigger.addEventListener('click', (e) => {
-
         e.stopPropagation();
-
         profileDropdown.classList.toggle('active');
-
     });
 
     document.addEventListener('click', (e) => {
-
         if (
             !profileTrigger.contains(e.target) &&
             !profileDropdown.contains(e.target)
         ) {
-
-            profileDropdown.classList.remove('active');
-
+    profileDropdown.classList.remove('active');
         }
-
     });
-
 }
-
-
 // ===================== SCROLL =====================
-
 const scrollProgress =
     document.getElementById('scrollProgress');
-
-window.addEventListener('scroll', () => {
-
+    window.addEventListener('scroll', () => {
     const st = window.scrollY;
-
     const dh =
         document.documentElement.scrollHeight -
         window.innerHeight;
-
     if (dh > 0) {
-
         scrollProgress.style.width =
             (st / dh * 100) + '%';
-
     }
-
 });
-
-
 // ===================== CHAT =====================
-
 const chatLauncher =
     document.getElementById('chatLauncher');
-
 const chatPanel =
     document.getElementById('chatPanel');
-
 const chatClose =
     document.getElementById('chatClose');
-
 const chatForm =
     document.getElementById('chatForm');
-
 const chatInput =
     document.getElementById('chatInput');
-
 const chatMessages =
     document.getElementById('chatMessages');
-
-
 if (chatLauncher && chatPanel) {
-
     chatLauncher.addEventListener(
         'click',
         () => chatPanel.classList.toggle('active')
     );
-
 }
-
 if (chatClose && chatPanel) {
-
     chatClose.addEventListener(
         'click',
         () => chatPanel.classList.remove('active')
     );
-
 }
-
-
 function addMessage(text, isUser = false) {
-
     if (!chatMessages) return;
-
     const msgDiv =
         document.createElement('div');
-
     msgDiv.className =
         'chat-message ' +
         (isUser ? 'user' : 'bot');
-
     msgDiv.innerHTML =
         '<div class="chat-bubble">' +
         text +
         '</div>';
-
     chatMessages.appendChild(msgDiv);
-
     chatMessages.scrollTop =
         chatMessages.scrollHeight;
-
 }
-
-
 if (chatForm) {
-
     chatForm.addEventListener('submit', (e) => {
-
         e.preventDefault();
-
         const text =
             chatInput.value.trim();
-
         if (!text) return;
-
         addMessage(text, true);
-
         chatInput.value = '';
-
         setTimeout(() => {
-
             const responses = [
-
                 "I'd love to help you find the perfect pet! What type of companion are you looking for?",
-
                 "That's a great question! Our PawMate AI can analyze your lifestyle to suggest the best matches.",
-
                 "We have many wonderful pets waiting for homes. Would you like to browse dogs, cats, or small pets?",
-
                 "All our pets come with complete health records and are from verified shelters. You can trust the process!"
-
             ];
-
             addMessage(
                 responses[
                     Math.floor(
@@ -777,108 +818,124 @@ if (chatForm) {
                     )
                 ]
             );
-
         }, 1000);
-
     });
-
 }
-
-
 document
     .querySelectorAll('.chat-quick button')
     .forEach(btn => {
-
         btn.addEventListener('click', () => {
-
             const message =
                 btn.getAttribute('data-message');
-
             addMessage(message, true);
-
             setTimeout(() => {
-
                 let response = '';
-
                 if (message.includes('dogs')) {
-
                     response =
                         "We have over 120 dogs waiting for homes! From playful Labradors to loyal Indies.";
-
                 } else if (message.includes('cats')) {
-
                     response =
                         "Our cat family has 80+ beautiful felines! From calm British Shorthairs to energetic tabbies.";
-
                 } else {
-
                     response =
                         "Let's find your perfect match! I'll need to know about your living situation, work schedule, and experience with pets.";
-
                 }
-
                 addMessage(response);
-
             }, 1000);
-
         });
+    });
+// ===================== FIREBASE USER =====================
+// Profile UI elements
+    const profileName = document.getElementById('profileName');
+    const profileAvatar = document.getElementById('profileAvatar');
+    const dropdownUserName = document.getElementById('dropdownUserName');
+    const profileDropdownLoggedOut = document.getElementById('profileDropdownLoggedOut');
+    const profileDropdownLoggedIn = document.getElementById('profileDropdownLoggedIn');
+    const logoutBtn = document.getElementById('logoutBtn');
 
+    // Listen for auth state changes
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // User is signed in
+            const displayName = user.displayName || user.email.split('@')[0];
+            const email = user.email;
+            // Update profile trigger
+            profileName.textContent = displayName;
+            profileAvatar.innerHTML = '<i class="fa-solid fa-user-check"></i>';
+            // Update dropdown header
+            dropdownUserName.textContent = displayName;
+            // Show logged-in menu, hide logged-out menu
+            profileDropdownLoggedOut.style.display = 'none';
+            profileDropdownLoggedIn.style.display = 'block';
+            // Store user data in localStorage for other pages
+            localStorage.setItem('tailmates_user', JSON.stringify({
+                uid: user.uid,
+                email: user.email,
+                displayName: displayName,
+                photoURL: user.photoURL
+            }));
+        } else {
+            // User is signed out
+            profileName.textContent = 'Account';
+            profileAvatar.innerHTML = '<i class="fa-solid fa-user"></i>';
+            dropdownUserName.textContent = 'Profile';
+
+            // Show logged-out menu, hide logged-in menu
+            profileDropdownLoggedOut.style.display = 'block';
+            profileDropdownLoggedIn.style.display = 'none';
+
+            // Clear localStorage
+            localStorage.removeItem('tailmates_user');
+        }
     });
 
-
-// ===================== FIREBASE USER =====================
-
-let currentUser = null;
-
-onAuthStateChanged(auth, async (user) => {
-
-    currentUser = user;
-
-    if (user) {
-
-        console.log(
-            "Logged in as:",
-            user.email
-        );
-
-        document.getElementById(
-            'profileName'
-        ).textContent =
-            user.displayName ||
-            user.email.split('@')[0];
-
-        document.getElementById(
-            'dropdownUserName'
-        ).textContent =
-            user.displayName ||
-            user.email.split('@')[0];
-
+    // Logout handler
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await signOut(auth);
+                // Close dropdown
+                document.getElementById('profileDropdown').classList.remove('active');
+                // Redirect to home or refresh
+                window.location.reload();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        });
     }
 
-});
-
-
+// ===================== PROFILE DROPDOWN =====================
+const profileTrigger =
+    document.getElementById('profileTrigger');
+const profileDropdown =
+    document.getElementById('profileDropdown');
+if (profileTrigger && profileDropdown) {
+    profileTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profileDropdown.classList.toggle('active');
+    });
+    document.addEventListener('click', (e) => {
+        if (
+            !profileTrigger.contains(e.target) &&
+            !profileDropdown.contains(e.target)
+        ) {
+            profileDropdown.classList.remove('active');
+        }
+    });
+}
 // ===================== PET DATA =====================
-
 const DB_URL =
     "https://tailmatess-default-rtdb.asia-southeast1.firebasedatabase.app/.json";
-
 let allPets = [];
-
-
 // ===================== HELPERS =====================
-
 function getSpeciesCategory(species) {
-
     const s =
         (species || '').toLowerCase();
-
     if (s.includes('dog'))
         return 'dog';
-
     if (s.includes('cat'))
         return 'cat';
-
     if (
         s.includes('hamster') ||
         s.includes('rabbit') ||
@@ -892,65 +949,38 @@ function getSpeciesCategory(species) {
         s.includes('bird')
     )
         return 'exotic';
-
     return 'other';
 }
-
-
 function getCareLabel(level) {
-
     if (!level) return 'Unknown';
-
     const l =
         level.toString().toUpperCase();
-
     if (l === 'L') return 'Low';
     if (l === 'M') return 'Medium';
     if (l === 'H') return 'High';
-
     return level;
-
 }
-
-
 function getExerciseLabel(level) {
-
     if (!level) return 'Medium';
-
     const l =
         level.toString().toUpperCase();
-
     if (l === 'L') return 'Low';
     if (l === 'M') return 'Medium';
     if (l === 'H') return 'High';
-
     return 'Medium';
-
 }
-
-
 function escapeHtml(text) {
-
     const div =
         document.createElement('div');
-
     div.textContent = text;
-
     return div.innerHTML;
-
 }
-
-
 // ===================== SAVED PET CHECK =====================
-
 async function isPetSaved(petId) {
-
     if (!currentUser) {
         return false;
     }
-
     try {
-
         const ref = doc(
             db,
             "users",
@@ -958,26 +988,17 @@ async function isPetSaved(petId) {
             "savedPets",
             petId
         );
-
         const snapshot =
             await getDoc(ref);
-
         return snapshot.exists();
-
     } catch (error) {
-
         console.error(
             "Could not check saved pet:",
             error
         );
-
         return false;
-
     }
-
 }
-
-
 // ===================== TOGGLE FAVORITE =====================
 
 window.toggleFav = async function(btn, e) {
@@ -1383,13 +1404,26 @@ async function renderPets(pets) {
                 </div>
 
 
-                <button
-                    class="adopt-btn"
-                    onclick="adoptPet('${escapeHtml(name)}')"
-                >
-                    <i class="fa-solid fa-heart"></i>
-                    Adopt Me
-                </button>
+                <div class="pet-actions">
+
+                    <button
+                        class="adopt-btn"
+                        onclick="adoptPet('${escapeHtml(name)}')"
+                    >
+                        <i class="fa-solid fa-heart"></i>
+                        Adopt Me
+                    </button>
+
+                    <a
+                        href="message.html"
+                        class="message-btn"
+                        title="Message about ${escapeHtml(name)}"
+                    >
+                        <i class="fa-solid fa-message"></i>
+                        Message
+                    </a>
+
+                </div>
 
             </div>
 
