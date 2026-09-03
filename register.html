@@ -138,55 +138,91 @@
     ::-webkit-scrollbar-track { background: #0B0F19; }
     ::-webkit-scrollbar-thumb { background: #1F2937; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #374151; }
+
+    /* Index-page navbar + profile dropdown */
+    .navbar { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; padding: 1rem 3rem; transition: all 0.4s ease; }
+    .navbar.scrolled { background: rgba(10,10,15,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .nav-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+    .navbar .logo { display:flex; align-items:center; gap:12px; text-decoration:none; }
+    .navbar .logo-icon { width:45px; height:45px; background:linear-gradient(135deg,#06B6D4,#8B5CF6); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; color:white; box-shadow:0 0 20px rgba(6,182,212,.3); transition:all .3s ease; }
+    .navbar .logo:hover .logo-icon { transform:rotate(15deg) scale(1.1); }
+    .navbar .logo-text h2 { font-size:1.5rem; font-weight:700; color:#f0f0f5; letter-spacing:-.5px; }
+    .navbar .logo-text span { font-size:.7rem; color:#8b8b9a; letter-spacing:2px; text-transform:uppercase; }
+    .navbar .nav-links { display:flex; gap:2.5rem; list-style:none; margin:0; padding:0; }
+    .navbar .nav-links a { color:#8b8b9a; text-decoration:none; font-size:.9rem; font-weight:500; position:relative; transition:color .3s ease; padding:.5rem 0; }
+    .navbar .nav-links a::after { content:''; position:absolute; bottom:0; left:0; width:0; height:2px; background:linear-gradient(90deg,#06B6D4,#8B5CF6); transition:width .3s ease; box-shadow:0 0 10px #06B6D4; }
+    .navbar .nav-links a:hover, .navbar .nav-links a.active { color:#f0f0f5; }
+    .navbar .nav-links a:hover::after, .navbar .nav-links a.active::after { width:100%; }
+    .nav-profile { position:relative; }
+    .profile-trigger { display:flex; align-items:center; gap:10px; padding:.4rem .8rem .4rem .4rem; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:50px; cursor:pointer; transition:all .3s ease; }
+    .profile-trigger:hover { border-color:#06B6D4; box-shadow:0 0 20px rgba(0,245,255,.1); }
+    .profile-avatar-icon { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#06B6D4,#8B5CF6); display:flex; align-items:center; justify-content:center; color:white; font-size:.9rem; }
+    .profile-name { font-size:.85rem; font-weight:600; color:#f0f0f5; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .profile-dropdown { position:absolute; top:calc(100% + 10px); right:0; width:300px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:16px; backdrop-filter:blur(30px); box-shadow:0 20px 60px rgba(0,0,0,.5); padding:.8rem 0; opacity:0; visibility:hidden; transform:translateY(-10px); transition:all .3s ease; z-index:1001; }
+    .profile-dropdown.active { opacity:1; visibility:visible; transform:translateY(0); }
+    .profile-dropdown a { display:flex; align-items:center; gap:10px; padding:.7rem 1.2rem; color:#8b8b9a; text-decoration:none; font-size:.85rem; transition:all .2s ease; }
+    .profile-dropdown a:hover { color:#06B6D4; background:rgba(0,245,255,.15); }
+    .profile-dropdown a i { width:18px; text-align:center; }
+    .profile-divider { height:1px; background:rgba(255,255,255,.08); margin:.5rem 0; }
+    .profile-login { color:#06B6D4 !important; font-weight:600; }
+    .profile-login:hover { background:rgba(0,245,255,.15) !important; }
+    .profile-logout { color:#ff6b6b !important; }
+    .profile-logout:hover { color:#ff6b6b !important; background:rgba(255,107,107,.1) !important; }
+    @media (max-width:1100px) { .navbar{padding:1rem 1.5rem}.navbar .nav-links{gap:1.2rem}.profile-dropdown{width:270px} }
+    @media (max-width:768px) { .navbar .nav-links{display:none}.navbar{padding:.8rem 1rem}.navbar .logo-text{display:none}.profile-name{max-width:100px} }
   </style>
 </head>
 <body class="text-gray-100">
 
   <div class="bg-mesh"></div>
 
-  <!-- Navbar -->
-  <nav class="nav-glass fixed top-0 left-0 right-0 z-50">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-      <!-- Logo -->
-      <a href="index" class="flex items-center gap-3 group">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center shadow-lg group-hover:shadow-cyan-500/30 transition-shadow">
-          <i class="fas fa-paw text-white text-lg"></i>
-        </div>
-        <div>
-          <h1 class="text-xl font-bold tracking-tight text-white">TailMates</h1>
-          <p class="text-[10px] text-gray-400 tracking-[0.2em] uppercase -mt-0.5">Every Paw Deserves Home</p>
-        </div>
+  <!-- Navigation (same structure as index.html) -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="logo">
+        <div class="logo-icon"><i class="fa-solid fa-paw"></i></div>
+        <div class="logo-text"><h2>TailMates</h2><span>Every Paw Deserves Home</span></div>
       </a>
-
-      <!-- Nav Links -->
-      <div class="hidden md:flex items-center gap-8">
-        <a href="index" class="text-sm text-gray-400 hover:text-white transition-colors font-medium">Home</a>
-        <a href="Adopt" class="text-sm text-gray-400 hover:text-white transition-colors font-medium">Adopt</a>
-        <a href="#" class="text-sm text-gray-400 hover:text-white transition-colors font-medium">PawMate AI</a>
-        <a href="services" class="text-sm text-gray-400 hover:text-white transition-colors font-medium">Services</a>
-        <a href="shop" class="text-sm text-gray-400 hover:text-white transition-colors font-medium">Shop</a>
-        <a href="about" class="text-sm text-gray-400 hover:text-white transition-colors font-medium">About</a>
-        <a href="register" class="text-sm text-white font-semibold relative">
-          Register a Pet
-          <span class="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-cyan-400 to-violet-500 rounded-full"></span>
-        </a>
-      </div>
-
-      <!-- Account -->
-      <div class="flex items-center gap-3">
-        <button class="flex items-center gap-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full pl-1.5 pr-4 py-1.5 transition-all">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center">
-            <i class="fas fa-user text-white text-xs"></i>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="Adopt.html">Adopt</a></li>
+        <li><a href="PawMate.html">PawMate AI</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="shop.html">Shop</a></li>
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="register.html" class="active">Register a Pet</a></li>
+      </ul>
+      <div class="nav-profile" id="navProfile">
+        <div class="profile-trigger" id="profileTrigger">
+          <div class="profile-avatar-icon" id="profileAvatar"><i class="fa-solid fa-user"></i></div>
+          <span class="profile-name" id="profileName">Account</span>
+          <i class="fa-solid fa-chevron-down" style="font-size:.7rem;color:#8b8b9a;"></i>
+        </div>
+        <div class="profile-dropdown" id="profileDropdown">
+          <div id="profileDropdownLoggedOut">
+            <div style="padding:.7rem 1.2rem;font-size:.75rem;color:#8b8b9a;text-transform:uppercase;letter-spacing:1px;font-weight:600;"><i class="fa-solid fa-user" style="margin-right:6px;"></i> Account</div>
+            <div class="profile-divider"></div>
+            <a href="login.html" class="profile-login"><i class="fa-solid fa-right-to-bracket"></i> Log In</a>
+            <a href="createacc.html" class="profile-login" style="color:#a855f7 !important;"><i class="fa-solid fa-user-plus"></i> Create Account</a>
           </div>
-          <span class="text-sm font-medium text-gray-200">Account</span>
-          <i class="fas fa-chevron-down text-xs text-gray-500"></i>
-        </button>
+          <div id="profileDropdownLoggedIn" style="display:none;">
+            <div style="padding:.7rem 1.2rem;font-size:.75rem;color:#8b8b9a;text-transform:uppercase;letter-spacing:1px;font-weight:600;"><i class="fa-solid fa-user" style="margin-right:6px;"></i> <span id="dropdownUserName">Profile</span></div>
+            <div class="profile-divider"></div>
+            <a href="profile.html"><i class="fa-regular fa-user"></i> My Profile</a>
+            <a href="saved-pets.html"><i class="fa-solid fa-heart"></i> Saved Pets</a>
+            <a href="applications.html"><i class="fa-solid fa-clipboard-list"></i> My Applications</a>
+            <a href="message.html"><i class="fa-solid fa-paw"></i> Messages</a>
+            <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+            <div class="profile-divider"></div>
+            <a href="#" class="profile-logout" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Log Out</a>
+          </div>
+        </div>
       </div>
     </div>
   </nav>
 
   <!-- Main Content -->
-  <main class="pt-28 pb-20 px-4">
+  <main class="pt-32 pb-20 px-4">
     <div class="max-w-6xl mx-auto">
 
       <!-- Header -->
@@ -528,6 +564,61 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+
+    // Profile dropdown + Firebase account state (same behavior as index.html)
+    const profileTrigger = document.getElementById('profileTrigger');
+    const profileDropdown = document.getElementById('profileDropdown');
+    const profileName = document.getElementById('profileName');
+    const profileAvatar = document.getElementById('profileAvatar');
+    const dropdownUserName = document.getElementById('dropdownUserName');
+    const profileDropdownLoggedOut = document.getElementById('profileDropdownLoggedOut');
+    const profileDropdownLoggedIn = document.getElementById('profileDropdownLoggedIn');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    if (profileTrigger && profileDropdown) {
+      profileTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profileDropdown.classList.toggle('active');
+      });
+      document.addEventListener('click', (e) => {
+        if (!profileTrigger.contains(e.target) && !profileDropdown.contains(e.target)) {
+          profileDropdown.classList.remove('active');
+        }
+      });
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'Profile');
+        profileName.textContent = displayName;
+        dropdownUserName.textContent = displayName;
+        profileAvatar.innerHTML = '<i class="fa-solid fa-user-check"></i>';
+        profileDropdownLoggedOut.style.display = 'none';
+        profileDropdownLoggedIn.style.display = 'block';
+        localStorage.setItem('tailmates_user', JSON.stringify({ uid:user.uid, email:user.email, displayName, photoURL:user.photoURL }));
+      } else {
+        profileName.textContent = 'Account';
+        dropdownUserName.textContent = 'Profile';
+        profileAvatar.innerHTML = '<i class="fa-solid fa-user"></i>';
+        profileDropdownLoggedOut.style.display = 'block';
+        profileDropdownLoggedIn.style.display = 'none';
+        localStorage.removeItem('tailmates_user');
+      }
+    });
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        try {
+          await signOut(auth);
+          profileDropdown.classList.remove('active');
+          window.location.reload();
+        } catch (error) {
+          console.error('Logout error:', error);
+          alert('Unable to log out. Please try again.');
+        }
+      });
+    }
 
     const form = document.getElementById("petForm");
     const dashboard = document.getElementById("dashboardPets");
