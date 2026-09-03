@@ -375,6 +375,53 @@
     .settings-sidebar { position: relative !important; top: 0 !important; }
 }
 
+    
+/* Realistic, self-contained settings */
+.settings-container{padding-top:2rem;padding-bottom:5rem}
+.settings-layout{display:grid;grid-template-columns:250px 1fr;gap:2rem;max-width:1100px;margin:0 auto;align-items:start}
+.settings-nav{position:sticky;top:120px;padding:.8rem 0}
+.settings-nav-title{padding:.8rem 1.25rem 1rem;color:var(--text-dim);font-size:.68rem;text-transform:uppercase;letter-spacing:2px;font-weight:800}
+.settings-nav-link{display:flex;align-items:center;gap:10px;padding:.85rem 1.25rem;color:var(--text-dim);font-size:.85rem;border-left:3px solid transparent;transition:.25s}
+.settings-nav-link:hover,.settings-nav-link.active{color:var(--primary);background:var(--primary-dim);border-left-color:var(--primary)}
+.settings-nav-link.danger-link:hover{color:var(--secondary);background:rgba(255,107,107,.08);border-left-color:var(--secondary)}
+.settings-content{display:flex;flex-direction:column;gap:1.5rem}
+.settings-card{padding:1.7rem;scroll-margin-top:110px}
+.settings-card-heading{display:flex;align-items:center;gap:13px;margin-bottom:1.35rem}
+.settings-card-heading h2{font-size:1.25rem;margin-bottom:.25rem}
+.settings-card-heading p{color:var(--text-dim);font-size:.8rem}
+.settings-icon{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.settings-icon.cyan{color:var(--primary);background:var(--primary-dim);border:1px solid rgba(0,245,255,.2)}
+.settings-icon.purple{color:var(--accent);background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.2)}
+.settings-icon.red{color:var(--secondary);background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.2)}
+.account-preview{display:flex;align-items:center;gap:1rem;padding:1.1rem;margin-bottom:.9rem;border-radius:17px;background:rgba(255,255,255,.025);border:1px solid var(--border)}
+.account-avatar{width:56px;height:56px;border-radius:17px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:var(--bg);font-size:1.15rem;box-shadow:0 0 25px rgba(0,245,255,.18)}
+.account-label{font-size:.62rem;color:var(--primary);letter-spacing:1.8px;font-weight:800}
+.account-preview h3{font-size:1.05rem;margin-top:.2rem}
+.account-preview p{color:var(--text-dim);font-size:.78rem;margin-top:.2rem;word-break:break-all}
+.setting-row{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;padding:1.05rem 0;border-top:1px solid var(--border)}
+.setting-copy h3{font-size:.92rem;margin-bottom:.25rem}
+.setting-copy p{color:var(--text-dim);font-size:.77rem;line-height:1.55}
+.read-only-pill,.theme-pill{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;padding:.45rem .75rem;border-radius:999px;font-size:.65rem;font-weight:800;letter-spacing:.7px}
+.read-only-pill{color:var(--text-dim);border:1px solid var(--border);background:rgba(255,255,255,.025)}
+.theme-pill{color:var(--primary);border:1px solid rgba(0,245,255,.2);background:var(--primary-dim)}
+.password-panel{margin-top:.9rem;padding:1.25rem;border-radius:17px;border:1px solid rgba(0,245,255,.15);background:rgba(0,245,255,.035)}
+.password-panel-head{display:flex;justify-content:space-between;gap:1rem;margin-bottom:1rem}
+.password-panel-head h3{font-size:.95rem;margin-bottom:.2rem}
+.password-panel-head p{color:var(--text-dim);font-size:.75rem}
+.panel-close{border:0;background:transparent;color:var(--text-dim);font-size:1.5rem;cursor:none}
+.panel-close:hover{color:var(--secondary)}
+.settings-message{margin-top:.8rem;font-size:.78rem;color:var(--text-dim);min-height:1.1em}
+.settings-message.success{color:#4ade80}.settings-message.error{color:var(--secondary)}
+.switch{position:relative;width:50px;height:28px;flex:0 0 auto}
+.switch input{opacity:0;width:0;height:0}.switch span{position:absolute;inset:0;border-radius:30px;background:rgba(255,255,255,.06);border:1px solid var(--border);transition:.25s}
+.switch span:after{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;border-radius:50%;background:#fff;transition:.25s;box-shadow:0 2px 7px rgba(0,0,0,.35)}
+.switch input:checked+span{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent}
+.switch input:checked+span:after{transform:translateX(22px)}
+.danger-row{border-color:rgba(255,107,107,.13)}.danger-row .setting-copy h3{color:#ff8a8a}
+body.reduce-motion *,body.reduce-motion *:before,body.reduce-motion *:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+@media(max-width:850px){.settings-layout{grid-template-columns:1fr}.settings-nav{position:relative;top:auto}.settings-nav-link{display:inline-flex;border-left:0;border-bottom:2px solid transparent}.settings-nav-link:hover,.settings-nav-link.active{border-left-color:transparent;border-bottom-color:var(--primary)}}
+@media(max-width:600px){.settings-card{padding:1.25rem}.setting-row{align-items:flex-start;flex-direction:column}.setting-row>button,.setting-row>.read-only-pill,.setting-row>.theme-pill,.setting-row>.switch{align-self:flex-start}.account-preview{align-items:flex-start}}
+
     </style>
 </head>
 <body>
@@ -429,7 +476,6 @@
                 <a href="profile.html" ><i class="fa-regular fa-user"></i> My Profile</a>
                 <a href="saved-pets.html" ><i class="fa-solid fa-heart"></i> Saved Pets</a>
                 <a href="applications.html" ><i class="fa-solid fa-clipboard-list"></i> My Applications</a>
-                <a href="my-pets.html" ><i class="fa-solid fa-paw"></i> My Registered Pets</a>
                 <a href="settings.html" style="color: var(--primary); background: var(--primary-dim);"><i class="fa-solid fa-gear"></i> Settings</a>
                 <div class="profile-divider"></div>
                 <a href="index.html" class="profile-logout" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Log Out</a>
@@ -438,247 +484,105 @@
     </div>
 </nav>
 
+
 <div class="page-wrapper">
-<div class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+  <div class="container settings-container">
     <div class="section-header">
-        <span class="section-tag"><i class="fa-solid fa-gear"></i> Settings</span>
-        <h1>Account Settings</h1>
-        <p>Customize your TailMates experience, manage notifications, and control your privacy.</p>
+      <span class="section-tag"><i class="fa-solid fa-gear"></i> Settings</span>
+      <h1>Account Settings</h1>
+      <p>Simple controls for the parts of your TailMates account that are actually available right now.</p>
     </div>
 
-    <div class="resp-grid-sidebar" style="display: grid; grid-template-columns: 280px 1fr; gap: 2.5rem;">
-        <!-- Settings Sidebar -->
-        <div>
-            <div class="card" style="padding: 1rem 0; position: sticky; top: 120px;">
-                <div style="padding: 0.7rem 1.5rem; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Settings Menu</div>
-                <div class="profile-divider"></div>
-                <a href="#general" style="display: flex; align-items: center; gap: 10px; padding: 0.8rem 1.5rem; color: var(--text); font-size: 0.9rem; transition: all 0.2s ease; border-left: 3px solid var(--primary); background: var(--primary-dim);">
-                    <i class="fa-solid fa-sliders" style="width: 20px; text-align: center;"></i> General
-                </a>
-                <a href="#notifications" style="display: flex; align-items: center; gap: 10px; padding: 0.8rem 1.5rem; color: var(--text-dim); font-size: 0.9rem; transition: all 0.2s ease; border-left: 3px solid transparent;">
-                    <i class="fa-solid fa-bell" style="width: 20px; text-align: center;"></i> Notifications
-                </a>
-                <a href="#privacy" style="display: flex; align-items: center; gap: 10px; padding: 0.8rem 1.5rem; color: var(--text-dim); font-size: 0.9rem; transition: all 0.2s ease; border-left: 3px solid transparent;">
-                    <i class="fa-solid fa-lock" style="width: 20px; text-align: center;"></i> Privacy
-                </a>
-                <a href="#appearance" style="display: flex; align-items: center; gap: 10px; padding: 0.8rem 1.5rem; color: var(--text-dim); font-size: 0.9rem; transition: all 0.2s ease; border-left: 3px solid transparent;">
-                    <i class="fa-solid fa-palette" style="width: 20px; text-align: center;"></i> Appearance
-                </a>
-                <a href="#language" style="display: flex; align-items: center; gap: 10px; padding: 0.8rem 1.5rem; color: var(--text-dim); font-size: 0.9rem; transition: all 0.2s ease; border-left: 3px solid transparent;">
-                    <i class="fa-solid fa-globe" style="width: 20px; text-align: center;"></i> Language & Region
-                </a>
-            </div>
-        </div>
+    <div class="settings-layout">
+      <aside class="settings-nav card">
+        <div class="settings-nav-title">Settings</div>
+        <a href="#account" class="settings-nav-link active"><i class="fa-regular fa-user"></i> Account</a>
+                <a href="#account-actions" class="settings-nav-link danger-link"><i class="fa-solid fa-shield-halved"></i> Account Actions</a>
+      </aside>
 
-        <!-- Settings Content -->
-        <div>
-            <!-- General -->
-            <div class="card" style="padding: 2rem; margin-bottom: 2rem;" id="general">
-                <h3 style="font-size: 1.3rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                    <i class="fa-solid fa-sliders" style="color: var(--primary);"></i> General Preferences
-                </h3>
-                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.2rem; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border);">
-                        <div>
-                            <h4 style="font-size: 1rem; margin-bottom: 0.3rem;">Show Online Status</h4>
-                            <p style="font-size: 0.85rem; color: var(--text-dim);">Let shelters see when you're active</p>
-                        </div>
-                        <label class="toggle-switch" style="position: relative; display: inline-block; width: 50px; height: 26px;">
-                            <input type="checkbox" checked style="opacity: 0; width: 0; height: 0;">
-                            <span style="position: absolute; cursor: none; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 26px; transition: 0.3s;"></span>
-                            <span style="position: absolute; content: ''; height: 20px; width: 20px; left: 28px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></span>
-                        </label>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.2rem; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border);">
-                        <div>
-                            <h4 style="font-size: 1rem; margin-bottom: 0.3rem;">Public Profile</h4>
-                            <p style="font-size: 0.85rem; color: var(--text-dim);">Allow others to see your profile and adoption stories</p>
-                        </div>
-                        <label class="toggle-switch" style="position: relative; display: inline-block; width: 50px; height: 26px;">
-                            <input type="checkbox" checked style="opacity: 0; width: 0; height: 0;">
-                            <span style="position: absolute; cursor: none; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 26px; transition: 0.3s;"></span>
-                            <span style="position: absolute; content: ''; height: 20px; width: 20px; left: 28px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></span>
-                        </label>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.2rem; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border);">
-                        <div>
-                            <h4 style="font-size: 1rem; margin-bottom: 0.3rem;">Auto-Save Search Filters</h4>
-                            <p style="font-size: 0.85rem; color: var(--text-dim);">Remember your last search preferences</p>
-                        </div>
-                        <label class="toggle-switch" style="position: relative; display: inline-block; width: 50px; height: 26px;">
-                            <input type="checkbox" style="opacity: 0; width: 0; height: 0;">
-                            <span style="position: absolute; cursor: none; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-glass); border: 1px solid var(--border); border-radius: 26px; transition: 0.3s;"></span>
-                            <span style="position: absolute; content: ''; height: 20px; width: 20px; left: 3px; bottom: 2px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></span>
-                        </label>
-                    </div>
-                </div>
-            </div>
+      <main class="settings-content">
+        <section class="settings-card card" id="account">
+          <div class="settings-card-heading">
+            <div class="settings-icon cyan"><i class="fa-regular fa-user"></i></div>
+            <div><h2>Account</h2><p>Your current Firebase login.</p></div>
+          </div>
 
-            <!-- Notifications -->
-            <div class="card" style="padding: 2rem; margin-bottom: 2rem;" id="notifications">
-                <h3 style="font-size: 1.3rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                    <i class="fa-solid fa-bell" style="color: var(--secondary);"></i> Notification Preferences
-                </h3>
-                <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.2rem; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border);">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 40px; height: 40px; border-radius: 10px; background: var(--primary-dim); display: flex; align-items: center; justify-content: center; color: var(--primary);"><i class="fa-solid fa-envelope"></i></div>
-                            <div>
-                                <h4 style="font-size: 0.95rem;">Email Notifications</h4>
-                                <p style="font-size: 0.8rem; color: var(--text-dim);">Application updates, new messages</p>
-                            </div>
-                        </div>
-                        <input type="checkbox" checked style="width: 18px; height: 18px; accent-color: var(--primary); cursor: none;">
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.2rem; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border);">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255, 107, 107, 0.15); display: flex; align-items: center; justify-content: center; color: var(--secondary);"><i class="fa-solid fa-mobile-screen"></i></div>
-                            <div>
-                                <h4 style="font-size: 0.95rem;">SMS Alerts</h4>
-                                <p style="font-size: 0.8rem; color: var(--text-dim);">Urgent updates and reminders</p>
-                            </div>
-                        </div>
-                        <input type="checkbox" checked style="width: 18px; height: 18px; accent-color: var(--primary); cursor: none;">
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.2rem; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border);">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(168, 85, 247, 0.15); display: flex; align-items: center; justify-content: center; color: var(--accent);"><i class="fa-solid fa-bullhorn"></i></div>
-                            <div>
-                                <h4 style="font-size: 0.95rem;">Marketing & Promotions</h4>
-                                <p style="font-size: 0.8rem; color: var(--text-dim);">New pets, shop deals, events</p>
-                            </div>
-                        </div>
-                        <input type="checkbox" style="width: 18px; height: 18px; accent-color: var(--primary); cursor: none;">
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.2rem; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border);">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(74, 222, 128, 0.15); display: flex; align-items: center; justify-content: center; color: #4ade80;"><i class="fa-solid fa-paw"></i></div>
-                            <div>
-                                <h4 style="font-size: 0.95rem;">New Pet Alerts</h4>
-                                <p style="font-size: 0.8rem; color: var(--text-dim);">Notify when pets match your preferences</p>
-                            </div>
-                        </div>
-                        <input type="checkbox" checked style="width: 18px; height: 18px; accent-color: var(--primary); cursor: none;">
-                    </div>
-                </div>
+          <div class="account-preview">
+            <div class="account-avatar"><i class="fa-solid fa-user"></i></div>
+            <div>
+              <span class="account-label">SIGNED IN AS</span>
+              <h3 id="accountName">Loading...</h3>
+              <p id="accountEmail">Loading...</p>
             </div>
+          </div>
 
-            <!-- Privacy -->
-            <div class="card" style="padding: 2rem; margin-bottom: 2rem;" id="privacy">
-                <h3 style="font-size: 1.3rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                    <i class="fa-solid fa-lock" style="color: var(--accent);"></i> Privacy & Data
-                </h3>
-                <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    <div style="padding: 1.2rem; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border);">
-                        <h4 style="font-size: 1rem; margin-bottom: 0.5rem;">Data Sharing with Shelters</h4>
-                        <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1rem;">Choose what information shelters can see when you apply</p>
-                        <div style="display: flex; flex-direction: column; gap: 0.8rem;">
-                            <label style="display: flex; align-items: center; gap: 10px; font-size: 0.9rem; cursor: none;">
-                                <input type="checkbox" checked style="width: 16px; height: 16px; accent-color: var(--primary); cursor: none;"> Share my full profile
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 10px; font-size: 0.9rem; cursor: none;">
-                                <input type="checkbox" checked style="width: 16px; height: 16px; accent-color: var(--primary); cursor: none;"> Share contact details
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 10px; font-size: 0.9rem; cursor: none;">
-                                <input type="checkbox" style="width: 16px; height: 16px; accent-color: var(--primary); cursor: none;"> Share home visit photos
-                            </label>
-                        </div>
-                    </div>
-                    <div style="padding: 1.2rem; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border);">
-                        <h4 style="font-size: 1rem; margin-bottom: 0.5rem;">Download Your Data</h4>
-                        <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1rem;">Get a copy of all your personal data stored on TailMates</p>
-                        <button class="btn-secondary btn-small" onclick="alert('Your data export has been prepared. Download link sent to your email.')"><i class="fa-solid fa-download"></i> Request Data Export</button>
-                    </div>
-                </div>
+          <div class="setting-row">
+            <div class="setting-copy">
+              <h3>Email</h3>
+              <p>Your login email is managed by Firebase Authentication.</p>
             </div>
+            <span class="read-only-pill">READ ONLY</span>
+          </div>
 
-            <!-- Appearance -->
-            <div class="card" style="padding: 2rem; margin-bottom: 2rem;" id="appearance">
-                <h3 style="font-size: 1.3rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                    <i class="fa-solid fa-palette" style="color: #f472b6;"></i> Appearance
-                </h3>
-                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                    <div>
-                        <label class="form-label">Theme</label>
-                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                            <button style="padding: 1rem 2rem; background: var(--bg-glass); border: 2px solid var(--primary); border-radius: 16px; color: var(--text); cursor: none; display: flex; align-items: center; gap: 8px; font-weight: 600;">
-                                <i class="fa-solid fa-moon" style="color: var(--primary);"></i> Dark (Default)
-                            </button>
-                            <button style="padding: 1rem 2rem; background: var(--bg-glass); border: 1px solid var(--border); border-radius: 16px; color: var(--text-dim); cursor: none; display: flex; align-items: center; gap: 8px;">
-                                <i class="fa-solid fa-sun"></i> Light
-                            </button>
-                            <button style="padding: 1rem 2rem; background: var(--bg-glass); border: 1px solid var(--border); border-radius: 16px; color: var(--text-dim); cursor: none; display: flex; align-items: center; gap: 8px;">
-                                <i class="fa-solid fa-circle-half-stroke"></i> Auto
-                            </button>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="form-label">Accent Color</label>
-                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                            <div style="width: 48px; height: 48px; border-radius: 50%; background: #00f5ff; border: 3px solid var(--text); cursor: none; box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);"></div>
-                            <div style="width: 48px; height: 48px; border-radius: 50%; background: #a855f7; border: 2px solid var(--border); cursor: none; opacity: 0.6;"></div>
-                            <div style="width: 48px; height: 48px; border-radius: 50%; background: #ff6b6b; border: 2px solid var(--border); cursor: none; opacity: 0.6;"></div>
-                            <div style="width: 48px; height: 48px; border-radius: 50%; background: #4ade80; border: 2px solid var(--border); cursor: none; opacity: 0.6;"></div>
-                            <div style="width: 48px; height: 48px; border-radius: 50%; background: #fbbf24; border: 2px solid var(--border); cursor: none; opacity: 0.6;"></div>
-                        </div>
-                    </div>
-                </div>
+          <div class="setting-row">
+            <div class="setting-copy">
+              <h3>Password</h3>
+              <p>Change the password used to sign in to TailMates.</p>
             </div>
+            <button class="btn-secondary btn-small" id="changePasswordBtn">
+              <i class="fa-solid fa-key"></i> Change Password
+            </button>
+          </div>
 
-            <!-- Language -->
-            <div class="card" style="padding: 2rem;" id="language">
-                <h3 style="font-size: 1.3rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                    <i class="fa-solid fa-globe" style="color: #60a5fa;"></i> Language & Region
-                </h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                    <div class="form-group">
-                        <label class="form-label">Language</label>
-                        <select class="form-select">
-                            <option selected>English</option>
-                            <option>Hindi</option>
-                            <option>Marathi</option>
-                            <option>Tamil</option>
-                            <option>Telugu</option>
-                            <option>Bengali</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Region</label>
-                        <select class="form-select">
-                            <option selected>India</option>
-                            <option>United States</option>
-                            <option>United Kingdom</option>
-                            <option>Canada</option>
-                            <option>Australia</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Currency</label>
-                        <select class="form-select">
-                            <option selected>Indian Rupee (Rs.)</option>
-                            <option>US Dollar ($)</option>
-                            <option>British Pound (£)</option>
-                            <option>Euro (€)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Time Zone</label>
-                        <select class="form-select">
-                            <option selected>IST (UTC+5:30)</option>
-                            <option>GMT (UTC+0)</option>
-                            <option>EST (UTC-5)</option>
-                            <option>PST (UTC-8)</option>
-                        </select>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                    <button class="btn-primary" onclick="alert('Settings saved successfully!')"><i class="fa-solid fa-check"></i> Save All Settings</button>
-                    <button class="btn-secondary" onclick="alert('Settings reset to defaults.')"><i class="fa-solid fa-rotate-left"></i> Reset to Default</button>
-                </div>
+          <div class="password-panel" id="passwordPanel" hidden>
+            <div class="password-panel-head">
+              <div><h3>Change your password</h3><p>Use at least 6 characters.</p></div>
+              <button class="panel-close" id="closePasswordPanel">&times;</button>
             </div>
-        </div>
+            <form id="passwordForm">
+              <div class="form-group">
+                <label class="form-label" for="newPassword">New Password</label>
+                <input id="newPassword" class="form-input" type="password" minlength="6" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="confirmPassword">Confirm Password</label>
+                <input id="confirmPassword" class="form-input" type="password" minlength="6" required>
+              </div>
+              <button type="submit" class="btn-primary btn-small"><i class="fa-solid fa-check"></i> Update Password</button>
+              <div id="passwordMessage" class="settings-message"></div>
+            </form>
+          </div>
+        </section>
+<section class="settings-card card" id="account-actions">
+          <div class="settings-card-heading">
+            <div class="settings-icon red"><i class="fa-solid fa-shield-halved"></i></div>
+            <div><h2>Account Actions</h2><p>Real actions connected to Firebase Authentication.</p></div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-copy">
+              <h3>Sign out</h3>
+              <p>Sign out of your current TailMates account.</p>
+            </div>
+            <button class="btn-secondary btn-small" id="settingsLogoutBtn">
+              <i class="fa-solid fa-right-from-bracket"></i> Log Out
+            </button>
+          </div>
+
+          <div class="setting-row danger-row">
+            <div class="setting-copy">
+              <h3>Delete account</h3>
+              <p>Permanently delete the Firebase login. Firebase may require a recent sign-in.</p>
+            </div>
+            <button class="btn-danger btn-small" id="deleteAccountBtn">
+              <i class="fa-solid fa-trash"></i> Delete Account
+            </button>
+          </div>
+          <div id="accountActionMessage" class="settings-message"></div>
+        </section>
+      </main>
     </div>
-</div>
+  </div>
 </div>
 
 <footer id="contact">
@@ -839,5 +743,85 @@ if (userData.displayName) {
 }
 
 </script>
+
+<script type="module">
+import { auth, onAuthStateChanged, updatePassword, signOut, deleteUser } from "./firebase.js";
+
+const accountName=document.getElementById("accountName");
+const accountEmail=document.getElementById("accountEmail");
+const profileName=document.getElementById("profileName");
+const dropdownUserName=document.getElementById("dropdownUserName");
+const passwordPanel=document.getElementById("passwordPanel");
+const passwordForm=document.getElementById("passwordForm");
+const passwordMessage=document.getElementById("passwordMessage");
+const actionMessage=document.getElementById("accountActionMessage");
+
+function msg(el,text,type=""){el.textContent=text;el.className="settings-message "+type}
+function nameOf(user){return user.displayName || (user.email ? user.email.split("@")[0] : "User")}
+
+onAuthStateChanged(auth,user=>{
+  if(!user){
+    accountName.textContent="Not signed in";
+    accountEmail.textContent="Please log in to use settings.";
+    setTimeout(()=>location.href="login.html",900);
+    return;
+  }
+  const name=nameOf(user);
+  accountName.textContent=name;
+  accountEmail.textContent=user.email||"No email available";
+  if(profileName) profileName.textContent=name;
+  if(dropdownUserName) dropdownUserName.textContent=name;
+});
+
+document.getElementById("changePasswordBtn").onclick=()=>{
+  passwordPanel.hidden=false;
+  document.getElementById("newPassword").focus();
+};
+document.getElementById("closePasswordPanel").onclick=()=>{
+  passwordPanel.hidden=true; passwordForm.reset(); msg(passwordMessage,"");
+};
+
+passwordForm.onsubmit=async e=>{
+  e.preventDefault();
+  const user=auth.currentUser;
+  if(!user)return;
+  const p=document.getElementById("newPassword").value;
+  const c=document.getElementById("confirmPassword").value;
+  if(p.length<6)return msg(passwordMessage,"Password must be at least 6 characters.","error");
+  if(p!==c)return msg(passwordMessage,"The passwords do not match.","error");
+  try{
+    await updatePassword(user,p);
+    passwordForm.reset();
+    msg(passwordMessage,"Password updated successfully.","success");
+  }catch(err){
+    console.error(err);
+    msg(passwordMessage,
+      err.code==="auth/requires-recent-login"
+      ?"Please log out and log in again before changing your password."
+      :"Couldn't update the password. Please try again.","error");
+  }
+};
+
+document.getElementById("settingsLogoutBtn").onclick=async()=>{
+  try{await signOut(auth);location.href="index.html";}
+  catch(err){console.error(err);msg(actionMessage,"Couldn't sign out. Please try again.","error")}
+};
+
+document.getElementById("deleteAccountBtn").onclick=async()=>{
+  const user=auth.currentUser;
+  if(!user)return;
+  if(!confirm("Delete your TailMates account permanently?"))return;
+  try{await deleteUser(user);location.href="index.html";}
+  catch(err){
+    console.error(err);
+    msg(actionMessage,
+      err.code==="auth/requires-recent-login"
+      ?"Please log out and log in again before deleting your account."
+      :"Couldn't delete the account. Please try again.","error");
+  }
+};
+
+</script>
+
 </body>
 </html>
