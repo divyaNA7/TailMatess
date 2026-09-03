@@ -428,7 +428,7 @@
                     <i class="fas fa-cloud-upload-alt text-2xl text-cyan-400"></i>
                   </div>
                   <p class="text-sm text-gray-300 font-medium">Click or drag to upload photo</p>
-                  <p class="text-xs text-gray-500 mt-1">JPG, PNG up to 5MB</p>
+                  <p class="text-xs text-gray-500 mt-1">JPG, PNG up to 5MB (compressed automatically)</p>
                 </div>
               </div>
             </div>
@@ -714,8 +714,9 @@
     async function loadUserPets(uid) {
       // Fetch only this user's pets. We sort them in JavaScript so
       // Firestore does NOT require a composite index for ownerId + timestamp.
-      const q = query(collection(db, "pets"), where("ownerId", "==", uid));
-      const snapshot = await getDocs(q);
+      try {
+        const q = query(collection(db, "pets"), where("ownerId", "==", uid));
+        const snapshot = await getDocs(q);
 
       const pets = [];
       snapshot.forEach(docSnap => {
@@ -814,6 +815,17 @@
 
         dashboard.appendChild(card);
       });
+      } catch (error) {
+        console.error("Error loading registered pets:", error);
+        dashboard.innerHTML = `
+          <div class="col-span-full text-center py-12 text-gray-500">
+            <i class="fas fa-circle-exclamation text-2xl mb-3"></i>
+            <p>Could not load your registered pets.</p>
+            <p class="text-xs mt-1">Check the browser console for the Firebase error.</p>
+          </div>
+        `;
+        petCount.textContent = "0 pets";
+      }
     }
 
     async function deletePet(id) {
@@ -829,50 +841,96 @@
       }
     }
 
+    // Compress images before saving them in Firestore. Firestore documents are
+    // limited to 1 MiB, so the original 5MB upload cannot be stored as base64.
+    async function compressImage(file) {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("Could not read the image."));
+        reader.readAsDataURL(file);
+      });
+
+      const img = await new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error("Could not process the image."));
+        image.src = dataUrl;
+      });
+
+      const maxDimension = 900;
+      const scale = Math.min(1, maxDimension / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(img.width * scale));
+      canvas.height = Math.max(1, Math.round(img.height * scale));
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Image processing is not supported by this browser.");
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      let quality = 0.75;
+      let compressed = canvas.toDataURL("image/jpeg", quality);
+
+      while (compressed.length > 800000 && quality > 0.35) {
+        quality -= 0.05;
+        compressed = canvas.toDataURL("image/jpeg", quality);
+      }
+
+      // Extra safety for unusually detailed images.
+      if (compressed.length > 800000) {
+        const smallerCanvas = document.createElement("canvas");
+        smallerCanvas.width = 650;
+        smallerCanvas.height = Math.max(1, Math.round((img.height / img.width) * 650));
+        const smallerCtx = smallerCanvas.getContext("2d");
+        smallerCtx.drawImage(img, 0, 0, smallerCanvas.width, smallerCanvas.height);
+        compressed = smallerCanvas.toDataURL("image/jpeg", 0.55);
+      }
+
+      if (compressed.length > 900000) {
+        throw new Error("This image could not be compressed enough. Please choose a different photo.");
+      }
+
+      return compressed;
+    }
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+
       const submitBtn = document.getElementById('submitBtn');
       submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Registering...';
       submitBtn.disabled = true;
 
-      const file = form.image.files[0];
-
-      if (!file) {
-        alert("Please select a pet photo.");
-        submitBtn.innerHTML = '<i class="fas fa-paw"></i> Register Pet';
-        submitBtn.disabled = false;
-        return;
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        alert("Please choose an image smaller than 5MB.");
-        submitBtn.innerHTML = '<i class="fas fa-paw"></i> Register Pet';
-        submitBtn.disabled = false;
-        return;
-      }
-
-      const reader = new FileReader();
-
-      reader.onloadend = async () => {
-        const imageBase64 = reader.result;
-
+      try {
         if (!currentUser) {
-          alert("You must be logged in to register a pet.");
-          submitBtn.innerHTML = '<i class="fas fa-paw"></i> Register Pet';
-          submitBtn.disabled = false;
-          return;
+          throw new Error("You must be logged in to register a pet.");
         }
 
+        const file = form.image.files[0];
+        if (!file) {
+          throw new Error("Please select a pet photo.");
+        }
+
+        if (!file.type.startsWith("image/")) {
+          throw new Error("Please choose a JPG or PNG image.");
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+          throw new Error("Please choose an image smaller than 5MB.");
+        }
+
+        // The image is resized/compressed before it is written to Firestore.
+        const imageBase64 = await compressImage(file);
+
         const petData = {
-          name: form.name.value,
-          age_months: parseInt(form.age_months.value),
+          name: form.name.value.trim(),
+          age_months: parseInt(form.age_months.value, 10),
           weight_kg: parseFloat(form.weight_kg.value),
           gender: form.gender.value,
-          breed: form.breed.value,
+          breed: form.breed.value.trim(),
           species: form.species.value,
           mumbai_area: form.mumbai_area.value,
-          locality: form.locality.value,
-          contact: form.contact.value,
+          locality: form.locality.value.trim(),
+          contact: form.contact.value.trim(),
           care_level: form.care_level.value,
           diet_type: form.diet_type.value,
           exercise_needs: form.exercise_needs.value,
@@ -882,45 +940,46 @@
           good_with_other_pets: document.getElementById('good_with_other_pets').value === 'true',
           image: imageBase64,
           timestamp: new Date(),
-          ownerId: currentUser.uid
+          ownerId: currentUser.uid,
+          ownerEmail: currentUser.email || ''
         };
 
-        try {
-          await addDoc(collection(db, "pets"), petData);
-          form.reset();
-          uploadPreview.classList.add('hidden');
-          uploadPlaceholder.classList.remove('hidden');
-          livePreviewImg.classList.add('hidden');
-          previewImageContainer.querySelector('.fa-paw').classList.remove('hidden');
-          document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-          document.getElementById('good_with_kids').value = '';
-          document.getElementById('good_with_other_pets').value = '';
+        // This writes the pet to Firestore's "pets" collection.
+        await addDoc(collection(db, "pets"), petData);
 
-          // Reset preview
-          previewName.textContent = "Your Pet's Name";
-          previewSpecies.textContent = "Species";
-          previewBreed.textContent = "Breed";
-          previewLocation.textContent = "Mumbai";
-          previewTags.innerHTML = `
-            <span class="tag text-[10px] px-2 py-0.5 rounded-full">Age: -- months</span>
-            <span class="tag text-[10px] px-2 py-0.5 rounded-full">-- kg</span>
-          `;
+        form.reset();
+        uploadPreview.classList.add('hidden');
+        uploadPlaceholder.classList.remove('hidden');
+        livePreviewImg.classList.add('hidden');
+        previewImageContainer.querySelector('.fa-paw').classList.remove('hidden');
+        document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('good_with_kids').value = '';
+        document.getElementById('good_with_other_pets').value = '';
 
-          loadUserPets(currentUser.uid);
-          submitBtn.innerHTML = '<i class="fas fa-check"></i> Registered!';
-          setTimeout(() => {
-            submitBtn.innerHTML = '<i class="fas fa-paw"></i> Register Pet';
-            submitBtn.disabled = false;
-          }, 2000);
-        } catch (error) {
-          alert("Something went wrong. Try again!");
-          console.error("Error adding document: ", error);
+        previewName.textContent = "Your Pet's Name";
+        previewSpecies.textContent = "Species";
+        previewBreed.textContent = "Breed";
+        previewLocation.textContent = "Mumbai";
+        previewTags.innerHTML = `
+          <span class="tag text-[10px] px-2 py-0.5 rounded-full">Age: -- months</span>
+          <span class="tag text-[10px] px-2 py-0.5 rounded-full">-- kg</span>
+        `;
+
+        // Refresh the section underneath the form immediately.
+        await loadUserPets(currentUser.uid);
+
+        submitBtn.innerHTML = '<i class="fas fa-check"></i> Registered!';
+        setTimeout(() => {
           submitBtn.innerHTML = '<i class="fas fa-paw"></i> Register Pet';
           submitBtn.disabled = false;
-        }
-      };
+        }, 2000);
 
-      if (file) reader.readAsDataURL(file);
+      } catch (error) {
+        console.error("Pet registration error:", error);
+        alert(`Could not register the pet.\n\n${error.code ? error.code + "\n" : ""}${error.message || "Please try again."}`);
+        submitBtn.innerHTML = '<i class="fas fa-paw"></i> Register Pet';
+        submitBtn.disabled = false;
+      }
     });
 
     onAuthStateChanged(auth, (user) => {
