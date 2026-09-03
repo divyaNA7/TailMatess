@@ -512,7 +512,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -621,11 +621,35 @@
     }
 
     async function loadUserPets(uid) {
-      const q = query(collection(db, "pets"), where("ownerId", "==", uid), orderBy("timestamp", "desc"));
+      // Fetch only this user's pets. We sort them in JavaScript so
+      // Firestore does NOT require a composite index for ownerId + timestamp.
+      const q = query(collection(db, "pets"), where("ownerId", "==", uid));
       const snapshot = await getDocs(q);
+
+      const pets = [];
+      snapshot.forEach(docSnap => {
+        pets.push({
+          id: docSnap.id,
+          data: docSnap.data()
+        });
+      });
+
+      // Newest registrations first.
+      pets.sort((a, b) => {
+        const timeA = a.data.timestamp?.toDate
+          ? a.data.timestamp.toDate().getTime()
+          : new Date(a.data.timestamp || 0).getTime();
+
+        const timeB = b.data.timestamp?.toDate
+          ? b.data.timestamp.toDate().getTime()
+          : new Date(b.data.timestamp || 0).getTime();
+
+        return timeB - timeA;
+      });
+
       dashboard.innerHTML = "";
 
-      if (snapshot.empty) {
+      if (pets.length === 0) {
         dashboard.innerHTML = `
           <div class="col-span-full flex flex-col items-center justify-center py-16 text-gray-500">
             <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
@@ -639,11 +663,11 @@
         return;
       }
 
-      petCount.textContent = `${snapshot.size} pet${snapshot.size > 1 ? 's' : ''}`;
+      petCount.textContent = `${pets.length} pet${pets.length > 1 ? 's' : ''}`;
 
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        const id = docSnap.id;
+      pets.forEach(pet => {
+        const data = pet.data;
+        const id = pet.id;
 
         const card = document.createElement("div");
         card.className = "pet-card rounded-xl overflow-hidden";
@@ -721,6 +745,21 @@
       submitBtn.disabled = true;
 
       const file = form.image.files[0];
+
+      if (!file) {
+        alert("Please select a pet photo.");
+        submitBtn.innerHTML = '<i class="fas fa-paw"></i> Register Pet';
+        submitBtn.disabled = false;
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Please choose an image smaller than 5MB.");
+        submitBtn.innerHTML = '<i class="fas fa-paw"></i> Register Pet';
+        submitBtn.disabled = false;
+        return;
+      }
+
       const reader = new FileReader();
 
       reader.onloadend = async () => {
