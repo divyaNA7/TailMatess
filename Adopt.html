@@ -23,7 +23,7 @@
       --border: rgba(255, 255, 255, 0.08);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; cursor: none; }
     body {
       font-family: 'Inter', sans-serif;
       background: var(--bg);
@@ -101,12 +101,13 @@
 
     /* Navbar */
     .navbar {
-      position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+      position: fixed; top: 0; left: 0; width: 100%; z-index: 10000; overflow: visible;
       padding: 1rem 3rem;
       background: rgba(10,10,15,0.8); backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border);
     }
     .nav-inner {
+      position: relative; z-index: 10001; overflow: visible;
       max-width: 1400px; margin: 0 auto;
       display: flex; align-items: center; justify-content: space-between;
     }
@@ -281,7 +282,7 @@
     }
 
     /* Profile */
-.nav-profile { position: relative; }
+.nav-profile { position: relative; z-index: 10002; }
         .profile-trigger {
             display: flex; align-items: center; gap: 10px;
             padding: 0.4rem 0.8rem 0.4rem 0.4rem;
@@ -302,9 +303,9 @@
             border-radius: 16px; backdrop-filter: blur(30px);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             padding: 0.8rem 0; opacity: 0; visibility: hidden;
-            transform: translateY(-10px); transition: all 0.3s ease; z-index: 1001;
+            transform: translateY(-10px); transition: all 0.3s ease; z-index: 10003; pointer-events: none;
         }
-        .profile-dropdown.active { opacity: 1; visibility: visible; transform: translateY(0); }
+        .profile-dropdown.active { opacity: 1 !important; visibility: visible !important; transform: translateY(0); pointer-events: auto; }
         .profile-dropdown a {
             display: flex; align-items: center; gap: 10px;
             padding: 0.7rem 1.2rem; color: var(--text-dim); text-decoration: none;
@@ -514,7 +515,11 @@
       body { cursor: auto; }
       .filter-btn, .pet-fav, .adopt-btn, .message-btn, .chat-launcher, .chat-close, .chat-input button, .chat-quick button, .footer-newsletter button, .socials a { cursor: pointer; }
     }
-  </style>
+  
+    .cursor, .cursor-follower { pointer-events: none !important; }
+    .profile-trigger { position: relative; z-index: 10004; pointer-events: auto !important; }
+    .profile-dropdown a { pointer-events: auto !important; }
+</style>
 
 </head>
 <body>
@@ -586,7 +591,7 @@
                     <a href="profile.html"><i class="fa-regular fa-user"></i> My Profile</a>
                     <a href="saved-pets.html"><i class="fa-solid fa-heart"></i> Saved Pets</a>
                     <a href="applications.html"><i class="fa-solid fa-clipboard-list"></i> My Applications</a>
-                    <a href="message.html"><i class="fa-solid fa-paw"></i> Messages</a>
+                    <a href="message.html"><i class="fa-solid fa-message"></i> Messages</a>
                     <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
                     <div class="profile-divider"></div>
                     <a href="#" class="profile-logout" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Log Out</a>
@@ -701,49 +706,7 @@ import {
     setDoc,
     deleteDoc
 } from "./firebase.js";
-// ===================== CURSOR =====================
-const cursor = document.getElementById('cursor');
-const cursorFollower = document.getElementById('cursorFollower');
-let mouseX = 0;
-let mouseY = 0;
-let followerX = 0;
-let followerY = 0;
-document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    cursor.style.left = mouseX - 6 + 'px';
-    cursor.style.top = mouseY - 6 + 'px';
-});
-
-function animateFollower() {
-    followerX += (mouseX - followerX) * 0.1;
-    followerY += (mouseY - followerY) * 0.1;
-    cursorFollower.style.left = followerX - 20 + 'px';
-    cursorFollower.style.top = followerY - 20 + 'px';
-    requestAnimationFrame(animateFollower);
-}
-animateFollower();
-// ===================== PROFILE DROPDOWN =====================
-const profileTrigger =
-    document.getElementById('profileTrigger');
-const profileDropdown =
-    document.getElementById('profileDropdown');
-if (profileTrigger && profileDropdown) {
-    profileTrigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        profileDropdown.classList.toggle('active');
-    });
-
-    document.addEventListener('click', (e) => {
-        if (
-            !profileTrigger.contains(e.target) &&
-            !profileDropdown.contains(e.target)
-        ) {
-    profileDropdown.classList.remove('active');
-        }
-    });
-}
-// ===================== SCROLL =====================
+// ===================== CURSOR =====================\nconst cursor = document.getElementById('cursor');\nconst cursorFollower = document.getElementById('cursorFollower');\nlet mouseX = window.innerWidth / 2;\nlet mouseY = window.innerHeight / 2;\nlet followerX = mouseX;\nlet followerY = mouseY;\n\nif (cursor && cursorFollower) {\n    document.addEventListener('mousemove', (e) => {\n        mouseX = e.clientX;\n        mouseY = e.clientY;\n        cursor.style.left = (mouseX - 20) + 'px';\n        cursor.style.top = (mouseY - 20) + 'px';\n    }, { passive: true });\n\n    function animatePawCursor() {\n        followerX += (mouseX - followerX) * 0.12;\n        followerY += (mouseY - followerY) * 0.12;\n        cursorFollower.style.left = (followerX - 30) + 'px';\n        cursorFollower.style.top = (followerY - 30) + 'px';\n        requestAnimationFrame(animatePawCursor);\n    }\n    animatePawCursor();\n\n    document.addEventListener('mouseover', (e) => {\n        const target = e.target.closest('a, button, .profile-trigger, .filter-btn, .pet-fav, .pet-card, .chat-launcher');\n        if (target) {\n            cursor.classList.add('hover');\n            cursorFollower.classList.add('hover');\n        }\n    });\n\n    document.addEventListener('mouseout', (e) => {\n        const target = e.target.closest('a, button, .profile-trigger, .filter-btn, .pet-fav, .pet-card, .chat-launcher');\n        if (target && !target.contains(e.relatedTarget)) {\n            cursor.classList.remove('hover');\n            cursorFollower.classList.remove('hover');\n        }\n    });\n}\n\n// ===================== SCROLL =====================
 const scrollProgress =
     document.getElementById('scrollProgress');
     window.addEventListener('scroll', () => {
@@ -905,25 +868,6 @@ document
         });
     }
 
-// ===================== PROFILE DROPDOWN =====================
-const profileTrigger =
-    document.getElementById('profileTrigger');
-const profileDropdown =
-    document.getElementById('profileDropdown');
-if (profileTrigger && profileDropdown) {
-    profileTrigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        profileDropdown.classList.toggle('active');
-    });
-    document.addEventListener('click', (e) => {
-        if (
-            !profileTrigger.contains(e.target) &&
-            !profileDropdown.contains(e.target)
-        ) {
-            profileDropdown.classList.remove('active');
-        }
-    });
-}
 // ===================== PET DATA =====================
 const DB_URL =
     "https://tailmatess-default-rtdb.asia-southeast1.firebasedatabase.app/.json";
