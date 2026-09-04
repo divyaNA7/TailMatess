@@ -604,7 +604,6 @@
       .back-btn, .icon-btn, .input-icon, .send-btn, .panel-close, .spot-card2, .time-btn, .confirm-btn2, .map-search-btn, .map-locate-btn, .map-send-btn, .map-result-item { cursor: pointer; }
     }
   </style>
-<base target="_blank">
 </head>
 <body>
 
@@ -747,7 +746,6 @@
         <button class="back-btn" onclick="history.back()">
           <i class="fa-solid fa-arrow-left"></i>
         </button>
-        <img src="https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop" class="header-avatar" alt="Pet" id="header-avatar">
         <div class="header-info">
           <h2 id="header-name">Whiskers (Siamese)</h2>
           <div class="header-status" id="header-status">Online</div>
@@ -763,12 +761,6 @@
       </div>
     </div>
 
-    <div class="pet-bar" id="pet-bar">
-      <img src="https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop" alt="Pet" id="pet-bar-img">
-      <div class="pet-bar-text">Chatting about <span id="pet-name">Whiskers</span></div>
-      <span class="pet-badge" id="match-score">88%</span>
-    </div>
-
     <!-- Messages area -->
     <div class="messages-area" id="chat-messages">
       <div class="date-separator"><span>Today</span></div>
@@ -780,12 +772,6 @@
       <p>You need to be logged in to message about this pet.</p>
       <a href="login.html" id="login-link">Go to Login</a>
     </div>
-
-    <div class="input-area" id="input-area">
-      <button class="input-icon" onclick="document.getElementById('camera-input').click()" title="Take photo">
-        <i class="fa-solid fa-camera" style="font-size:1.2rem;"></i>
-      </button>
-      <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none" onchange="handleCameraCapture(event)">
 
       <button class="input-icon" onclick="toggleMapPanel()" title="Share location">
         <i class="fa-solid fa-location-dot" style="font-size:1.2rem;"></i>
@@ -806,8 +792,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
-<script>
 
   // ===================== CURSOR =====================
   const cursor = document.getElementById('cursor');
@@ -1107,36 +1091,6 @@
   function formatTime(date) { return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
   function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
 
-  // ===================== CAMERA =====================
-  function handleCameraCapture(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const imageUrl = e.target.result;
-      const time = formatTime(new Date());
-      addImageMessageToUI('sent', imageUrl, time);
-      scrollToBottom();
-      saveMessage({ type: 'image', imageUrl: imageUrl, text: '', read: false });
-      event.target.value = '';
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function addImageMessageToUI(type, imageUrl, time) {
-    const row = document.createElement('div');
-    row.className = `msg-row ${type}`;
-    row.innerHTML = `
-      <div class="msg-bubble image-bubble" onclick="window.open('${imageUrl}', '_blank')">
-        <img src="${imageUrl}" alt="Photo">
-        <div class="msg-meta">
-          <span class="msg-time">${time}</span>
-          ${type === 'sent' ? `<span class="msg-read">\u2713\u2713</span>` : ''}
-        </div>
-      </div>`;
-    chatMessages.appendChild(row);
-    scrollToBottom();
-  }
 
   // ===================== MEETUP =====================
   function toggleMeetupPanel() {
