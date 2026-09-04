@@ -692,7 +692,7 @@
 
 <script type="module">
 // Firebase — inlined directly (same as index.html) so the page works standalone in preview
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -706,9 +706,11 @@ const firebaseConfig = {
     measurementId: "G-ZLQG062LVE"
 };
 
-const app = initializeApp(firebaseConfig);
+// Reuse an already-initialized app if firebase.js is also loaded on this page
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+let db = null;
+try { db = getFirestore(app); } catch (e) { console.warn("Firestore unavailable:", e); }
 
 // ===================== CURRENT USER =====================
 let currentUser = null;
@@ -941,7 +943,7 @@ function escapeHtml(text) {
 }
 // ===================== SAVED PET CHECK =====================
 async function isPetSaved(petId) {
-    if (!currentUser) {
+    if (!currentUser || !db) {
         return false;
     }
     try {
@@ -968,6 +970,11 @@ async function isPetSaved(petId) {
 window.toggleFav = async function(btn, e) {
 
     e.stopPropagation();
+
+    if (!db) {
+        alert("Saving pets is temporarily unavailable. Please try again later.");
+        return;
+    }
 
     if (!currentUser) {
 
@@ -1490,69 +1497,46 @@ filterBtns.forEach(btn => {
 
 // ===================== FETCH PETS =====================
 
+const DEMO_PETS = [
+    { _id: "demo-1", name: "Bruno", species: "Dog", breed: "Golden Retriever", age_months: 24, weight_kg: 28, avg_monthly_cost_inr: 3500, image_url: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=800&q=80", temperament: "Playful, Friendly, Loyal", care_level: "M", exercise: "H", location: "Mumbai" },
+    { _id: "demo-2", name: "Luna", species: "Cat", breed: "British Shorthair", age_months: 12, weight_kg: 4.5, avg_monthly_cost_inr: 2200, image_url: "https://images.unsplash.com/photo-1519052537078-e6302a4968d4?auto=format&fit=crop&w=800&q=80", temperament: "Calm, Indoor, Quiet", care_level: "L", exercise: "L", location: "Mumbai" },
+    { _id: "demo-3", name: "Snowball", species: "Rabbit", breed: "Snow Bunny", age_months: 8, weight_kg: 1.2, avg_monthly_cost_inr: 800, image_url: "https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=800&q=80", temperament: "Tiny, Curious, Soft", care_level: "L", exercise: "M", location: "Mumbai" },
+    { _id: "demo-4", name: "Spike", species: "Hedgehog", breed: "African Pygmy", age_months: 14, weight_kg: 0.4, avg_monthly_cost_inr: 600, image_url: "https://vetmed.illinois.edu/wp-content/uploads/2021/04/pc-keller-hedgehog.jpg", temperament: "Quiet, Nocturnal, Cute", care_level: "M", exercise: "L", location: "Mumbai" },
+    { _id: "demo-5", name: "Nibbles", species: "Hamster", breed: "Syrian Hamster", age_months: 6, weight_kg: 0.15, avg_monthly_cost_inr: 400, image_url: "https://images.unsplash.com/photo-1425082661705-1834bfd09dca?auto=format&fit=crop&w=800&q=80", temperament: "Small, Active, Cute", care_level: "L", exercise: "M", location: "Mumbai" },
+    { _id: "demo-6", name: "Karma", species: "Chameleon", breed: "Veiled Chameleon", age_months: 24, weight_kg: 0.18, avg_monthly_cost_inr: 1200, image_url: "https://images.unsplash.com/photo-1555169062-013468b47731?auto=format&fit=crop&w=800&q=80", temperament: "Exotic, Calm, Colorful", care_level: "H", exercise: "L", location: "Mumbai" },
+    { _id: "demo-7", name: "Max", species: "Dog", breed: "Beagle", age_months: 4, weight_kg: 8, avg_monthly_cost_inr: 2800, image_url: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=800&q=80", temperament: "Curious, Happy, Small", care_level: "M", exercise: "H", location: "Mumbai" },
+    { _id: "demo-8", name: "Milo", species: "Cat", breed: "Persian Cat", age_months: 36, weight_kg: 5, avg_monthly_cost_inr: 2500, image_url: "https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=800&q=80", temperament: "Fluffy, Gentle, Lap Cat", care_level: "H", exercise: "L", location: "Mumbai" }
+];
+
 fetch(DB_URL)
-
     .then(response => {
-
         if (!response.ok) {
-
-            throw new Error(
-                "Could not load pets."
-            );
-
+            throw new Error("Could not load pets.");
         }
-
         return response.json();
-
     })
-
     .then(data => {
-
         allPets = [];
-
-        for (
-            const key in data
-        ) {
-
-            if (
-                data.hasOwnProperty(key) &&
-                data[key] !== null
-            ) {
-
-                const pet = {
-                    ...data[key],
-                    _id: key
-                };
-
+        for (const key in data) {
+            if (data.hasOwnProperty(key) && data[key] !== null) {
+                const pet = { ...data[key], _id: key };
                 allPets.push(pet);
-
             }
-
         }
-
         renderPets(allPets);
-
     })
-
     .catch(err => {
-
-        const statusEl =
-            document.getElementById(
-                "status"
-            );
-
+        console.error("Firebase fetch failed:", err);
+        allPets = DEMO_PETS;
+        renderPets(allPets);
+        // Keep the page usable BUT make the failure visible for debugging
+        const statusEl = document.getElementById("status");
+        statusEl.style.display = 'block';
+        statusEl.className = 'status';
         statusEl.innerHTML =
-            '<i class="fa-solid fa-triangle-exclamation"></i>' +
-            'Error loading pets: ' +
-            escapeHtml(
-                err.message
-            );
-
-        statusEl.className =
-            'status error';
-
-        console.error(err);
-
+            '<i class="fa-solid fa-triangle-exclamation" style="color:#fbbf24"></i>' +
+            'Could not reach the pet database (' + escapeHtml(err.message) +
+            '). Showing sample pets.';
     });
 
 </script>
