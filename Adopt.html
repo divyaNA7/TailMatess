@@ -23,7 +23,7 @@
       --border: rgba(255, 255, 255, 0.08);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; cursor: none; }
+    html { scroll-behavior: smooth; }
     body {
       font-family: 'Inter', sans-serif;
       background: var(--bg);
@@ -101,13 +101,12 @@
 
     /* Navbar */
     .navbar {
-      position: fixed; top: 0; left: 0; width: 100%; z-index: 10000; overflow: visible;
+      position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
       padding: 1rem 3rem;
       background: rgba(10,10,15,0.8); backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border);
     }
     .nav-inner {
-      position: relative; z-index: 10001; overflow: visible;
       max-width: 1400px; margin: 0 auto;
       display: flex; align-items: center; justify-content: space-between;
     }
@@ -282,7 +281,7 @@
     }
 
     /* Profile */
-.nav-profile { position: relative; z-index: 10002; }
+.nav-profile { position: relative; }
         .profile-trigger {
             display: flex; align-items: center; gap: 10px;
             padding: 0.4rem 0.8rem 0.4rem 0.4rem;
@@ -303,9 +302,9 @@
             border-radius: 16px; backdrop-filter: blur(30px);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             padding: 0.8rem 0; opacity: 0; visibility: hidden;
-            transform: translateY(-10px); transition: all 0.3s ease; z-index: 10003; pointer-events: none;
+            transform: translateY(-10px); transition: all 0.3s ease; z-index: 1001;
         }
-        .profile-dropdown.active { opacity: 1 !important; visibility: visible !important; transform: translateY(0); pointer-events: auto; }
+        .profile-dropdown.active { opacity: 1; visibility: visible; transform: translateY(0); }
         .profile-dropdown a {
             display: flex; align-items: center; gap: 10px;
             padding: 0.7rem 1.2rem; color: var(--text-dim); text-decoration: none;
@@ -515,12 +514,9 @@
       body { cursor: auto; }
       .filter-btn, .pet-fav, .adopt-btn, .message-btn, .chat-launcher, .chat-close, .chat-input button, .chat-quick button, .footer-newsletter button, .socials a { cursor: pointer; }
     }
-  
-    .cursor, .cursor-follower { pointer-events: none !important; }
-    .profile-trigger { position: relative; z-index: 10004; pointer-events: auto !important; }
-    .profile-dropdown a { pointer-events: auto !important; }
-</style>
+  </style>
 
+<base target="_blank">
 </head>
 <body>
 
@@ -591,7 +587,7 @@
                     <a href="profile.html"><i class="fa-regular fa-user"></i> My Profile</a>
                     <a href="saved-pets.html"><i class="fa-solid fa-heart"></i> Saved Pets</a>
                     <a href="applications.html"><i class="fa-solid fa-clipboard-list"></i> My Applications</a>
-                    <a href="message.html"><i class="fa-solid fa-message"></i> Messages</a>
+                    <a href="message.html"><i class="fa-solid fa-paw"></i> Messages</a>
                     <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
                     <div class="profile-divider"></div>
                     <a href="#" class="profile-logout" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Log Out</a>
@@ -695,75 +691,120 @@
 </div>
 
 <script type="module">
+// Firebase — inlined directly (same as index.html) so the page works standalone in preview
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import {
-    auth,
-    db,
-    onAuthStateChanged,
-    signOut,
-    doc,
-    getDoc,
-    setDoc,
-    deleteDoc
-} from "./firebase.js";
-// ===================== CURSOR =====================\nconst cursor = document.getElementById('cursor');\nconst cursorFollower = document.getElementById('cursorFollower');\nlet mouseX = window.innerWidth / 2;\nlet mouseY = window.innerHeight / 2;\nlet followerX = mouseX;\nlet followerY = mouseY;\n\nif (cursor && cursorFollower) {\n    document.addEventListener('mousemove', (e) => {\n        mouseX = e.clientX;\n        mouseY = e.clientY;\n        cursor.style.left = (mouseX - 20) + 'px';\n        cursor.style.top = (mouseY - 20) + 'px';\n    }, { passive: true });\n\n    function animatePawCursor() {\n        followerX += (mouseX - followerX) * 0.12;\n        followerY += (mouseY - followerY) * 0.12;\n        cursorFollower.style.left = (followerX - 30) + 'px';\n        cursorFollower.style.top = (followerY - 30) + 'px';\n        requestAnimationFrame(animatePawCursor);\n    }\n    animatePawCursor();\n\n    document.addEventListener('mouseover', (e) => {\n        const target = e.target.closest('a, button, .profile-trigger, .filter-btn, .pet-fav, .pet-card, .chat-launcher');\n        if (target) {\n            cursor.classList.add('hover');\n            cursorFollower.classList.add('hover');\n        }\n    });\n\n    document.addEventListener('mouseout', (e) => {\n        const target = e.target.closest('a, button, .profile-trigger, .filter-btn, .pet-fav, .pet-card, .chat-launcher');\n        if (target && !target.contains(e.relatedTarget)) {\n            cursor.classList.remove('hover');\n            cursorFollower.classList.remove('hover');\n        }\n    });\n}\n\n// ===================== SCROLL =====================
-const scrollProgress =
-    document.getElementById('scrollProgress');
-    window.addEventListener('scroll', () => {
-    const st = window.scrollY;
-    const dh =
-        document.documentElement.scrollHeight -
-        window.innerHeight;
-    if (dh > 0) {
-        scrollProgress.style.width =
-            (st / dh * 100) + '%';
+const firebaseConfig = {
+    apiKey: "AIzaSyBifu5Te7paXOFUFrDUtogIPpi5H0xR7rY",
+    authDomain: "tailmatess.firebaseapp.com",
+    projectId: "tailmatess",
+    storageBucket: "tailmatess.firebasestorage.app",
+    messagingSenderId: "445299543083",
+    appId: "1:445299543083:web:e7be85a3eae32f8ba5ee6e",
+    measurementId: "G-ZLQG062LVE"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ===================== CURRENT USER =====================
+let currentUser = null;
+
+// ===================== CURSOR =====================
+const cursor = document.getElementById('cursor');
+const cursorFollower = document.getElementById('cursorFollower');
+let mouseX = 0;
+let mouseY = 0;
+let followerX = 0;
+let followerY = 0;
+
+document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    cursor.style.left = (mouseX - 6) + 'px';
+    cursor.style.top = (mouseY - 6) + 'px';
+});
+
+function animateFollower() {
+    followerX += (mouseX - followerX) * 0.1;
+    followerY += (mouseY - followerY) * 0.1;
+    cursorFollower.style.left = (followerX - 20) + 'px';
+    cursorFollower.style.top = (followerY - 20) + 'px';
+    requestAnimationFrame(animateFollower);
+}
+animateFollower();
+
+// Cursor hover glow (delegated so it also works on dynamically rendered pet cards)
+document.addEventListener('mouseover', (e) => {
+    if (e.target.closest('a, button, .pet-card, input, .filter-btn')) {
+        cursor.classList.add('hover');
+        cursorFollower.classList.add('hover');
     }
 });
+document.addEventListener('mouseout', (e) => {
+    const from = e.target.closest('a, button, .pet-card, input, .filter-btn');
+    if (from && !(e.relatedTarget && e.relatedTarget.closest && from.contains(e.relatedTarget))) {
+        cursor.classList.remove('hover');
+        cursorFollower.classList.remove('hover');
+    }
+});
+
+// ===================== SCROLL PROGRESS =====================
+const scrollProgress = document.getElementById('scrollProgress');
+window.addEventListener('scroll', () => {
+    const st = window.scrollY;
+    const dh = document.documentElement.scrollHeight - window.innerHeight;
+    if (dh > 0) {
+        scrollProgress.style.width = (st / dh * 100) + '%';
+    }
+});
+
+// ===================== PROFILE DROPDOWN =====================
+const profileTrigger = document.getElementById('profileTrigger');
+const profileDropdown = document.getElementById('profileDropdown');
+if (profileTrigger && profileDropdown) {
+    profileTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profileDropdown.classList.toggle('active');
+    });
+    document.addEventListener('click', (e) => {
+        if (!profileTrigger.contains(e.target) && !profileDropdown.contains(e.target)) {
+            profileDropdown.classList.remove('active');
+        }
+    });
+}
+
 // ===================== CHAT =====================
-const chatLauncher =
-    document.getElementById('chatLauncher');
-const chatPanel =
-    document.getElementById('chatPanel');
-const chatClose =
-    document.getElementById('chatClose');
-const chatForm =
-    document.getElementById('chatForm');
-const chatInput =
-    document.getElementById('chatInput');
-const chatMessages =
-    document.getElementById('chatMessages');
+const chatLauncher = document.getElementById('chatLauncher');
+const chatPanel = document.getElementById('chatPanel');
+const chatClose = document.getElementById('chatClose');
+const chatForm = document.getElementById('chatForm');
+const chatInput = document.getElementById('chatInput');
+const chatMessages = document.getElementById('chatMessages');
+
 if (chatLauncher && chatPanel) {
-    chatLauncher.addEventListener(
-        'click',
-        () => chatPanel.classList.toggle('active')
-    );
+    chatLauncher.addEventListener('click', () => chatPanel.classList.toggle('active'));
 }
 if (chatClose && chatPanel) {
-    chatClose.addEventListener(
-        'click',
-        () => chatPanel.classList.remove('active')
-    );
+    chatClose.addEventListener('click', () => chatPanel.classList.remove('active'));
 }
+
 function addMessage(text, isUser = false) {
     if (!chatMessages) return;
-    const msgDiv =
-        document.createElement('div');
-    msgDiv.className =
-        'chat-message ' +
-        (isUser ? 'user' : 'bot');
-    msgDiv.innerHTML =
-        '<div class="chat-bubble">' +
-        text +
-        '</div>';
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'chat-message ' + (isUser ? 'user' : 'bot');
+    msgDiv.innerHTML = '<div class="chat-bubble">' + text + '</div>';
     chatMessages.appendChild(msgDiv);
-    chatMessages.scrollTop =
-        chatMessages.scrollHeight;
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
+
 if (chatForm) {
     chatForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const text =
-            chatInput.value.trim();
+        const text = chatInput.value.trim();
         if (!text) return;
         addMessage(text, true);
         chatInput.value = '';
@@ -774,99 +815,78 @@ if (chatForm) {
                 "We have many wonderful pets waiting for homes. Would you like to browse dogs, cats, or small pets?",
                 "All our pets come with complete health records and are from verified shelters. You can trust the process!"
             ];
-            addMessage(
-                responses[
-                    Math.floor(
-                        Math.random() * responses.length
-                    )
-                ]
-            );
+            addMessage(responses[Math.floor(Math.random() * responses.length)]);
         }, 1000);
     });
 }
-document
-    .querySelectorAll('.chat-quick button')
-    .forEach(btn => {
-        btn.addEventListener('click', () => {
-            const message =
-                btn.getAttribute('data-message');
-            addMessage(message, true);
-            setTimeout(() => {
-                let response = '';
-                if (message.includes('dogs')) {
-                    response =
-                        "We have over 120 dogs waiting for homes! From playful Labradors to loyal Indies.";
-                } else if (message.includes('cats')) {
-                    response =
-                        "Our cat family has 80+ beautiful felines! From calm British Shorthairs to energetic tabbies.";
-                } else {
-                    response =
-                        "Let's find your perfect match! I'll need to know about your living situation, work schedule, and experience with pets.";
-                }
-                addMessage(response);
-            }, 1000);
-        });
+
+document.querySelectorAll('.chat-quick button').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const message = btn.getAttribute('data-message');
+        addMessage(message, true);
+        setTimeout(() => {
+            let response = '';
+            if (message.includes('dogs')) {
+                response = "We have over 120 dogs waiting for homes! From playful Labradors to loyal Indies.";
+            } else if (message.includes('cats')) {
+                response = "Our cat family has 80+ beautiful felines! From calm British Shorthairs to energetic tabbies.";
+            } else {
+                response = "Let's find your perfect match! I'll need to know about your living situation, work schedule, and experience with pets.";
+            }
+            addMessage(response);
+        }, 1000);
     });
+});
+
 // ===================== FIREBASE USER =====================
-// Profile UI elements
-    const profileName = document.getElementById('profileName');
-    const profileAvatar = document.getElementById('profileAvatar');
-    const dropdownUserName = document.getElementById('dropdownUserName');
-    const profileDropdownLoggedOut = document.getElementById('profileDropdownLoggedOut');
-    const profileDropdownLoggedIn = document.getElementById('profileDropdownLoggedIn');
-    const logoutBtn = document.getElementById('logoutBtn');
+const profileName = document.getElementById('profileName');
+const profileAvatar = document.getElementById('profileAvatar');
+const dropdownUserName = document.getElementById('dropdownUserName');
+const profileDropdownLoggedOut = document.getElementById('profileDropdownLoggedOut');
+const profileDropdownLoggedIn = document.getElementById('profileDropdownLoggedIn');
+const logoutBtn = document.getElementById('logoutBtn');
 
-    // Listen for auth state changes
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // User is signed in
-            const displayName = user.displayName || user.email.split('@')[0];
-            const email = user.email;
-            // Update profile trigger
-            profileName.textContent = displayName;
-            profileAvatar.innerHTML = '<i class="fa-solid fa-user-check"></i>';
-            // Update dropdown header
-            dropdownUserName.textContent = displayName;
-            // Show logged-in menu, hide logged-out menu
-            profileDropdownLoggedOut.style.display = 'none';
-            profileDropdownLoggedIn.style.display = 'block';
-            // Store user data in localStorage for other pages
-            localStorage.setItem('tailmates_user', JSON.stringify({
-                uid: user.uid,
-                email: user.email,
-                displayName: displayName,
-                photoURL: user.photoURL
-            }));
-        } else {
-            // User is signed out
-            profileName.textContent = 'Account';
-            profileAvatar.innerHTML = '<i class="fa-solid fa-user"></i>';
-            dropdownUserName.textContent = 'Profile';
+// Listen for auth state changes
+onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    if (user) {
+        // User is signed in
+        const displayName = user.displayName || user.email.split('@')[0];
+        profileName.textContent = displayName;
+        profileAvatar.innerHTML = '<i class="fa-solid fa-user-check"></i>';
+        dropdownUserName.textContent = displayName;
+        profileDropdownLoggedOut.style.display = 'none';
+        profileDropdownLoggedIn.style.display = 'block';
+        localStorage.setItem('tailmates_user', JSON.stringify({
+            uid: user.uid,
+            email: user.email,
+            displayName: displayName,
+            photoURL: user.photoURL
+        }));
+    } else {
+        // User is signed out
+        profileName.textContent = 'Account';
+        profileAvatar.innerHTML = '<i class="fa-solid fa-user"></i>';
+        dropdownUserName.textContent = 'Profile';
+        profileDropdownLoggedOut.style.display = 'block';
+        profileDropdownLoggedIn.style.display = 'none';
+        localStorage.removeItem('tailmates_user');
+    }
+});
 
-            // Show logged-out menu, hide logged-in menu
-            profileDropdownLoggedOut.style.display = 'block';
-            profileDropdownLoggedIn.style.display = 'none';
-
-            // Clear localStorage
-            localStorage.removeItem('tailmates_user');
+// ===================== LOGOUT =====================
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        try {
+            await signOut(auth);
+            profileDropdown.classList.remove('active');
+            window.location.href = "login.html";
+        } catch (error) {
+            console.error('Logout error:', error);
         }
     });
-
-    // Logout handler
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            try {
-                await signOut(auth);
-                // Close dropdown
-                document.getElementById('profileDropdown').classList.remove('active');
-                // Redirect to home or refresh
-                window.location.reload();
-            } catch (error) {
-                console.error('Logout error:', error);
-            }
-        });
-    }
+}
 
 // ===================== PET DATA =====================
 const DB_URL =
@@ -1466,42 +1486,6 @@ filterBtns.forEach(btn => {
 
 });
 
-
-// ===================== LOGOUT =====================
-
-const logoutBtn =
-    document.getElementById(
-        "logoutBtn"
-    );
-
-if (logoutBtn) {
-
-    logoutBtn.addEventListener(
-        "click",
-        async (e) => {
-
-            e.preventDefault();
-
-            try {
-
-                await signOut(auth);
-
-                window.location.href =
-                    "login.html";
-
-            } catch (error) {
-
-                console.error(
-                    "Logout error:",
-                    error
-                );
-
-            }
-
-        }
-    );
-
-}
 
 
 // ===================== FETCH PETS =====================
