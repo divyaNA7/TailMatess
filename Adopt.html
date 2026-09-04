@@ -739,7 +739,7 @@ function animateFollower() {
 }
 animateFollower();
 
-// Cursor hover glow (delegated so it also works on dynamically rendered pet cards)
+// Cursor hover glow 
 document.addEventListener('mouseover', (e) => {
     if (e.target.closest('a, button, .pet-card, input, .filter-btn')) {
         cursor.classList.add('hover');
@@ -1496,47 +1496,51 @@ filterBtns.forEach(btn => {
 
 
 // ===================== FETCH PETS =====================
-
-const DEMO_PETS = [
-    { _id: "demo-1", name: "Bruno", species: "Dog", breed: "Golden Retriever", age_months: 24, weight_kg: 28, avg_monthly_cost_inr: 3500, image_url: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=800&q=80", temperament: "Playful, Friendly, Loyal", care_level: "M", exercise: "H", location: "Mumbai" },
-    { _id: "demo-2", name: "Luna", species: "Cat", breed: "British Shorthair", age_months: 12, weight_kg: 4.5, avg_monthly_cost_inr: 2200, image_url: "https://images.unsplash.com/photo-1519052537078-e6302a4968d4?auto=format&fit=crop&w=800&q=80", temperament: "Calm, Indoor, Quiet", care_level: "L", exercise: "L", location: "Mumbai" },
-    { _id: "demo-3", name: "Snowball", species: "Rabbit", breed: "Snow Bunny", age_months: 8, weight_kg: 1.2, avg_monthly_cost_inr: 800, image_url: "https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=800&q=80", temperament: "Tiny, Curious, Soft", care_level: "L", exercise: "M", location: "Mumbai" },
-    { _id: "demo-4", name: "Spike", species: "Hedgehog", breed: "African Pygmy", age_months: 14, weight_kg: 0.4, avg_monthly_cost_inr: 600, image_url: "https://vetmed.illinois.edu/wp-content/uploads/2021/04/pc-keller-hedgehog.jpg", temperament: "Quiet, Nocturnal, Cute", care_level: "M", exercise: "L", location: "Mumbai" },
-    { _id: "demo-5", name: "Nibbles", species: "Hamster", breed: "Syrian Hamster", age_months: 6, weight_kg: 0.15, avg_monthly_cost_inr: 400, image_url: "https://images.unsplash.com/photo-1425082661705-1834bfd09dca?auto=format&fit=crop&w=800&q=80", temperament: "Small, Active, Cute", care_level: "L", exercise: "M", location: "Mumbai" },
-    { _id: "demo-6", name: "Karma", species: "Chameleon", breed: "Veiled Chameleon", age_months: 24, weight_kg: 0.18, avg_monthly_cost_inr: 1200, image_url: "https://images.unsplash.com/photo-1555169062-013468b47731?auto=format&fit=crop&w=800&q=80", temperament: "Exotic, Calm, Colorful", care_level: "H", exercise: "L", location: "Mumbai" },
-    { _id: "demo-7", name: "Max", species: "Dog", breed: "Beagle", age_months: 4, weight_kg: 8, avg_monthly_cost_inr: 2800, image_url: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=800&q=80", temperament: "Curious, Happy, Small", care_level: "M", exercise: "H", location: "Mumbai" },
-    { _id: "demo-8", name: "Milo", species: "Cat", breed: "Persian Cat", age_months: 36, weight_kg: 5, avg_monthly_cost_inr: 2500, image_url: "https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=800&q=80", temperament: "Fluffy, Gentle, Lap Cat", care_level: "H", exercise: "L", location: "Mumbai" }
-];
-
 fetch(DB_URL)
     .then(response => {
-        if (!response.ok) {
-            throw new Error("Could not load pets.");
-        }
+        if (!response.ok) throw new Error("HTTP " + response.status);
         return response.json();
     })
     .then(data => {
         allPets = [];
-        for (const key in data) {
-            if (data.hasOwnProperty(key) && data[key] !== null) {
-                const pet = { ...data[key], _id: key };
-                allPets.push(pet);
+
+        // Try root level first, then a nested "pets" node
+        const containers = [data, data ? data.pets : null];
+        for (const container of containers) {
+            if (!container || typeof container !== 'object') continue;
+            for (const key in container) {
+                const entry = container[key];
+                if (entry && typeof entry === 'object' && entry.name && entry.species) {
+                    allPets.push({ ...entry, _id: key });
+                }
             }
+            if (allPets.length > 0) break;
         }
+
+        console.log("Loaded pets:", allPets.length);
+
+        if (allPets.length === 0) {
+            const statusEl = document.getElementById("status");
+            statusEl.style.display = 'block';
+            statusEl.className = 'status';
+            statusEl.innerHTML =
+                '<i class="fa-solid fa-circle-exclamation"></i>' +
+                'No pets found in the database.';
+            return;
+        }
+
+        allPets.sort((a, b) => (a.pet_id || 0) - (b.pet_id || 0));
         renderPets(allPets);
     })
     .catch(err => {
         console.error("Firebase fetch failed:", err);
-        allPets = DEMO_PETS;
-        renderPets(allPets);
-        // Keep the page usable BUT make the failure visible for debugging
         const statusEl = document.getElementById("status");
         statusEl.style.display = 'block';
-        statusEl.className = 'status';
+        statusEl.className = 'status error';
         statusEl.innerHTML =
-            '<i class="fa-solid fa-triangle-exclamation" style="color:#fbbf24"></i>' +
-            'Could not reach the pet database (' + escapeHtml(err.message) +
-            '). Showing sample pets.';
+            '<i class="fa-solid fa-triangle-exclamation"></i>' +
+            'Could not load pets (' + escapeHtml(err.message) +
+            '). Please try again later.';
     });
 
 </script>
