@@ -910,7 +910,15 @@
     document.getElementById('chat-messages').style.display = 'flex';
 
     if (!otherUserId || otherUserId === 'lister_demo') {
-      await loadMyConversations();
+      // No owner was supplied: show the inbox only when the user explicitly
+      // opened message.html without pet-owner information.
+      if (urlParams.has('pet')) {
+        showChatError('This pet is not linked to an owner account yet. Please add the ownerId to the pet record in Firebase.');
+      } else {
+        await loadMyConversations();
+      }
+    } else if (otherUserId === currentUser.uid) {
+      showChatError('You cannot start an adoption conversation with your own account. Check the pet ownerId in Firebase.');
     } else {
       await initSingleChat();
     }
@@ -1002,9 +1010,28 @@
     if (headerName) headerName.textContent = urlParams.get('owner') || 'Yumna';
     document.title = `Chat - ${petName} | TailMates`;
 
-    await getOrCreateConversation();
+    const id = await getOrCreateConversation();
+    if (!id) {
+      showChatError('The pet owner could not be identified. Check the ownerId stored on this pet.');
+      return;
+    }
     await loadOtherUserProfile();
     loadMessagesFromFirebase();
+  }
+
+  function showChatError(message) {
+    document.getElementById('header-name').textContent = 'Messaging unavailable';
+    document.getElementById('header-status').textContent = 'Pet owner not linked';
+    document.getElementById('input-area').style.display = 'none';
+    document.getElementById('chat-messages').style.display = 'flex';
+    document.getElementById('chat-messages').innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;min-height:100%;padding:2rem;text-align:center;">
+        <div style="max-width:520px;color:var(--text-dim);">
+          <i class="fa-solid fa-user-slash" style="font-size:2.5rem;color:var(--secondary);margin-bottom:1rem;"></i>
+          <h3 style="color:var(--text);margin-bottom:.6rem;">Cannot open this chat</h3>
+          <p>${escapeHtml(message)}</p>
+        </div>
+      </div>`;
   }
 
   function showNotLoggedIn() {
@@ -1015,6 +1042,7 @@
 
   async function getOrCreateConversation() {
     if (!currentUser || !otherUserId) return null;
+    if (!otherUserId || otherUserId === currentUser.uid) return null;
     const participants = [currentUser.uid, otherUserId].sort();
     conversationId = participants.join('_') + '_' + petId;
     const convRef = db.collection('conversations').doc(conversationId);
