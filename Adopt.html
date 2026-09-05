@@ -889,6 +889,7 @@ if (chatForm) {
                 "I'd love to help you find the perfect pet! What type of companion are you looking for?",
                 "That's a great question! Our PawMate AI can analyze your lifestyle to suggest the best matches.",
                 "We have many wonderful pets waiting for homes. Would you like to browse dogs, cats, or small pets?",
+                "All our pets come with complete health records and are from verified shelters. You can trust the process!"
             ];
             addMessage(responses[Math.floor(Math.random() * responses.length)]);
         }, 1000);
@@ -1485,101 +1486,46 @@ async function renderPets(pets) {
 }
 
 // ===================== FILTERS + SEARCH =====================
-
 const filterBtns = document.querySelectorAll('.filter-btn');
 const petSearch = document.getElementById('petSearch');
 const searchBtn = document.getElementById('searchBtn');
 const searchHint = document.getElementById('searchHint');
-
 let activeFilter = 'all';
 let searchTerm = '';
 let searchTimer = null;
-let renderVersion = 0;
 
 function getFilteredPets() {
-    let pets = allPets;
-
-    if (activeFilter !== 'all') {
-        pets = pets.filter(p =>
-            p &&
-            getSpeciesCategory(p.species) === activeFilter
-        );
-    }
-
-    if (searchTerm) {
-        const term = searchTerm.toLowerCase();
-        pets = pets.filter(p => {
-            const name = (p.name || '').toString().toLowerCase();
-            const breed = (p.breed || '').toString().toLowerCase();
-
-            return name.includes(term) || breed.includes(term);
-        });
-    }
-
+    let pets = Array.isArray(allPets) ? allPets : [];
+    if (activeFilter !== 'all') pets = pets.filter(p => p && getSpeciesCategory(p.species) === activeFilter);
+    const term = searchTerm.toLowerCase();
+    if (term) pets = pets.filter(p => String(p.name || '').toLowerCase().includes(term) || String(p.breed || '').toLowerCase().includes(term));
     return pets;
 }
-
 function updateSearchUI() {
-    const categoryNames = {
-        all: 'All Pets',
-        dog: 'Dogs',
-        cat: 'Cats',
-        small: 'Small Pets',
-        exotic: 'Exotic'
-    };
-
-    const categoryName = categoryNames[activeFilter] || 'Pets';
-
-    if (petSearch) {
-        petSearch.placeholder =
-            `Search ${categoryName.toLowerCase()} by name or breed...`;
-    }
-
-    if (searchHint) {
-        searchHint.textContent =
-            `Searching in ${categoryName} • Name or Breed`;
-    }
+    const names = {all:'All Pets',dog:'Dogs',cat:'Cats',small:'Small Pets',exotic:'Exotic'};
+    const n = names[activeFilter] || 'Pets';
+    if (petSearch) petSearch.placeholder = `Search ${n.toLowerCase()} by name or breed...`;
+    if (searchHint) searchHint.textContent = `Searching in ${n} • Name or Breed`;
 }
-
 function applyPetSearch() {
-    if (!petSearch) return;
-    searchTerm = petSearch.value.trim();
+    searchTerm = petSearch ? petSearch.value.trim() : '';
     renderPets(getFilteredPets());
 }
-
-function schedulePetSearch() {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(applyPetSearch, 180);
-}
-
-filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        filterBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        activeFilter = btn.getAttribute('data-filter') || 'all';
-        updateSearchUI();
-        applyPetSearch();
-    });
-});
-
-if (searchBtn) {
-    searchBtn.addEventListener('click', applyPetSearch);
-}
-
+filterBtns.forEach(btn => btn.addEventListener('click', () => {
+    filterBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter || 'all';
+    updateSearchUI();
+    applyPetSearch();
+}));
+if (searchBtn) searchBtn.addEventListener('click', applyPetSearch);
 if (petSearch) {
-    petSearch.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            applyPetSearch();
-        }
+    petSearch.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); applyPetSearch(); } });
+    petSearch.addEventListener('input', () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(applyPetSearch, 250);
     });
-
-    // Smooth live filtering while typing. Debouncing prevents multiple
-    // Firebase save-state checks/renders from running for every keystroke.
-    petSearch.addEventListener('input', schedulePetSearch);
 }
-
 updateSearchUI();
 
 // ===================== FETCH PETS =====================
