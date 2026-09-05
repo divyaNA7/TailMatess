@@ -205,25 +205,7 @@
     .icon-btn:hover { background: var(--primary-dim); color: var(--primary); }
     .icon-btn svg { width: 1.25rem; height: 1.25rem; }
 
-    /* Pet Bar */
-    .pet-bar {
-      background: linear-gradient(90deg, rgba(0, 245, 255, 0.08), rgba(168, 85, 247, 0.08));
-      padding: 0.5rem 1.25rem;
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; gap: 0.5rem;
-    }
-    .pet-bar img {
-      width: 1.75rem; height: 1.75rem; border-radius: 0.375rem; object-fit: cover;
-      border: 1px solid var(--border);
-    }
-    .pet-bar-text { font-size: 0.8rem; color: var(--text-dim); font-weight: 500; }
-    .pet-bar-text span { font-weight: 600; color: var(--primary); }
-    .pet-badge {
-      font-size: 0.65rem;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      color: var(--bg); padding: 0.15rem 0.6rem;
-      border-radius: 1rem; font-weight: 700; margin-left: auto;
-    }
+    /* Pet Bar removed from chat UI */
 
     /* Messages Area */
     .messages-area {
@@ -604,6 +586,7 @@
       .back-btn, .icon-btn, .input-icon, .send-btn, .panel-close, .spot-card2, .time-btn, .confirm-btn2, .map-search-btn, .map-locate-btn, .map-send-btn, .map-result-item { cursor: pointer; }
     }
   </style>
+<base target="_blank">
 </head>
 <body>
 
@@ -649,11 +632,6 @@
       <li><a href="index.html#about">About</a></li>
       <li><a href="register.html">Register a Pet</a></li>
     </ul>
-    <div style="display:flex;align-items:center;gap:0.75rem;">
-      <a href="message.html" class="icon-btn" title="Messages" style="color:var(--primary);">
-        <i class="fa-solid fa-comment-dots" style="font-size:1.1rem;"></i>
-      </a>
-    </div>
   </div>
 </nav>
 
@@ -746,8 +724,9 @@
         <button class="back-btn" onclick="history.back()">
           <i class="fa-solid fa-arrow-left"></i>
         </button>
+        <img src="https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop" class="header-avatar" alt="Pet" id="header-avatar">
         <div class="header-info">
-          <h2 id="header-name">Whiskers (Siamese)</h2>
+          <h2 id="header-name">Pet Owner</h2>
           <div class="header-status" id="header-status">Online</div>
         </div>
       </div>
@@ -759,6 +738,12 @@
           <i class="fa-solid fa-right-from-bracket" style="font-size:1.1rem;"></i>
         </button>
       </div>
+    </div>
+
+    <div class="pet-bar" id="pet-bar">
+      <img src="https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop" alt="Pet" id="pet-bar-img">
+      <div class="pet-bar-text">Chatting about <span id="pet-name">Whiskers</span></div>
+      <span class="pet-badge" id="match-score">88%</span>
     </div>
 
     <!-- Messages area -->
@@ -773,7 +758,8 @@
       <a href="login.html" id="login-link">Go to Login</a>
     </div>
 
-      <button class="input-icon" onclick="toggleMapPanel()" title="Share location">
+    <div class="input-area" id="input-area">
+<button class="input-icon" onclick="toggleMapPanel()" title="Share live location" aria-label="Share live location">
         <i class="fa-solid fa-location-dot" style="font-size:1.2rem;"></i>
       </button>
 
@@ -792,6 +778,8 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script>
 
   // ===================== CURSOR =====================
   const cursor = document.getElementById('cursor');
@@ -854,7 +842,6 @@
   const petBreed = urlParams.get('breed') || 'Siamese';
   const petImg = urlParams.get('img') || 'https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop';
   const otherUserId = urlParams.get('lister') || '';
-  const matchScore = urlParams.get('match') || '88';
 
   let selectedSpot = null;
   let selectedTime = null;
@@ -884,7 +871,6 @@
     document.title = 'My Chats | TailMates';
     document.getElementById('header-name').textContent = 'My Chats';
     document.getElementById('header-status').textContent = 'All conversations';
-    document.getElementById('pet-bar').style.display = 'none';
     document.getElementById('input-area').style.display = 'none';
 
     const chatMessages = document.getElementById('chat-messages');
@@ -928,7 +914,7 @@
           item.onclick = () => {
             const params = new URLSearchParams({
               pet: conv.petId, name: conv.petName, breed: '',
-              img: conv.petImage || '', lister: otherUid, match: '88'
+              img: conv.petImage || '', lister: otherUid
             });
             window.location.href = `message.html?${params.toString()}`;
           };
@@ -957,12 +943,6 @@
     const petBarImg = document.getElementById('pet-bar-img');
     const headerAvatar = document.getElementById('header-avatar');
     const petBar = document.getElementById('pet-bar');
-
-    if (petBar) petBar.style.display = 'flex';
-    if (headerName) headerName.textContent = `${petName} (${petBreed})`;
-    if (petNameEl) petNameEl.textContent = petName;
-    if (matchScoreEl) matchScoreEl.textContent = `${matchScore}%`;
-    if (petBarImg) petBarImg.src = petImg;
     if (headerAvatar) headerAvatar.src = petImg;
     document.title = `Chat - ${petName} | TailMates`;
 
@@ -975,7 +955,6 @@
     document.getElementById('not-logged').style.display = 'flex';
     document.getElementById('input-area').style.display = 'none';
     document.getElementById('chat-messages').style.display = 'none';
-    document.getElementById('pet-bar').style.display = 'none';
   }
 
   async function getOrCreateConversation() {
@@ -1004,8 +983,9 @@
         otherUserProfile = doc.data();
         const headerName = document.getElementById('header-name');
         const statusEl = document.getElementById('header-status');
-        if (headerName && otherUserProfile.name) headerName.textContent = `${otherUserProfile.name} - ${petName}`;
-        if (statusEl) statusEl.textContent = otherUserProfile.name || 'Online';
+        const ownerName = otherUserProfile.name || otherUserProfile.displayName || 'Pet Owner';
+        if (headerName) headerName.textContent = ownerName;
+        if (statusEl) statusEl.textContent = 'Online';
       }
     } catch (e) { console.log('Could not load other user profile'); }
   }
@@ -1090,7 +1070,6 @@
   function scrollToBottom() { chatMessages.scrollTop = chatMessages.scrollHeight; }
   function formatTime(date) { return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
   function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
-
 
   // ===================== MEETUP =====================
   function toggleMeetupPanel() {
