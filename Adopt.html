@@ -682,11 +682,12 @@
         <span>Search</span>
       </button>
     </div>
+    <div class="search-hint" id="searchHint">Searching in All Pets • Name or Breed</div>
   </div>
 </section>
 
 <!-- Loading State -->
-<div class="status" id="status"><i class="fa-solid fa-circle-notch fa-spin"></i>Loading pets...</div>
+<div class="status" id="status"><i class="fa-solid fa-circle-notch fa-spin"></i>Loading pets from shelters...</div>
 
 <!-- Pet Grid -->
 <div id="petList" class="pet-list"></div>
@@ -888,7 +889,6 @@ if (chatForm) {
                 "I'd love to help you find the perfect pet! What type of companion are you looking for?",
                 "That's a great question! Our PawMate AI can analyze your lifestyle to suggest the best matches.",
                 "We have many wonderful pets waiting for homes. Would you like to browse dogs, cats, or small pets?",
-                
             ];
             addMessage(responses[Math.floor(Math.random() * responses.length)]);
         }, 1000);
@@ -1320,6 +1320,10 @@ async function renderPets(pets) {
         const saved =
             await isPetSaved(petId);
 
+        // A newer search/category render may have started while Firebase was loading.
+        // Stop this old render so cards never appear from an outdated search.
+        if (thisRender !== renderVersion) return;
+
 
         const card =
             document.createElement(
@@ -1489,6 +1493,8 @@ const searchHint = document.getElementById('searchHint');
 
 let activeFilter = 'all';
 let searchTerm = '';
+let searchTimer = null;
+let renderVersion = 0;
 
 function getFilteredPets() {
     let pets = allPets;
@@ -1536,8 +1542,14 @@ function updateSearchUI() {
 }
 
 function applyPetSearch() {
-    searchTerm = petSearch ? petSearch.value.trim() : '';
+    if (!petSearch) return;
+    searchTerm = petSearch.value.trim();
     renderPets(getFilteredPets());
+}
+
+function schedulePetSearch() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(applyPetSearch, 180);
 }
 
 filterBtns.forEach(btn => {
@@ -1563,11 +1575,9 @@ if (petSearch) {
         }
     });
 
-    // Live filtering while typing
-    petSearch.addEventListener('input', () => {
-        searchTerm = petSearch.value.trim();
-        renderPets(getFilteredPets());
-    });
+    // Smooth live filtering while typing. Debouncing prevents multiple
+    // Firebase save-state checks/renders from running for every keystroke.
+    petSearch.addEventListener('input', schedulePetSearch);
 }
 
 updateSearchUI();
@@ -1607,7 +1617,7 @@ fetch(DB_URL)
         }
 
         allPets.sort((a, b) => (a.pet_id || 0) - (b.pet_id || 0));
-        renderPets(allPets);
+        renderPets(getFilteredPets());
     })
     .catch(err => {
         console.error("Firebase fetch failed:", err);
