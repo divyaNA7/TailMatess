@@ -205,7 +205,25 @@
     .icon-btn:hover { background: var(--primary-dim); color: var(--primary); }
     .icon-btn svg { width: 1.25rem; height: 1.25rem; }
 
-    /* Pet Bar removed from chat UI */
+    /* Pet Bar */
+    .pet-bar {
+      background: linear-gradient(90deg, rgba(0, 245, 255, 0.08), rgba(168, 85, 247, 0.08));
+      padding: 0.5rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .pet-bar img {
+      width: 1.75rem; height: 1.75rem; border-radius: 0.375rem; object-fit: cover;
+      border: 1px solid var(--border);
+    }
+    .pet-bar-text { font-size: 0.8rem; color: var(--text-dim); font-weight: 500; }
+    .pet-bar-text span { font-weight: 600; color: var(--primary); }
+    .pet-badge {
+      font-size: 0.65rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: var(--bg); padding: 0.15rem 0.6rem;
+      border-radius: 1rem; font-weight: 700; margin-left: auto;
+    }
 
     /* Messages Area */
     .messages-area {
@@ -587,6 +605,7 @@
     }
   </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
 
@@ -632,6 +651,11 @@
       <li><a href="index.html#about">About</a></li>
       <li><a href="register.html">Register a Pet</a></li>
     </ul>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <a href="message.html" class="icon-btn" title="Messages" style="color:var(--primary);">
+        <i class="fa-solid fa-comment-dots" style="font-size:1.1rem;"></i>
+      </a>
+    </div>
   </div>
 </nav>
 
@@ -726,7 +750,7 @@
         </button>
         <img src="https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop" class="header-avatar" alt="Pet" id="header-avatar">
         <div class="header-info">
-          <h2 id="header-name">Pet Owner</h2>
+          <h2 id="header-name">Whiskers (Siamese)</h2>
           <div class="header-status" id="header-status">Online</div>
         </div>
       </div>
@@ -759,7 +783,12 @@
     </div>
 
     <div class="input-area" id="input-area">
-<button class="input-icon" onclick="toggleMapPanel()" title="Share live location" aria-label="Share live location">
+      <button class="input-icon" onclick="document.getElementById('camera-input').click()" title="Take photo">
+        <i class="fa-solid fa-camera" style="font-size:1.2rem;"></i>
+      </button>
+      <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none" onchange="handleCameraCapture(event)">
+
+      <button class="input-icon" onclick="toggleMapPanel()" title="Share location">
         <i class="fa-solid fa-location-dot" style="font-size:1.2rem;"></i>
       </button>
 
@@ -800,10 +829,13 @@
   }
   animateFollower();
 
-  const hoverEls = document.querySelectorAll('a, button, .icon-btn, .input-icon, .send-btn, .spot-card2, .time-btn, .confirm-btn2, .map-search-btn, .map-locate-btn, .map-send-btn, .map-result-item, .back-btn, .panel-close');
-  hoverEls.forEach(el => {
-    el.addEventListener('mouseenter', () => { cursor.classList.add('hover'); cursorFollower.classList.add('hover'); });
-    el.addEventListener('mouseleave', () => { cursor.classList.remove('hover'); cursorFollower.classList.remove('hover'); });
+  // FIX: delegated hover — works for dynamically added messages / inbox items too
+  const HOVER_SEL = 'a, button, .icon-btn, .input-icon, .send-btn, .spot-card2, .time-btn, .confirm-btn2, .map-search-btn, .map-locate-btn, .map-send-btn, .map-result-item, .back-btn, .panel-close, .inbox-item, .image-bubble, .location-bubble';
+  document.addEventListener('mouseover', (e) => {
+    if (e.target.closest(HOVER_SEL)) { cursor.classList.add('hover'); cursorFollower.classList.add('hover'); }
+  });
+  document.addEventListener('mouseout', (e) => {
+    if (e.target.closest(HOVER_SEL)) { cursor.classList.remove('hover'); cursorFollower.classList.remove('hover'); }
   });
 
   // ===================== SCROLL PROGRESS =====================
@@ -815,6 +847,24 @@
   });
 
   // ===================== FIREBASE =====================
+  // SECURITY: restrict data with Firestore rules, e.g.
+  // rules_version = '2';
+  // service cloud.firestore {
+  //   match /databases/{db}/documents {
+  //     match /conversations/{id} {
+  //       allow read, update: if request.auth != null && request.auth.uid in resource.data.participants;
+  //       allow create: if request.auth != null && request.auth.uid in request.resource.data.participants;
+  //       match /messages/{msg} {
+  //         allow read, create: if request.auth != null
+  //           && request.auth.uid in get(/databases/$(db)/documents/conversations/$(id)).data.participants;
+  //       }
+  //     }
+  //     match /users/{uid} {
+  //       allow read: if request.auth != null;
+  //       allow write: if request.auth != null && request.auth.uid == uid;
+  //     }
+  //   }
+  // }
   const firebaseConfig = {
     apiKey: "AIzaSyBifu5Te7paXOFUFrDUtogIPpi5H0xR7rY",
     authDomain: "tailmatess.firebaseapp.com",
@@ -837,17 +887,24 @@
 
   // ===================== PET DATA =====================
   const urlParams = new URLSearchParams(window.location.search);
-  const petId = urlParams.get('pet') || 'whiskers-001';
+  const petId = (urlParams.get('pet') || 'whiskers-001')
+    .replace(/[^a-zA-Z0-9_-]/g, '_')   // FIX: sanitize — Firestore doc IDs cannot contain '/'
+    .slice(0, 100) || 'pet';
   const petName = urlParams.get('name') || 'Whiskers';
   const petBreed = urlParams.get('breed') || 'Siamese';
   const petImg = urlParams.get('img') || 'https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop';
   const otherUserId = urlParams.get('lister') || '';
+  const matchScore = urlParams.get('match') || '88';
 
   let selectedSpot = null;
   let selectedTime = null;
   let otherUserProfile = null;
 
   // ===================== AUTH =====================
+  if (!firebaseReady) {
+    console.error('Firebase failed to initialize. Chat is unavailable.');
+    showNotLoggedIn();
+  }
   auth.onAuthStateChanged(async (user) => {
     if (!user) {
       currentUser = null;
@@ -871,14 +928,15 @@
     document.title = 'My Chats | TailMates';
     document.getElementById('header-name').textContent = 'My Chats';
     document.getElementById('header-status').textContent = 'All conversations';
+    document.getElementById('pet-bar').style.display = 'none';
     document.getElementById('input-area').style.display = 'none';
 
     const chatMessages = document.getElementById('chat-messages');
     chatMessages.innerHTML = '<div class="date-separator"><span>Your Conversations</span></div>';
 
+    // FIX: no orderBy -> no composite index required; sorted client-side below
     db.collection('conversations')
       .where('participants', 'array-contains', currentUser.uid)
-      .orderBy('lastMessageTime', 'desc')
       .onSnapshot(async (snapshot) => {
         if (snapshot.empty) {
           chatMessages.innerHTML += `
@@ -891,9 +949,17 @@
         const oldItems = chatMessages.querySelectorAll('.inbox-item');
         oldItems.forEach(el => el.remove());
 
-        for (const doc of snapshot.docs) {
+        // FIX: sort client-side (newest first), tolerant of missing lastMessageTime
+        const sortedDocs = snapshot.docs.slice().sort((a, b) => {
+          const ta = a.data().lastMessageTime ? a.data().lastMessageTime.toMillis() : 0;
+          const tb = b.data().lastMessageTime ? b.data().lastMessageTime.toMillis() : 0;
+          return tb - ta;
+        });
+
+        for (const doc of sortedDocs) {
           const conv = doc.data();
-          const otherUid = conv.participants.find(id => id !== currentUser.uid);
+          const otherUid = (conv.participants || []).find(id => id !== currentUser.uid);
+          if (!otherUid) continue; // FIX: skip malformed conversations instead of crashing
           let otherName = 'User';
           let otherAvatar = `https://ui-avatars.com/api/?name=User&background=random`;
           try {
@@ -907,33 +973,36 @@
           const time = conv.lastMessageTime
             ? conv.lastMessageTime.toDate().toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })
             : '';
+          const unread = (conv.unread && conv.unread[currentUser.uid]) || 0;  // FIX: live unread badge
 
           const item = document.createElement('div');
           item.className = 'msg-row inbox-item';
           item.style.justifyContent = 'flex-start';
           item.onclick = () => {
             const params = new URLSearchParams({
-              pet: conv.petId, name: conv.petName, breed: '',
-              img: conv.petImage || '', lister: otherUid
+              pet: conv.petId || '', name: conv.petName || '', breed: '',
+              img: conv.petImage || '', lister: otherUid, match: '88'
             });
             window.location.href = `message.html?${params.toString()}`;
           };
+          // FIX: every Firestore-sourced string passed through escapeHtml()
           item.innerHTML = `
             <div class="msg-bubble">
-              <img src="${otherAvatar}" style="width:2.5rem;height:2.5rem;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid var(--border);">
+              <img src="${escapeHtml(otherAvatar)}" style="width:2.5rem;height:2.5rem;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid var(--border);">
               <div style="flex:1;min-width:0;">
-                <div style="font-weight:600;font-size:0.9rem;color:var(--text);display:flex;justify-content:space-between;">
-                  <span>${otherName} &middot; ${conv.petName}</span>
-                  <span style="font-weight:400;font-size:0.7rem;color:var(--text-dim);">${time}</span>
+                <div style="font-weight:600;font-size:0.9rem;color:var(--text);display:flex;justify-content:space-between;gap:0.5rem;">
+                  <span>${escapeHtml(otherName)} &middot; ${escapeHtml(conv.petName || 'Pet')}</span>
+                  <span style="font-weight:400;font-size:0.7rem;color:var(--text-dim);white-space:nowrap;">${time}</span>
                 </div>
-                <div style="font-size:0.8rem;color:var(--text-dim);margin-top:0.125rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                  ${conv.lastMessage || 'Start chatting'}
+                <div style="font-size:0.8rem;color:var(--text-dim);margin-top:0.125rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;justify-content:space-between;gap:0.5rem;">
+                  <span style="overflow:hidden;text-overflow:ellipsis;">${escapeHtml(conv.lastMessage || 'Start chatting')}</span>
+                  ${unread > 0 ? `<span style="background:var(--secondary);color:#fff;font-size:0.65rem;font-weight:700;min-width:1.1rem;height:1.1rem;border-radius:1rem;display:inline-flex;align-items:center;justify-content:center;padding:0 0.3rem;flex-shrink:0;">${unread > 9 ? '9+' : unread}</span>` : ''}
                 </div>
               </div>
             </div>`;
           chatMessages.appendChild(item);
         }
-      });
+      }, err => console.error('Inbox error:', err));
   }
 
   async function initSingleChat() {
@@ -943,6 +1012,12 @@
     const petBarImg = document.getElementById('pet-bar-img');
     const headerAvatar = document.getElementById('header-avatar');
     const petBar = document.getElementById('pet-bar');
+
+    if (petBar) petBar.style.display = 'flex';
+    if (headerName) headerName.textContent = `${petName} (${petBreed})`;
+    if (petNameEl) petNameEl.textContent = petName;
+    if (matchScoreEl) matchScoreEl.textContent = `${matchScore}%`;
+    if (petBarImg) petBarImg.src = petImg;
     if (headerAvatar) headerAvatar.src = petImg;
     document.title = `Chat - ${petName} | TailMates`;
 
@@ -955,6 +1030,7 @@
     document.getElementById('not-logged').style.display = 'flex';
     document.getElementById('input-area').style.display = 'none';
     document.getElementById('chat-messages').style.display = 'none';
+    document.getElementById('pet-bar').style.display = 'none';
   }
 
   async function getOrCreateConversation() {
@@ -969,8 +1045,11 @@
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         lastMessage: '',
         lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
-        unreadCount: 0
+        unread: { [currentUser.uid]: 0, [otherUserId]: 0 }   // FIX: per-user unread map
       });
+    } else {
+      // FIX: opening the chat clears my unread badge
+      await convRef.update({ [`unread.${currentUser.uid}`]: 0 });
     }
     return conversationId;
   }
@@ -983,9 +1062,8 @@
         otherUserProfile = doc.data();
         const headerName = document.getElementById('header-name');
         const statusEl = document.getElementById('header-status');
-        const ownerName = otherUserProfile.name || otherUserProfile.displayName || 'Pet Owner';
-        if (headerName) headerName.textContent = ownerName;
-        if (statusEl) statusEl.textContent = 'Online';
+        if (headerName && otherUserProfile.name) headerName.textContent = `${otherUserProfile.name} - ${petName}`;
+        if (statusEl) statusEl.textContent = 'Online';   // FIX: this field is a status, not a name
       }
     } catch (e) { console.log('Could not load other user profile'); }
   }
@@ -998,7 +1076,15 @@
     if (unsubMessages) unsubMessages();
     const msgsRef = db.collection('conversations').doc(conversationId).collection('messages').orderBy('time', 'asc');
     unsubMessages = msgsRef.onSnapshot(snapshot => {
+      // FIX: remember position so the full rebuild doesn't jump the scroll
+      const prevHeight = chatMessages.scrollHeight;
+      const prevTop = chatMessages.scrollTop;
+      const nearBottom = (prevHeight - prevTop - chatMessages.clientHeight) < 80;
+
       chatMessages.innerHTML = '<div class="date-separator"><span>Today</span></div>';
+      const readBatch = db.batch();
+      let hasUnreadIncoming = false;
+
       snapshot.forEach(doc => {
         const m = doc.data();
         const isMe = m.sender === currentUser.uid;
@@ -1013,8 +1099,16 @@
         } else {
           addMessageToUI(type, m.text, time, m.read || false);
         }
+        // FIX: actually mark incoming messages read (updates ✓ -> ✓✓ for the sender)
+        if (!isMe && !m.read) { readBatch.update(doc.ref, { read: true }); hasUnreadIncoming = true; }
       });
-      scrollToBottom();
+
+      if (nearBottom || prevHeight === 0) scrollToBottom();
+      else chatMessages.scrollTop = chatMessages.scrollHeight - prevHeight + prevTop;
+
+      if (hasUnreadIncoming && !snapshot.metadata.hasPendingWrites) {
+        readBatch.commit().catch(e => console.error('Mark-read error:', e));
+      }
     }, err => console.error("Messages error:", err));
   }
 
@@ -1023,11 +1117,13 @@
     const msgData = { ...data, sender: currentUser.uid, senderName: currentUser.displayName || 'User', time: firebase.firestore.FieldValue.serverTimestamp() };
     try {
       await db.collection('conversations').doc(conversationId).collection('messages').add(msgData);
-      await db.collection('conversations').doc(conversationId).update({
-        lastMessage: data.type === 'text' ? data.text : (data.type === 'image' ? 'Photo' : 'Location'),
+      const updatePayload = {
+        lastMessage: data.type === 'text' ? data.text : (data.type === 'image' ? 'Photo' : (data.type === 'system' ? 'Meetup scheduled' : 'Location')),
         lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
         lastSender: currentUser.uid
-      });
+      };
+      if (otherUserId) updatePayload[`unread.${otherUserId}`] = firebase.firestore.FieldValue.increment(1);
+      await db.collection('conversations').doc(conversationId).update(updatePayload);
     } catch (e) { console.error("Error saving message:", e); }
   }
 
@@ -1069,7 +1165,42 @@
 
   function scrollToBottom() { chatMessages.scrollTop = chatMessages.scrollHeight; }
   function formatTime(date) { return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
-  function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = String(text ?? '');
+    return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');  // FIX: quote-safe for attributes
+  }
+
+  // ===================== CAMERA =====================
+  function handleCameraCapture(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imageUrl = e.target.result;
+      const time = formatTime(new Date());
+      addImageMessageToUI('sent', imageUrl, time);
+      scrollToBottom();
+      saveMessage({ type: 'image', imageUrl: imageUrl, text: '', read: false });
+      event.target.value = '';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function addImageMessageToUI(type, imageUrl, time) {
+    const row = document.createElement('div');
+    row.className = `msg-row ${type}`;
+    row.innerHTML = `
+      <div class="msg-bubble image-bubble" onclick="window.open('${imageUrl}', '_blank')">
+        <img src="${imageUrl}" alt="Photo">
+        <div class="msg-meta">
+          <span class="msg-time">${time}</span>
+          ${type === 'sent' ? `<span class="msg-read">\u2713\u2713</span>` : ''}
+        </div>
+      </div>`;
+    chatMessages.appendChild(row);
+    scrollToBottom();
+  }
 
   // ===================== MEETUP =====================
   function toggleMeetupPanel() {
@@ -1240,14 +1371,15 @@
 
   async function sendLocation() {
     if (!selectedLocation || !currentUser) return;
+    const loc = { ...selectedLocation };   // FIX: snapshot BEFORE toggleMapPanel() nulls it
     const time = formatTime(new Date());
-    addLocationMessageToUI('sent', selectedLocation, time);
+    addLocationMessageToUI('sent', loc, time);
     scrollToBottom();
-    toggleMapPanel();
     await saveMessage({
-      type: 'location', lat: selectedLocation.lat, lng: selectedLocation.lng,
-      name: selectedLocation.name, address: selectedLocation.address, read: false
+      type: 'location', lat: loc.lat, lng: loc.lng,
+      name: loc.name, address: loc.address, read: false
     });
+    toggleMapPanel();                       // FIX: close panel only AFTER saving
   }
 
   function addLocationMessageToUI(type, loc, time) {
