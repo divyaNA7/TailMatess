@@ -265,20 +265,6 @@
       display: flex; align-items: center; gap: 6px;
     }
     .pet-meta span i { color: var(--secondary); font-size: 0.75rem; }
-    .adopt-btn {
-      width: 100%; padding: 0.8rem;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      color: var(--bg); border: none; border-radius: 50px;
-      font-size: 0.9rem; font-weight: 700; cursor: none;
-      box-shadow: 0 0 20px rgba(0,245,255,0.15);
-      transition: all 0.3s ease;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      font-family: inherit;
-    }
-    .adopt-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 0 30px rgba(0,245,255,0.3);
-    }
 
     /* Profile */
 .nav-profile { position: relative; }
@@ -598,7 +584,7 @@
 <!-- Hero -->
 <section class="adopt-hero">
   <h1><i class="fa-solid fa-heart" style="margin-right:12px;"></i>Find Your Forever Friend</h1>
-  <p>Browse loving companions from verified shelters across India. Every pet here is waiting for a home.</p>
+  <p>Every pet here is waiting for a home.</p>
   <div class="filters">
     <button class="filter-btn active" data-filter="all"><i class="fa-solid fa-paw"></i> All Pets</button>
     <button class="filter-btn" data-filter="dog"><i class="fa-solid fa-dog"></i> Dogs</button>
@@ -689,7 +675,6 @@
 </div>
 
 <script type="module">
-// Firebase — inlined directly (same as index.html) so the page works standalone in preview
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -704,7 +689,6 @@ const firebaseConfig = {
     measurementId: "G-ZLQG062LVE"
 };
 
-// Reuse an already-initialized app if firebase.js is also loaded on this page
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 let db = null;
@@ -1375,13 +1359,7 @@ async function renderPets(pets) {
 
                 <div class="pet-actions">
 
-                    <button
-                        class="adopt-btn"
-                        onclick="adoptPet('${escapeHtml(name)}')"
-                    >
-                        <i class="fa-solid fa-heart"></i>
-                        Adopt Me
-                    </button>
+
 
                     <a
                         href="message.html"
@@ -1408,20 +1386,6 @@ async function renderPets(pets) {
     }
 
 }
-
-
-// ===================== ADOPT BUTTON =====================
-
-window.adoptPet = function(name) {
-
-    alert(
-        "Interested in adopting " +
-        name +
-        "! We'll take you through the application process next."
-    );
-
-};
-
 
 // ===================== FILTERS =====================
 
