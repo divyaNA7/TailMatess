@@ -174,6 +174,80 @@
       color: var(--primary); box-shadow: 0 0 20px rgba(0,245,255,0.1);
     }
 
+
+    /* Category Search */
+    .category-search {
+      max-width: 760px;
+      margin: -1.5rem auto 3rem;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 10;
+    }
+    .category-search-box {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.45rem;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 60px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+    }
+    .category-search-box i {
+      color: var(--primary);
+      margin-left: 1rem;
+      font-size: 0.95rem;
+    }
+    .category-search-box input {
+      flex: 1;
+      min-width: 0;
+      padding: 0.8rem 0.5rem;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+    .category-search-box input::placeholder { color: var(--text-dim); }
+    .category-search-box button {
+      border: none;
+      border-radius: 50px;
+      padding: 0.75rem 1.25rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: var(--bg);
+      font-family: inherit;
+      font-weight: 700;
+      cursor: none;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.3s ease;
+    }
+    .category-search-box button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 25px rgba(0,245,255,0.25);
+    }
+    .search-hint {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      margin-top: 0.7rem;
+    }
+    @media (max-width: 600px) {
+      .category-search {
+        margin-top: -0.5rem;
+      }
+      .category-search-box button span { display: none; }
+      .category-search-box button {
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        justify-content: center;
+      }
+    }
+
     /* Pet Grid */
     .pet-list {
       display: grid;
@@ -592,10 +666,28 @@
     <button class="filter-btn" data-filter="small"><i class="fa-solid fa-carrot"></i> Small Pets</button>
     <button class="filter-btn" data-filter="exotic"><i class="fa-solid fa-dragon"></i> Exotic</button>
   </div>
+
+  <!-- Category Search -->
+  <div class="category-search">
+    <div class="category-search-box">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input
+        type="search"
+        id="petSearch"
+        placeholder="Search by pet name or breed..."
+        autocomplete="off"
+      >
+      <button type="button" id="searchBtn" title="Search pets">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span>Search</span>
+      </button>
+    </div>
+    <div class="search-hint" id="searchHint">Searching in All Pets • Name or Breed</div>
+  </div>
 </section>
 
 <!-- Loading State -->
-<div class="status" id="status"><i class="fa-solid fa-circle-notch fa-spin"></i>Loading pets from shelters...</div>
+<div class="status" id="status"><i class="fa-solid fa-circle-notch fa-spin"></i>Loading pets...</div>
 
 <!-- Pet Grid -->
 <div id="petList" class="pet-list"></div>
@@ -797,7 +889,7 @@ if (chatForm) {
                 "I'd love to help you find the perfect pet! What type of companion are you looking for?",
                 "That's a great question! Our PawMate AI can analyze your lifestyle to suggest the best matches.",
                 "We have many wonderful pets waiting for homes. Would you like to browse dogs, cats, or small pets?",
-                "All our pets come with complete health records and are from verified shelters. You can trust the process!"
+                
             ];
             addMessage(responses[Math.floor(Math.random() * responses.length)]);
         }, 1000);
@@ -1131,7 +1223,9 @@ async function renderPets(pets) {
 
         statusEl.innerHTML =
             '<i class="fa-solid fa-circle-exclamation"></i>' +
-            'No pets found matching your filter.';
+            searchTerm
+                ? 'No pets found matching "' + escapeHtml(searchTerm) + '".'
+                : 'No pets found matching your filter.';
 
         statusEl.className =
             'status';
@@ -1387,75 +1481,97 @@ async function renderPets(pets) {
 
 }
 
-// ===================== FILTERS =====================
+// ===================== FILTERS + SEARCH =====================
 
-const filterBtns =
-    document.querySelectorAll(
-        '.filter-btn'
-    );
+const filterBtns = document.querySelectorAll('.filter-btn');
+const petSearch = document.getElementById('petSearch');
+const searchBtn = document.getElementById('searchBtn');
+const searchHint = document.getElementById('searchHint');
 
+let activeFilter = 'all';
+let searchTerm = '';
+
+function getFilteredPets() {
+    let pets = allPets;
+
+    if (activeFilter !== 'all') {
+        pets = pets.filter(p =>
+            p &&
+            getSpeciesCategory(p.species) === activeFilter
+        );
+    }
+
+    if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        pets = pets.filter(p => {
+            const name = (p.name || '').toString().toLowerCase();
+            const breed = (p.breed || '').toString().toLowerCase();
+
+            return name.includes(term) || breed.includes(term);
+        });
+    }
+
+    return pets;
+}
+
+function updateSearchUI() {
+    const categoryNames = {
+        all: 'All Pets',
+        dog: 'Dogs',
+        cat: 'Cats',
+        small: 'Small Pets',
+        exotic: 'Exotic'
+    };
+
+    const categoryName = categoryNames[activeFilter] || 'Pets';
+
+    if (petSearch) {
+        petSearch.placeholder =
+            `Search ${categoryName.toLowerCase()} by name or breed...`;
+    }
+
+    if (searchHint) {
+        searchHint.textContent =
+            `Searching in ${categoryName} • Name or Breed`;
+    }
+}
+
+function applyPetSearch() {
+    searchTerm = petSearch ? petSearch.value.trim() : '';
+    renderPets(getFilteredPets());
+}
 
 filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
 
-    btn.addEventListener(
-        'click',
-        () => {
-
-            filterBtns.forEach(
-                b =>
-                    b.classList.remove(
-                        'active'
-                    )
-            );
-
-            btn.classList.add(
-                'active'
-            );
-
-
-            const filter =
-                btn.getAttribute(
-                    'data-filter'
-                );
-
-
-            if (filter === 'all') {
-
-                renderPets(allPets);
-
-            } else {
-
-                const filtered =
-                    allPets.filter(
-                        p => {
-
-                            if (
-                                !p ||
-                                !p.species
-                            ) {
-                                return false;
-                            }
-
-                            return (
-                                getSpeciesCategory(
-                                    p.species
-                                ) === filter
-                            );
-
-                        }
-                    );
-
-
-                renderPets(filtered);
-
-            }
-
-        }
-    );
-
+        activeFilter = btn.getAttribute('data-filter') || 'all';
+        updateSearchUI();
+        applyPetSearch();
+    });
 });
 
+if (searchBtn) {
+    searchBtn.addEventListener('click', applyPetSearch);
+}
 
+if (petSearch) {
+    petSearch.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            applyPetSearch();
+        }
+    });
+
+    // Live filtering while typing
+    petSearch.addEventListener('input', () => {
+        searchTerm = petSearch.value.trim();
+        renderPets(getFilteredPets());
+    });
+}
+
+updateSearchUI();
 
 // ===================== FETCH PETS =====================
 fetch(DB_URL)
