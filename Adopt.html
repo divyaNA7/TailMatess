@@ -682,12 +682,11 @@
         <span>Search</span>
       </button>
     </div>
-    <div class="search-hint" id="searchHint">Searching in All Pets • Name or Breed</div>
   </div>
 </section>
 
 <!-- Loading State -->
-<div class="status" id="status"><i class="fa-solid fa-circle-notch fa-spin"></i>Loading pets from shelters...</div>
+<div class="status" id="status"><i class="fa-solid fa-circle-notch fa-spin"></i>Loading pets...</div>
 
 <!-- Pet Grid -->
 <div id="petList" class="pet-list"></div>
@@ -697,7 +696,7 @@
   <div class="footer-grid">
     <div class="footer-brand">
       <h3><i class="fa-solid fa-paw"></i> TailMates</h3>
-      <p>Connecting loving families with rescued companions. Every paw deserves a forever home.</p>
+      <p>Every paw deserves a forever home.</p>
       <div class="footer-newsletter">
         <input type="email" placeholder="Enter your email">
         <button><i class="fa-solid fa-paper-plane"></i></button>
@@ -889,7 +888,6 @@ if (chatForm) {
                 "I'd love to help you find the perfect pet! What type of companion are you looking for?",
                 "That's a great question! Our PawMate AI can analyze your lifestyle to suggest the best matches.",
                 "We have many wonderful pets waiting for homes. Would you like to browse dogs, cats, or small pets?",
-                "All our pets come with complete health records and are from verified shelters. You can trust the process!"
             ];
             addMessage(responses[Math.floor(Math.random() * responses.length)]);
         }, 1000);
@@ -1215,9 +1213,7 @@ async function renderPets(pets) {
             "status"
         );
 
-
     container.innerHTML = '';
-
 
     if (pets.length === 0) {
 
@@ -1237,10 +1233,8 @@ async function renderPets(pets) {
 
     }
 
-
     statusEl.style.display =
         'none';
-
 
     for (
         let index = 0;
@@ -1257,17 +1251,14 @@ async function renderPets(pets) {
             continue;
         }
 
-
         const petId =
             pet._id ||
             ("pet-" + index);
-
 
         const age =
             pet.age_months
                 ? (pet.age_months / 12).toFixed(1)
                 : "?";
-
 
         const cost =
             pet.avg_monthly_cost_inr
@@ -1276,56 +1267,44 @@ async function renderPets(pets) {
                     .toLocaleString()
                 : "";
 
-
         const weight =
             pet.weight_kg
                 ? pet.weight_kg + " kg"
                 : "?";
 
-
         const species =
             pet.species || "";
-
 
         const breed =
             pet.breed || "";
 
-
         const name =
             pet.name || "Unknown";
-
 
         const care =
             getCareLabel(
                 pet.care_level
             );
 
-
         const exercise =
             getExerciseLabel(
                 pet.exercise
             );
-
 
         const category =
             getSpeciesCategory(
                 species
             );
 
-
         const imgUrl =
             pet.image_url || "";
-
 
         const temperament =
             pet.temperament || "";
 
-
-        // Do not wait for Firestore before displaying the pet card.
-        // The saved state is applied asynchronously after the card is visible.
+        // Doesn't wait for Firestore before displaying the pet card.
+        // Saved state is applied asynchronously after the card is visible.
         const saved = false;
-
-
         const card =
             document.createElement(
                 "div"
@@ -1342,9 +1321,7 @@ async function renderPets(pets) {
         card.style.animationDelay =
             (index * 0.05) + "s";
 
-
         let tagsHtml = '';
-
 
         if (temperament) {
 
@@ -1378,7 +1355,6 @@ async function renderPets(pets) {
 
         }
 
-
         card.innerHTML = `
 
             <div class="img-box">
@@ -1411,12 +1387,9 @@ async function renderPets(pets) {
                     } fa-heart"></i>
 
                 </button>
-
             </div>
 
-
             <div class="pet-card-body">
-
                 <div class="pet-card-header">
 
                     <h3>
@@ -1429,16 +1402,13 @@ async function renderPets(pets) {
 
                 </div>
 
-
                 <div class="pet-breed">
                     ${escapeHtml(breed)}
                 </div>
 
-
                 <div class="pet-tags">
                     ${tagsHtml}
                 </div>
-
 
                 <div class="pet-meta">
 
@@ -1451,36 +1421,25 @@ async function renderPets(pets) {
                         <i class="fa-solid fa-indian-rupee-sign"></i>
                         ${cost}/mo
                     </span>
-
                 </div>
-
 
                 <div class="pet-actions">
 
-
-
-                    <a
-                        href="message.html"
+                    <a  href="message.html"
                         class="message-btn"
                         title="Message about ${escapeHtml(name)}"
                     >
                         <i class="fa-solid fa-message"></i>
                         Message
                     </a>
-
                 </div>
-
             </div>
-
         `;
-
 
         // Store Firebase pet ID on object
         pet._id = petId;
 
-
         container.appendChild(card);
-
         // Check the saved state after rendering so Firebase cannot block the pet list.
         if (currentUser && db) {
             isPetSaved(petId).then(isSaved => {
@@ -1497,7 +1456,6 @@ async function renderPets(pets) {
             }).catch(() => {});
         }
     }
-
 }
 
 // ===================== FILTERS + SEARCH =====================
