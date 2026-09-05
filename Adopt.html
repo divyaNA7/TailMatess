@@ -1196,6 +1196,33 @@ window.toggleFav = async function(btn, e) {
 };
 
 
+// ===================== PET CHAT =====================
+function openPetChat(event, link, petId) {
+    event.preventDefault();
+    const pet = allPets.find(p => String(p._id) === String(petId));
+    if (!pet) {
+        alert('Could not find this pet.');
+        return false;
+    }
+
+    const ownerId = pet.ownerId || pet.owner_uid || pet.ownerUid || pet.owner_id || pet.userId || pet.listerId || '';
+    if (!ownerId) {
+        alert('This pet does not have an owner account linked yet. Add the ownerId field to this pet in Firebase to enable messaging.');
+        return false;
+    }
+
+    const params = new URLSearchParams({
+        pet: String(pet._id),
+        name: pet.name || 'Pet',
+        breed: pet.breed || '',
+        img: pet.image_url || '',
+        lister: String(ownerId),
+        owner: pet.ownerName || pet.owner_name || ''
+    });
+    window.location.href = 'message.html?' + params.toString();
+    return false;
+}
+
 // ===================== RENDER PETS =====================
 
 let renderVersion = 0;
@@ -1425,9 +1452,10 @@ async function renderPets(pets) {
 
                 <div class="pet-actions">
 
-                    <a  href="message.html"
+                    <a href="message.html?pet=${encodeURIComponent(petId)}&name=${encodeURIComponent(name)}&breed=${encodeURIComponent(breed)}&img=${encodeURIComponent(imgUrl)}&lister=${encodeURIComponent(pet.ownerId || pet.owner_uid || pet.ownerUid || pet.owner_id || pet.userId || pet.listerId || '')}&owner=${encodeURIComponent(pet.ownerName || pet.owner_name || '')}"
                         class="message-btn"
-                        title="Message about ${escapeHtml(name)}"
+                        title="Message the owner of ${escapeHtml(name)}"
+                        onclick="return openPetChat(event, this, '${escapeHtml(petId)}')"
                     >
                         <i class="fa-solid fa-message"></i>
                         Message
