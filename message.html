@@ -184,11 +184,6 @@
     }
     .back-btn:hover { background: var(--primary-dim); color: var(--primary); }
     .back-btn svg { width: 20px; height: 20px; }
-    .header-avatar {
-      width: 2.5rem; height: 2.5rem; border-radius: 50%; object-fit: cover;
-      border: 2px solid rgba(0, 245, 255, 0.3); flex-shrink: 0;
-      box-shadow: 0 0 15px rgba(0, 245, 255, 0.15);
-    }
     .header-info { min-width: 0; }
     .header-info h2 {
       font-size: 0.95rem; font-weight: 600; line-height: 1.2;
@@ -205,25 +200,6 @@
     .icon-btn:hover { background: var(--primary-dim); color: var(--primary); }
     .icon-btn svg { width: 1.25rem; height: 1.25rem; }
 
-    /* Pet Bar */
-    .pet-bar {
-      background: linear-gradient(90deg, rgba(0, 245, 255, 0.08), rgba(168, 85, 247, 0.08));
-      padding: 0.5rem 1.25rem;
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; gap: 0.5rem;
-    }
-    .pet-bar img {
-      width: 1.75rem; height: 1.75rem; border-radius: 0.375rem; object-fit: cover;
-      border: 1px solid var(--border);
-    }
-    .pet-bar-text { font-size: 0.8rem; color: var(--text-dim); font-weight: 500; }
-    .pet-bar-text span { font-weight: 600; color: var(--primary); }
-    .pet-badge {
-      font-size: 0.65rem;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      color: var(--bg); padding: 0.15rem 0.6rem;
-      border-radius: 1rem; font-weight: 700; margin-left: auto;
-    }
 
     /* Messages Area */
     .messages-area {
@@ -303,31 +279,35 @@
     .input-area {
       background: var(--bg-light);
       border-top: 1px solid var(--border);
-      padding: 0.6rem 1rem;
-      display: flex; align-items: flex-end; gap: 0.5rem;
+      padding: 0.5rem 0.6rem;
+      display: flex; align-items: flex-end; gap: 0.4rem;
     }
     .input-icon {
-      padding: 0.5rem; background: none; border: none; border-radius: 50%;
+      width: 2.6rem; height: 2.6rem; padding: 0; background: none; border: none; border-radius: 50%;
       cursor: none; color: var(--text-dim); flex-shrink: 0;
       transition: all 0.2s; display: flex; align-items: center; justify-content: center;
     }
     .input-icon:hover { background: var(--primary-dim); color: var(--primary); }
+    .input-icon:active { transform: scale(0.9); }
     .input-icon svg { width: 1.4rem; height: 1.4rem; }
     .input-field-wrap {
       flex: 1;
-      background: var(--bg-glass);
+      background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--border);
-      border-radius: 1.5rem;
-      padding: 0.6rem 1rem;
+      border-radius: 1.6rem;
+      padding: 0.7rem 1.1rem;
+      min-height: 2.9rem;
+      display: flex; align-items: center;
       transition: all 0.3s ease;
     }
     .input-field-wrap:focus-within {
-      border-color: rgba(0, 245, 255, 0.3);
-      box-shadow: 0 0 20px rgba(0, 245, 255, 0.05);
+      border-color: rgba(0, 245, 255, 0.35);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.08);
+      background: rgba(255, 255, 255, 0.09);
     }
     .input-field {
       width: 100%; border: none; outline: none;
-      font-size: 0.9rem; color: var(--text); background: transparent;
+      font-size: 0.95rem; color: var(--text); background: transparent;
       font-family: inherit;
     }
     .input-field::placeholder { color: var(--text-dim); }
@@ -344,23 +324,6 @@
     .send-btn:hover {
       transform: scale(1.1);
       box-shadow: 0 0 25px rgba(0, 245, 255, 0.4);
-    }
-
-    /* Image Bubble */
-    .image-bubble {
-      max-width: 280px;
-      padding: 0.25rem 0.25rem 0.5rem !important;
-      overflow: hidden; cursor: pointer;
-      border: 1px solid var(--border) !important;
-    }
-    .image-bubble img {
-      width: 100%; max-height: 240px; object-fit: cover;
-      border-radius: 12px; display: block; background: var(--bg-light);
-    }
-    .image-bubble .msg-meta {
-      position: static; justify-content: flex-end;
-      padding: 0 0.5rem; margin-top: 0.25rem;
-      display: flex; align-items: center; gap: 0.15rem;
     }
 
     /* Location Bubble */
@@ -591,6 +554,41 @@
     .leaflet-popup-tip { background: var(--bg-light); }
     .leaflet-container { background: var(--bg); }
 
+    /* Live location */
+    .live-map { width: 100%; height: 170px; display: block; background: var(--bg-light); }
+    .live-badge {
+      position: absolute; top: 8px; left: 8px; z-index: 500;
+      background: rgba(255, 43, 43, 0.92); color: #fff;
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 0.5px;
+      padding: 3px 9px; border-radius: 10px;
+      display: inline-flex; align-items: center; gap: 5px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4); pointer-events: none;
+    }
+    .live-badge i { font-size: 0.45rem; animation: liveBlink 1.2s infinite; }
+    .live-dot {
+      width: 15px; height: 15px; border-radius: 50%;
+      background: #00f5ff; border: 2px solid #fff;
+      animation: livePulse 1.8s infinite;
+    }
+    @keyframes livePulse {
+      0% { box-shadow: 0 0 0 0 rgba(0, 245, 255, 0.55); }
+      70% { box-shadow: 0 0 0 16px rgba(0, 245, 255, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 245, 255, 0); }
+    }
+    @keyframes liveBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+    .panel-live-badge {
+      display: none; align-items: center; gap: 5px;
+      background: rgba(255, 43, 43, 0.92); color: #fff;
+      font-size: 0.6rem; font-weight: 700; padding: 3px 9px;
+      border-radius: 10px; margin-left: 8px;
+    }
+    .panel-live-badge i { font-size: 0.45rem; animation: liveBlink 1.2s infinite; }
+    .map-live-btn.active {
+      background: rgba(255, 43, 43, 0.15) !important;
+      border-color: var(--secondary) !important;
+      color: var(--secondary) !important;
+    }
+
     @keyframes msgIn { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
     @keyframes typingBounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-5px); } }
 
@@ -604,8 +602,6 @@
       .back-btn, .icon-btn, .input-icon, .send-btn, .panel-close, .spot-card2, .time-btn, .confirm-btn2, .map-search-btn, .map-locate-btn, .map-send-btn, .map-result-item { cursor: pointer; }
     }
   </style>
-<base target="_blank">
-<base target="_blank">
 </head>
 <body>
 
@@ -718,7 +714,9 @@
   <!-- Map Panel -->
   <div class="map-panel" id="map-panel">
     <div class="panel-header">
-      <h3><i class="fa-solid fa-map-location-dot" style="margin-right:8px;color:var(--primary);"></i>Share Location</h3>
+      <h3 style="display:flex;align-items:center;"><i class="fa-solid fa-map-location-dot" style="margin-right:8px;color:var(--primary);"></i>Share Location
+        <span class="panel-live-badge" id="panel-live-badge"><i class="fa-solid fa-circle"></i>LIVE</span>
+      </h3>
       <button class="panel-close" onclick="toggleMapPanel()">
         <i class="fa-solid fa-xmark" style="font-size:1.2rem;"></i>
       </button>
@@ -735,8 +733,11 @@
       <button class="map-locate-btn" onclick="locateMe()">
         <i class="fa-solid fa-location-crosshairs"></i> My Location
       </button>
+      <button class="map-locate-btn map-live-btn" id="panel-live-btn" onclick="togglePanelLive()">
+        <i class="fa-solid fa-tower-broadcast"></i> Live
+      </button>
       <button class="map-send-btn" id="map-send-btn" onclick="sendLocation()" disabled>
-        <i class="fa-solid fa-paper-plane"></i> Send Location
+        <i class="fa-solid fa-paper-plane"></i> Send
       </button>
     </div>
   </div>
@@ -748,13 +749,15 @@
         <button class="back-btn" onclick="history.back()">
           <i class="fa-solid fa-arrow-left"></i>
         </button>
-        <img src="https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop" class="header-avatar" alt="Pet" id="header-avatar">
         <div class="header-info">
-          <h2 id="header-name">Whiskers (Siamese)</h2>
+          <h2 id="header-name">Owner name</h2>
           <div class="header-status" id="header-status">Online</div>
         </div>
       </div>
       <div class="header-actions">
+        <button class="icon-btn" id="stop-live-btn" onclick="stopLiveShare()" title="Stop sharing live location" style="display:none;color:var(--secondary);">
+          <i class="fa-solid fa-tower-broadcast fa-beat" style="font-size:1.1rem;"></i>
+        </button>
         <button class="icon-btn" onclick="toggleMeetupPanel()" title="Schedule Meetup">
           <i class="fa-solid fa-calendar-check" style="font-size:1.1rem;"></i>
         </button>
@@ -762,12 +765,6 @@
           <i class="fa-solid fa-right-from-bracket" style="font-size:1.1rem;"></i>
         </button>
       </div>
-    </div>
-
-    <div class="pet-bar" id="pet-bar">
-      <img src="https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop" alt="Pet" id="pet-bar-img">
-      <div class="pet-bar-text">Chatting about <span id="pet-name">Whiskers</span></div>
-      <span class="pet-badge" id="match-score">88%</span>
     </div>
 
     <!-- Messages area -->
@@ -783,11 +780,6 @@
     </div>
 
     <div class="input-area" id="input-area">
-      <button class="input-icon" onclick="document.getElementById('camera-input').click()" title="Take photo">
-        <i class="fa-solid fa-camera" style="font-size:1.2rem;"></i>
-      </button>
-      <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none" onchange="handleCameraCapture(event)">
-
       <button class="input-icon" onclick="toggleMapPanel()" title="Share location">
         <i class="fa-solid fa-location-dot" style="font-size:1.2rem;"></i>
       </button>
@@ -928,7 +920,6 @@
     document.title = 'My Chats | TailMates';
     document.getElementById('header-name').textContent = 'My Chats';
     document.getElementById('header-status').textContent = 'All conversations';
-    document.getElementById('pet-bar').style.display = 'none';
     document.getElementById('input-area').style.display = 'none';
 
     const chatMessages = document.getElementById('chat-messages');
@@ -1007,18 +998,8 @@
 
   async function initSingleChat() {
     const headerName = document.getElementById('header-name');
-    const petNameEl = document.getElementById('pet-name');
-    const matchScoreEl = document.getElementById('match-score');
-    const petBarImg = document.getElementById('pet-bar-img');
-    const headerAvatar = document.getElementById('header-avatar');
-    const petBar = document.getElementById('pet-bar');
-
-    if (petBar) petBar.style.display = 'flex';
-    if (headerName) headerName.textContent = `${petName} (${petBreed})`;
-    if (petNameEl) petNameEl.textContent = petName;
-    if (matchScoreEl) matchScoreEl.textContent = `${matchScore}%`;
-    if (petBarImg) petBarImg.src = petImg;
-    if (headerAvatar) headerAvatar.src = petImg;
+    // Header shows the OWNER's name (fallback: 'owner' URL param, default 'Yumna')
+    if (headerName) headerName.textContent = urlParams.get('owner') || 'Yumna';
     document.title = `Chat - ${petName} | TailMates`;
 
     await getOrCreateConversation();
@@ -1030,7 +1011,6 @@
     document.getElementById('not-logged').style.display = 'flex';
     document.getElementById('input-area').style.display = 'none';
     document.getElementById('chat-messages').style.display = 'none';
-    document.getElementById('pet-bar').style.display = 'none';
   }
 
   async function getOrCreateConversation() {
@@ -1062,8 +1042,8 @@
         otherUserProfile = doc.data();
         const headerName = document.getElementById('header-name');
         const statusEl = document.getElementById('header-status');
-        if (headerName && otherUserProfile.name) headerName.textContent = `${otherUserProfile.name} - ${petName}`;
-        if (statusEl) statusEl.textContent = 'Online';   // FIX: this field is a status, not a name
+        if (headerName && otherUserProfile.name) headerName.textContent = otherUserProfile.name;  // owner name only
+        if (statusEl) statusEl.textContent = 'Online';   // this field is a status, not a name
       }
     } catch (e) { console.log('Could not load other user profile'); }
   }
@@ -1091,7 +1071,7 @@
         const type = isMe ? 'sent' : 'received';
         const time = m.time ? m.time.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
         if (m.type === 'location') {
-          addLocationMessageToUI(type, { lat: m.lat, lng: m.lng, name: m.name, address: m.address }, time);
+          addLocationMessageToUI(type, { lat: m.lat, lng: m.lng, name: m.name, address: m.address }, time, !!m.live, doc.id);
         } else if (m.type === 'image') {
           addImageMessageToUI(type, m.imageUrl, time);
         } else if (m.type === 'system') {
@@ -1116,14 +1096,18 @@
     if (!db || !currentUser || !conversationId) return;
     const msgData = { ...data, sender: currentUser.uid, senderName: currentUser.displayName || 'User', time: firebase.firestore.FieldValue.serverTimestamp() };
     try {
-      await db.collection('conversations').doc(conversationId).collection('messages').add(msgData);
+      const ref = await db.collection('conversations').doc(conversationId).collection('messages').add(msgData);
       const updatePayload = {
-        lastMessage: data.type === 'text' ? data.text : (data.type === 'image' ? 'Photo' : (data.type === 'system' ? 'Meetup scheduled' : 'Location')),
+        lastMessage: data.type === 'text' ? data.text
+          : (data.type === 'image' ? 'Photo'
+          : (data.type === 'system' ? 'Meetup scheduled'
+          : (data.live ? 'Live location' : 'Location'))),
         lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
         lastSender: currentUser.uid
       };
       if (otherUserId) updatePayload[`unread.${otherUserId}`] = firebase.firestore.FieldValue.increment(1);
       await db.collection('conversations').doc(conversationId).update(updatePayload);
+      return ref;   // FIX/FEAT: return ref so live sharing can keep updating this message
     } catch (e) { console.error("Error saving message:", e); }
   }
 
@@ -1169,37 +1153,6 @@
     const div = document.createElement('div');
     div.textContent = String(text ?? '');
     return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');  // FIX: quote-safe for attributes
-  }
-
-  // ===================== CAMERA =====================
-  function handleCameraCapture(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const imageUrl = e.target.result;
-      const time = formatTime(new Date());
-      addImageMessageToUI('sent', imageUrl, time);
-      scrollToBottom();
-      saveMessage({ type: 'image', imageUrl: imageUrl, text: '', read: false });
-      event.target.value = '';
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function addImageMessageToUI(type, imageUrl, time) {
-    const row = document.createElement('div');
-    row.className = `msg-row ${type}`;
-    row.innerHTML = `
-      <div class="msg-bubble image-bubble" onclick="window.open('${imageUrl}', '_blank')">
-        <img src="${imageUrl}" alt="Photo">
-        <div class="msg-meta">
-          <span class="msg-time">${time}</span>
-          ${type === 'sent' ? `<span class="msg-read">\u2713\u2713</span>` : ''}
-        </div>
-      </div>`;
-    chatMessages.appendChild(row);
-    scrollToBottom();
   }
 
   // ===================== MEETUP =====================
@@ -1259,6 +1212,12 @@
 
   // ===================== MAP =====================
   let map = null, mapMarker = null, selectedLocation = null;
+  let panelLiveOn = false, panelWatchId = null;
+  const liveBubbleMaps = {};   // docId -> { map, marker }
+  let myLiveShare = null;      // { ref } while sharing live
+  let livePosInterval = null;  // 15s Firestore sync interval
+  const DARK_TILES = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+  const TILE_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
   function toggleMapPanel() {
     if (!currentUser) { alert('Please sign in first'); return; }
@@ -1269,6 +1228,7 @@
     overlay.classList.toggle('open', !isOpen);
     if (!isOpen) { setTimeout(() => initMap(), 100); }
     else {
+      stopPanelLive();
       selectedLocation = null;
       document.getElementById('map-send-btn').disabled = true;
       document.getElementById('map-results').innerHTML = '';
@@ -1280,10 +1240,7 @@
     if (map) { map.invalidateSize(); return; }
     const defaultLat = 19.0760, defaultLng = 72.8777;
     map = L.map('leaflet-map').setView([defaultLat, defaultLng], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19
-    }).addTo(map);
+    L.tileLayer(DARK_TILES, { attribution: TILE_ATTR, maxZoom: 19 }).addTo(map);
     map.on('click', async (e) => {
       const { lat, lng } = e.latlng;
       setMapMarker(lat, lng);
@@ -1294,15 +1251,48 @@
     locateMe();
   }
 
-  function setMapMarker(lat, lng) {
+  function setMapMarker(lat, lng, live) {
     if (mapMarker) map.removeLayer(mapMarker);
-    const customIcon = L.divIcon({
+    const customIcon = live ? liveIcon() : L.divIcon({
       className: 'custom-pin',
       html: `<div style="width:28px;height:28px;background:linear-gradient(135deg,#00f5ff,#a855f7);border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,245,255,0.4);"><div style="width:10px;height:10px;background:#0a0a0f;border-radius:50%;transform:rotate(45deg);"></div></div>`,
       iconSize: [28, 28], iconAnchor: [14, 28]
     });
     mapMarker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
-    map.setView([lat, lng], 16);
+    map.setView([lat, lng], live ? 17 : 16);
+  }
+
+  const liveIcon = () => L.divIcon({
+    className: 'live-pin-wrap',
+    html: '<div class="live-dot"></div>',
+    iconSize: [15, 15], iconAnchor: [8, 8]
+  });
+
+  // Toggle LIVE tracking inside the share panel (watchPosition moves the pin in real time)
+  function togglePanelLive() {
+    if (!navigator.geolocation) { alert('Geolocation is not supported.'); return; }
+    if (panelLiveOn) { stopPanelLive(); return; }
+    panelLiveOn = true;
+    document.getElementById('panel-live-btn').classList.add('active');
+    document.getElementById('panel-live-badge').style.display = 'inline-flex';
+    panelWatchId = navigator.geolocation.watchPosition(async (pos) => {
+      const { latitude, longitude } = pos.coords;
+      if (!map) return;
+      setMapMarker(latitude, longitude, true);
+      const address = await reverseGeocode(latitude, longitude);
+      selectedLocation = { lat: latitude, lng: longitude, name: address.name, address: address.display_name };
+      document.getElementById('map-send-btn').disabled = false;
+    }, (err) => { console.warn('Live tracking error:', err); stopPanelLive(); },
+    { enableHighAccuracy: true, maximumAge: 5000 });
+  }
+
+  function stopPanelLive() {
+    panelLiveOn = false;
+    if (panelWatchId !== null) { navigator.geolocation.clearWatch(panelWatchId); panelWatchId = null; }
+    const btn = document.getElementById('panel-live-btn');
+    const badge = document.getElementById('panel-live-badge');
+    if (btn) btn.classList.remove('active');
+    if (badge) badge.style.display = 'none';
   }
 
   function locateMe() {
@@ -1371,20 +1361,91 @@
 
   async function sendLocation() {
     if (!selectedLocation || !currentUser) return;
-    const loc = { ...selectedLocation };   // FIX: snapshot BEFORE toggleMapPanel() nulls it
+    const loc = { ...selectedLocation };   // snapshot BEFORE toggleMapPanel() nulls it
+    const isLive = panelLiveOn;
     const time = formatTime(new Date());
-    addLocationMessageToUI('sent', loc, time);
+    addLocationMessageToUI('sent', loc, time, isLive, 'optimistic');
     scrollToBottom();
-    await saveMessage({
+    const ref = await saveMessage({
       type: 'location', lat: loc.lat, lng: loc.lng,
-      name: loc.name, address: loc.address, read: false
+      name: loc.name, address: loc.address, live: isLive, read: false
     });
-    toggleMapPanel();                       // FIX: close panel only AFTER saving
+    if (isLive && ref) startLiveSharing(ref);
+    stopPanelLive();
+    toggleMapPanel();                      // close panel only AFTER saving
   }
 
-  function addLocationMessageToUI(type, loc, time) {
+  // ===================== LIVE LOCATION SHARING =====================
+  function startLiveSharing(ref) {
+    myLiveShare = { ref };
+    const btn = document.getElementById('stop-live-btn');
+    if (btn) btn.style.display = 'flex';
+    if (livePosInterval) return;   // already streaming
+    livePosInterval = setInterval(() => {
+      if (!myLiveShare || !navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition((pos) => {
+        if (!myLiveShare) return;
+        myLiveShare.ref.update({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude
+        }).catch(e => console.error('Live sync error:', e));
+      }, () => {}, { enableHighAccuracy: false, maximumAge: 10000 });
+    }, 15000);   // stream new coords to Firestore every 15s; receiver's snapshot updates the pin
+  }
+
+  function stopLiveShare() {
+    if (myLiveShare) {
+      myLiveShare.ref.update({ live: false }).catch(() => {});
+      myLiveShare = null;
+    }
+    if (livePosInterval) { clearInterval(livePosInterval); livePosInterval = null; }
+    const btn = document.getElementById('stop-live-btn');
+    if (btn) btn.style.display = 'none';
+  }
+
+  // Live mini-map inside a message bubble (re-created on each snapshot render)
+  function initLiveBubbleMap(docId, lat, lng) {
+    const el = document.getElementById('live-map-' + docId);
+    if (!el || typeof L === 'undefined') return;
+    if (liveBubbleMaps[docId]) { try { liveBubbleMaps[docId].map.remove(); } catch (e) {} delete liveBubbleMaps[docId]; }
+    const m = L.map(el, {
+      zoomControl: false, dragging: false, scrollWheelZoom: false,
+      doubleClickZoom: false, boxZoom: false, keyboard: false,
+      touchZoom: false, attributionControl: false
+    }).setView([lat, lng], 15);
+    L.tileLayer(DARK_TILES, { maxZoom: 19 }).addTo(m);
+    const marker = L.marker([lat, lng], { icon: liveIcon() }).addTo(m);
+    liveBubbleMaps[docId] = { map: m, marker };
+    setTimeout(() => m.invalidateSize(), 80);
+  }
+  window.addEventListener('beforeunload', () => { if (myLiveShare) stopLiveShare(); });
+
+  function addLocationMessageToUI(type, loc, time, live, docId) {
     const row = document.createElement('div');
     row.className = `msg-row ${type}`;
+    const safeId = String(docId).replace(/[^a-zA-Z0-9_-]/g, '_');
+    if (live) {
+      // LIVE: interactive Leaflet map inside the bubble; coords update via snapshot
+      row.innerHTML = `
+        <div class="msg-bubble location-bubble">
+          <div style="position:relative;">
+            <div class="live-map" id="live-map-${safeId}"></div>
+            <span class="live-badge"><i class="fa-solid fa-circle"></i>LIVE</span>
+          </div>
+          <div class="loc-info">
+            <div class="loc-name"><i class="fa-solid fa-tower-broadcast" style="margin-right:4px;color:var(--secondary);"></i>${escapeHtml(loc.name || 'Live Location')}</div>
+            <div class="loc-address">${escapeHtml(loc.address || '')}</div>
+          </div>
+          <div class="loc-meta">
+            <span class="msg-time">${time}</span>
+            <span style="font-size:0.6rem;color:var(--text-dim);font-weight:600;">LIVE LOCATION</span>
+            ${type === 'sent' ? `<span class="msg-read">\u2713\u2713</span>` : ''}
+          </div>
+        </div>`;
+      chatMessages.appendChild(row);
+      setTimeout(() => initLiveBubbleMap(safeId, loc.lat, loc.lng), 60);
+      return;
+    }
     const mapImg = `https://static-maps.openstreetmap.org/?center=${loc.lat},${loc.lng}&zoom=15&size=280x140&markers=${loc.lat},${loc.lng}`;
     row.innerHTML = `
       <div class="msg-bubble location-bubble" onclick="openInMaps(${loc.lat}, ${loc.lng})">
