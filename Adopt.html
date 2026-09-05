@@ -1200,8 +1200,11 @@ window.toggleFav = async function(btn, e) {
 
 // ===================== RENDER PETS =====================
 
+let renderVersion = 0;
+
 async function renderPets(pets) {
 
+    const thisRender = ++renderVersion;
     const container =
         document.getElementById(
             "petList"
@@ -1318,12 +1321,9 @@ async function renderPets(pets) {
             pet.temperament || "";
 
 
-        const saved =
-            await isPetSaved(petId);
-
-        // A newer search/category render may have started while Firebase was loading.
-        // Stop this old render so cards never appear from an outdated search.
-        if (thisRender !== renderVersion) return;
+        // Do not wait for Firestore before displaying the pet card.
+        // The saved state is applied asynchronously after the card is visible.
+        const saved = false;
 
 
         const card =
@@ -1481,6 +1481,21 @@ async function renderPets(pets) {
 
         container.appendChild(card);
 
+        // Check the saved state after rendering so Firebase cannot block the pet list.
+        if (currentUser && db) {
+            isPetSaved(petId).then(isSaved => {
+                if (thisRender !== renderVersion) return;
+                const btn = card.querySelector('.pet-fav');
+                const icon = btn && btn.querySelector('i');
+                if (!btn || !icon) return;
+                if (isSaved) {
+                    icon.classList.remove('fa-regular');
+                    icon.classList.add('fa-solid');
+                    btn.style.background = 'var(--secondary)';
+                    btn.style.borderColor = 'var(--secondary)';
+                }
+            }).catch(() => {});
+        }
     }
 
 }
