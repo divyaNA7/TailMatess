@@ -969,6 +969,9 @@
     }
   });
 
+  let unsubInboxParticipants = null;
+  let unsubInboxOwner = null;
+
   async function loadMyConversations() {
     document.title = 'My Chats | TailMates';
     document.getElementById('header-name').textContent = 'My Chats';
@@ -978,62 +981,89 @@
     const chatMessages = document.getElementById('chat-messages');
     chatMessages.innerHTML = '<div class="date-separator"><span>Your Conversations</span></div>';
 
-    // FIX: no orderBy -> no composite index required; sorted client-side below
-    db.collection('conversations')
-      .where('participants', 'array-contains', currentUser.uid)
-      .onSnapshot(async (snapshot) => {
-        if (snapshot.empty) {
+    // IMPORTANT:
+    // We listen in TWO ways:
+    // 1. participants contains my UID (normal/new chats)
+    // 2. ownerId == my UID (owner/lister fallback)
+    //
+    // This makes a message sent from an incognito adopter account appear
+    // in the real pet owner's inbox even if an older conversation was
+    // created without the owner being correctly recorded in participants.
+    if (unsubInboxParticipants) unsubInboxParticipants();
+    if (unsubInboxOwner) unsubInboxOwner();
+
+    const conversationMap = new Map();
+    let renderTimer = null;
+
+    const renderInbox = async () => {
+      clearTimeout(renderTimer);
+      renderTimer = setTimeout(async () => {
+        const docs = Array.from(conversationMap.values())
+          .sort((a, b) => {
+            const ta = a.data().lastMessageTime ? a.data().lastMessageTime.toMillis() : 0;
+            const tb = b.data().lastMessageTime ? b.data().lastMessageTime.toMillis() : 0;
+            return tb - ta;
+          });
+
+        chatMessages.innerHTML = '<div class="date-separator"><span>Your Conversations</span></div>';
+
+        if (!docs.length) {
           chatMessages.innerHTML += `
             <div style="text-align:center;padding:3rem 1rem;color:var(--text-dim);">
               <p style="font-size:1rem;margin-bottom:0.5rem;">No chats yet</p>
-              <p style="font-size:0.85rem;">Go to the adopt page and click "Chat" on a pet to start messaging.</p>
+              <p style="font-size:0.85rem;">When an adopter messages one of your pets, the conversation will appear here automatically.</p>
             </div>`;
           return;
         }
-        const oldItems = chatMessages.querySelectorAll('.inbox-item');
-        oldItems.forEach(el => el.remove());
 
-        // FIX: sort client-side (newest first), tolerant of missing lastMessageTime
-        const sortedDocs = snapshot.docs.slice().sort((a, b) => {
-          const ta = a.data().lastMessageTime ? a.data().lastMessageTime.toMillis() : 0;
-          const tb = b.data().lastMessageTime ? b.data().lastMessageTime.toMillis() : 0;
-          return tb - ta;
-        });
-
-        for (const doc of sortedDocs) {
+        for (const doc of docs) {
           const conv = doc.data();
+
+          // Prefer the participant who is not the current user.
+          // For owner-only fallback records, ownerId is the current user,
+          // so the other participant is still found from participants.
           const otherUid = (conv.participants || []).find(id => id !== currentUser.uid);
-          if (!otherUid) continue; // FIX: skip malformed conversations instead of crashing
+          if (!otherUid) continue;
+
           let otherName = 'User';
           let otherAvatar = `https://ui-avatars.com/api/?name=User&background=random`;
+
           try {
             const userDoc = await db.collection('users').doc(otherUid).get();
             if (userDoc.exists) {
               const data = userDoc.data();
               otherName = data.name || 'User';
-              otherAvatar = data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherName)}&background=random`;
+              otherAvatar = data.avatar ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(otherName)}&background=random`;
             }
           } catch (e) {}
+
           const time = conv.lastMessageTime
             ? conv.lastMessageTime.toDate().toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })
             : '';
-          const unread = (conv.unread && conv.unread[currentUser.uid]) || 0;  // FIX: live unread badge
+
+          const unread = (conv.unread && conv.unread[currentUser.uid]) || 0;
 
           const item = document.createElement('div');
           item.className = 'msg-row inbox-item';
           item.style.justifyContent = 'flex-start';
+
           item.onclick = () => {
             const params = new URLSearchParams({
-              pet: conv.petId || '', name: conv.petName || '', breed: '',
-              img: conv.petImage || '', lister: otherUid,
+              pet: conv.petId || '',
+              name: conv.petName || '',
+              breed: '',
+              img: conv.petImage || '',
+              lister: otherUid,
               ownerId: conv.ownerId || ''
             });
             window.location.href = `message.html?${params.toString()}`;
           };
-          // FIX: every Firestore-sourced string passed through escapeHtml()
+
           item.innerHTML = `
             <div class="msg-bubble">
-              <img src="${escapeHtml(otherAvatar)}" style="width:2.5rem;height:2.5rem;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid var(--border);">
+              <img src="${escapeHtml(otherAvatar)}"
+                   style="width:2.5rem;height:2.5rem;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid var(--border);">
               <div style="flex:1;min-width:0;">
                 <div style="font-weight:600;font-size:0.9rem;color:var(--text);display:flex;justify-content:space-between;gap:0.5rem;">
                   <span>${escapeHtml(otherName)} &middot; ${escapeHtml(conv.petName || 'Pet')}</span>
@@ -1045,9 +1075,30 @@
                 </div>
               </div>
             </div>`;
+
           chatMessages.appendChild(item);
         }
-      }, err => console.error('Inbox error:', err));
+      }, 80);
+    };
+
+    const addSnapshot = (snapshot) => {
+      snapshot.forEach(doc => conversationMap.set(doc.id, doc));
+      renderInbox();
+    };
+
+    unsubInboxParticipants = db.collection('conversations')
+      .where('participants', 'array-contains', currentUser.uid)
+      .onSnapshot(addSnapshot, err => {
+        console.error('Participant inbox error:', err);
+      });
+
+    // Owner/lister fallback: catches conversations that have ownerId set
+    // but where the owner UID was not present in participants.
+    unsubInboxOwner = db.collection('conversations')
+      .where('ownerId', '==', currentUser.uid)
+      .onSnapshot(addSnapshot, err => {
+        console.error('Owner inbox error:', err);
+      });
   }
 
   async function initSingleChat() {
@@ -1102,7 +1153,8 @@
       // Store that UID permanently so the approval button can be owner-only.
       conversationOwnerId = otherUserId;
       await convRef.set({
-        participants, ownerId: otherUserId, petId, petName, petImage: petImg,
+        participants: [currentUser.uid, otherUserId].sort(),
+        ownerId: otherUserId, petId, petName, petImage: petImg,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         lastMessage: '',
         lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
