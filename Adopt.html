@@ -576,8 +576,8 @@
     }
   </style>
 </head>
+  
 <body>
-
 <!-- Custom Paw Cursor -->
 <div class="cursor" id="cursor">
   <div class="pad pad-1"></div>
@@ -1249,9 +1249,9 @@ async function renderPets(pets) {
 
         statusEl.innerHTML =
             '<i class="fa-solid fa-circle-exclamation"></i>' +
-            searchTerm
+            (searchTerm
                 ? 'No pets found matching "' + escapeHtml(searchTerm) + '".'
-                : 'No pets found matching your filter.';
+                : 'No pets found matching your filter.');
 
         statusEl.className =
             'status';
@@ -1538,7 +1538,7 @@ fetch(DB_URL)
     .then(data => {
         allPets = [];
 
-        // Try root level first, then a nested "pets" node
+        // Load BOTH root-level pets and the nested "pets" node (user-registered pets)
         const containers = [data, data ? data.pets : null];
         for (const container of containers) {
             if (!container || typeof container !== 'object') continue;
@@ -1548,7 +1548,6 @@ fetch(DB_URL)
                     allPets.push({ ...entry, _id: key });
                 }
             }
-            if (allPets.length > 0) break;
         }
 
         console.log("Loaded pets:", allPets.length);
