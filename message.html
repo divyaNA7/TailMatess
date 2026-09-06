@@ -603,8 +603,8 @@
     }
   </style>
 </head>
-<body>
 
+<body>
 <!-- Custom Paw Cursor -->
 <div class="cursor" id="cursor">
   <div class="pad pad-1"></div>
@@ -1006,8 +1006,8 @@
 
   async function initSingleChat() {
     const headerName = document.getElementById('header-name');
-    // Header shows the OWNER's name (fallback: 'owner' URL param, default 'Yumna')
-    if (headerName) headerName.textContent = urlParams.get('owner') || 'Yumna';
+    // Header shows the OWNER's name (fallback: 'owner' URL param, generic default)
+    if (headerName) headerName.textContent = urlParams.get('owner') || 'Pet Parent';
     document.title = `Chat - ${petName} | TailMates`;
 
     const id = await getOrCreateConversation();
