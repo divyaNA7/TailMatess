@@ -751,7 +751,6 @@
         </button>
         <div class="header-info">
           <h2 id="header-name">Owner name</h2>
-          <div class="header-status" id="header-status">Online</div>
         </div>
       </div>
       <div class="header-actions">
@@ -980,7 +979,7 @@
           item.onclick = () => {
             const params = new URLSearchParams({
               pet: conv.petId || '', name: conv.petName || '', breed: '',
-              img: conv.petImage || '', lister: otherUid, match: '88'
+              img: conv.petImage || '', lister: otherUid
             });
             window.location.href = `message.html?${params.toString()}`;
           };
@@ -1044,7 +1043,9 @@
     if (!currentUser || !otherUserId) return null;
     if (!otherUserId || otherUserId === currentUser.uid) return null;
     const participants = [currentUser.uid, otherUserId].sort();
-    conversationId = participants.join('_') + '_' + petId;
+    // WhatsApp-style: one conversation per adopter + owner, regardless of which pet opened it.
+    // This keeps the complete previous chat history when the user returns to the same owner.
+    conversationId = participants.join('_');
     const convRef = db.collection('conversations').doc(conversationId);
     const convDoc = await convRef.get();
     if (!convDoc.exists) {
@@ -1080,16 +1081,25 @@
   const messageInput = document.getElementById('message-input');
 
   function loadMessagesFromFirebase() {
-    if (!conversationId) return;
+    if (!conversationId || !currentUser) return;
     if (unsubMessages) unsubMessages();
-    const msgsRef = db.collection('conversations').doc(conversationId).collection('messages').orderBy('time', 'asc');
+
+    // Firestore's initial onSnapshot contains the complete existing message history.
+    // Keeping a single realtime listener means old messages appear immediately and
+    // new messages continue arriving just like WhatsApp.
+    const msgsRef = db.collection('conversations')
+      .doc(conversationId)
+      .collection('messages')
+      .orderBy('time', 'asc');
+
     unsubMessages = msgsRef.onSnapshot(snapshot => {
       // FIX: remember position so the full rebuild doesn't jump the scroll
       const prevHeight = chatMessages.scrollHeight;
       const prevTop = chatMessages.scrollTop;
       const nearBottom = (prevHeight - prevTop - chatMessages.clientHeight) < 80;
 
-      chatMessages.innerHTML = '<div class="date-separator"><span>Today</span></div>';
+      chatMessages.innerHTML = '';
+      let lastDateKey = '';
       const readBatch = db.batch();
       let hasUnreadIncoming = false;
 
@@ -1097,7 +1107,23 @@
         const m = doc.data();
         const isMe = m.sender === currentUser.uid;
         const type = isMe ? 'sent' : 'received';
-        const time = m.time ? m.time.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+        const messageDate = m.time && typeof m.time.toDate === 'function' ? m.time.toDate() : null;
+        const time = messageDate ? messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+
+        // WhatsApp-style date separators for Today, Yesterday and older dates.
+        if (messageDate) {
+          const dateKey = messageDate.toLocaleDateString('en-CA');
+          if (dateKey !== lastDateKey) {
+            const now = new Date();
+            const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const startMessage = new Date(messageDate.getFullYear(), messageDate.getMonth(), messageDate.getDate());
+            const daysAgo = Math.round((startToday - startMessage) / 86400000);
+            const label = daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : messageDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: messageDate.getFullYear() === now.getFullYear() ? undefined : 'numeric' });
+            chatMessages.insertAdjacentHTML('beforeend', `<div class="date-separator"><span>${escapeHtml(label)}</span></div>`);
+            lastDateKey = dateKey;
+          }
+        }
+
         if (m.type === 'location') {
           addLocationMessageToUI(type, { lat: m.lat, lng: m.lng, name: m.name, address: m.address }, time, !!m.live, doc.id);
         } else if (m.type === 'image') {
