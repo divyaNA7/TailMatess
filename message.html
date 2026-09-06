@@ -192,6 +192,43 @@
     }
     .header-status { font-size: 0.75rem; color: var(--primary); font-weight: 500; }
     .header-actions { display: flex; align-items: center; gap: 0.25rem; }
+    /* Owner/Lister-only adoption approval action */
+    .approve-adoption-btn {
+      display: none;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.8rem;
+      border: 1px solid rgba(74, 222, 128, 0.35);
+      border-radius: 12px;
+      background: rgba(74, 222, 128, 0.1);
+      color: #4ade80;
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: none;
+      transition: all 0.25s ease;
+      white-space: nowrap;
+    }
+    .approve-adoption-btn:hover:not(:disabled) {
+      background: rgba(74, 222, 128, 0.18);
+      border-color: #4ade80;
+      box-shadow: 0 0 18px rgba(74, 222, 128, 0.18);
+      transform: translateY(-1px);
+    }
+    .approve-adoption-btn:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+    .approve-adoption-btn.approved {
+      display: inline-flex;
+      color: #4ade80;
+      border-color: rgba(74, 222, 128, 0.3);
+      background: rgba(74, 222, 128, 0.08);
+    }
+    @media (max-width: 768px) {
+      .approve-adoption-btn { cursor: pointer; padding: 0.5rem 0.65rem; }
+      .approve-adoption-btn .approval-label { display: none; }
+    }
     .icon-btn {
       padding: 0.5rem; background: none; border: none; border-radius: 50%;
       cursor: none; color: var(--text-dim); transition: all 0.2s;
@@ -751,9 +788,14 @@
         </button>
         <div class="header-info">
           <h2 id="header-name">Owner name</h2>
+          <div class="header-status" id="header-status">Online</div>
         </div>
       </div>
       <div class="header-actions">
+        <button class="approve-adoption-btn" id="approve-adoption-btn" onclick="approveAdoption()" title="Approve this adoption">
+          <i class="fa-solid fa-circle-check"></i>
+          <span class="approval-label">Adoption Approved</span>
+        </button>
         <button class="icon-btn" id="stop-live-btn" onclick="stopLiveShare()" title="Stop sharing live location" style="display:none;color:var(--secondary);">
           <i class="fa-solid fa-tower-broadcast fa-beat" style="font-size:1.1rem;"></i>
         </button>
@@ -821,7 +863,7 @@
   animateFollower();
 
   // FIX: delegated hover — works for dynamically added messages / inbox items too
-  const HOVER_SEL = 'a, button, .icon-btn, .input-icon, .send-btn, .spot-card2, .time-btn, .confirm-btn2, .map-search-btn, .map-locate-btn, .map-send-btn, .map-result-item, .back-btn, .panel-close, .inbox-item, .image-bubble, .location-bubble';
+  const HOVER_SEL = 'a, button, .icon-btn, .approve-adoption-btn, .input-icon, .send-btn, .spot-card2, .time-btn, .confirm-btn2, .map-search-btn, .map-locate-btn, .map-send-btn, .map-result-item, .back-btn, .panel-close, .inbox-item, .image-bubble, .location-bubble';
   document.addEventListener('mouseover', (e) => {
     if (e.target.closest(HOVER_SEL)) { cursor.classList.add('hover'); cursorFollower.classList.add('hover'); }
   });
@@ -885,11 +927,14 @@
   const petBreed = urlParams.get('breed') || 'Siamese';
   const petImg = urlParams.get('img') || 'https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop';
   const otherUserId = urlParams.get('lister') || '';
+  const urlOwnerId = urlParams.get('ownerId') || '';
   const matchScore = urlParams.get('match') || '88';
 
   let selectedSpot = null;
   let selectedTime = null;
   let otherUserProfile = null;
+  let conversationOwnerId = null;
+  let adoptionApproved = false;
 
   // ===================== AUTH =====================
   if (!firebaseReady) {
@@ -920,6 +965,7 @@
       showChatError('You cannot start an adoption conversation with your own account. Check the pet ownerId in Firebase.');
     } else {
       await initSingleChat();
+      updateApprovalButton();
     }
   });
 
@@ -979,7 +1025,8 @@
           item.onclick = () => {
             const params = new URLSearchParams({
               pet: conv.petId || '', name: conv.petName || '', breed: '',
-              img: conv.petImage || '', lister: otherUid
+              img: conv.petImage || '', lister: otherUid,
+              ownerId: conv.ownerId || ''
             });
             window.location.href = `message.html?${params.toString()}`;
           };
@@ -1043,23 +1090,42 @@
     if (!currentUser || !otherUserId) return null;
     if (!otherUserId || otherUserId === currentUser.uid) return null;
     const participants = [currentUser.uid, otherUserId].sort();
+    // If the caller supplied ownerId (e.g. from the inbox), preserve it.
+    conversationOwnerId = urlOwnerId || conversationOwnerId || otherUserId;
     // WhatsApp-style: one conversation per adopter + owner, regardless of which pet opened it.
     // This keeps the complete previous chat history when the user returns to the same owner.
     conversationId = participants.join('_');
     const convRef = db.collection('conversations').doc(conversationId);
     const convDoc = await convRef.get();
     if (!convDoc.exists) {
+      // The person on the other side of an adoption chat is the pet owner/lister.
+      // Store that UID permanently so the approval button can be owner-only.
+      conversationOwnerId = otherUserId;
       await convRef.set({
-        participants, petId, petName, petImage: petImg,
+        participants, ownerId: otherUserId, petId, petName, petImage: petImg,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         lastMessage: '',
         lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
-        unread: { [currentUser.uid]: 0, [otherUserId]: 0 }   // FIX: per-user unread map
+        adoptionApproved: false,
+        unread: { [currentUser.uid]: 0, [otherUserId]: 0 }
       });
     } else {
+      const convData = convDoc.data();
+      conversationOwnerId = convData.ownerId || null;
+      adoptionApproved = convData.adoptionApproved === true;
+
+      // For conversations created by this version, ownerId is already stored.
+      // For a legacy conversation opened from the adopter side, safely set the
+      // other participant as owner when the URL explicitly identifies the lister.
+      if (!conversationOwnerId && urlOwnerId) {
+        conversationOwnerId = urlOwnerId;
+        await convRef.update({ ownerId: conversationOwnerId });
+      }
+
       // FIX: opening the chat clears my unread badge
       await convRef.update({ [`unread.${currentUser.uid}`]: 0 });
     }
+    updateApprovalButton();
     return conversationId;
   }
 
@@ -1080,6 +1146,85 @@
   const chatMessages = document.getElementById('chat-messages');
   const messageInput = document.getElementById('message-input');
 
+  function updateApprovalButton() {
+    const btn = document.getElementById('approve-adoption-btn');
+    if (!btn || !currentUser) return;
+
+    // CRITICAL: the button is rendered ONLY when the logged-in user is the
+    // stored pet owner/lister. Adopters never see it.
+    const isOwner = conversationOwnerId && currentUser.uid === conversationOwnerId;
+    btn.style.display = isOwner ? 'inline-flex' : 'none';
+
+    if (isOwner && adoptionApproved) {
+      btn.disabled = true;
+      btn.classList.add('approved');
+      btn.innerHTML = '<i class="fa-solid fa-circle-check"></i><span class="approval-label">Adoption Approved</span>';
+      btn.title = 'Adoption already approved';
+    } else if (isOwner) {
+      btn.disabled = false;
+      btn.classList.remove('approved');
+      btn.innerHTML = '<i class="fa-solid fa-circle-check"></i><span class="approval-label">Adoption Approved</span>';
+      btn.title = 'Approve this adoption';
+    }
+  }
+
+  async function approveAdoption() {
+    if (!currentUser || !conversationId || !conversationOwnerId) return;
+
+    // Double-check ownership in JavaScript before allowing the action.
+    if (currentUser.uid !== conversationOwnerId) {
+      console.warn('Adoption approval blocked: current user is not the pet owner.');
+      return;
+    }
+
+    if (adoptionApproved) return;
+
+    const btn = document.getElementById('approve-adoption-btn');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span class="approval-label">Approving...</span>';
+    }
+
+    try {
+      adoptionApproved = true;
+
+      await db.collection('conversations').doc(conversationId).update({
+        adoptionApproved: true,
+        adoptionApprovedBy: currentUser.uid,
+        adoptionApprovedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastMessage: 'Adoption approved',
+        lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+        lastSender: currentUser.uid,
+        [`unread.${otherUserId}`]: firebase.firestore.FieldValue.increment(1)
+      });
+
+      // Store a permanent system event in the chat so the adopter sees it
+      // in the conversation history.
+      await db.collection('conversations')
+        .doc(conversationId)
+        .collection('messages')
+        .add({
+          type: 'system',
+          text: 'Adoption Approved',
+          subtext: `${petName} has been approved for adoption by the pet owner.`,
+          sender: currentUser.uid,
+          senderName: currentUser.displayName || 'Pet Owner',
+          read: false,
+          time: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+      updateApprovalButton();
+    } catch (e) {
+      adoptionApproved = false;
+      console.error('Adoption approval error:', e);
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-circle-check"></i><span class="approval-label">Adoption Approved</span>';
+      }
+      alert('Could not approve the adoption. Please try again.');
+    }
+  }
+
   function loadMessagesFromFirebase() {
     if (!conversationId || !currentUser) return;
     if (unsubMessages) unsubMessages();
@@ -1093,6 +1238,16 @@
       .orderBy('time', 'asc');
 
     unsubMessages = msgsRef.onSnapshot(snapshot => {
+      // Keep approval state synchronized for both sides of the conversation.
+      db.collection('conversations').doc(conversationId).get().then(conv => {
+        if (conv.exists) {
+          const data = conv.data();
+          conversationOwnerId = data.ownerId || conversationOwnerId;
+          adoptionApproved = data.adoptionApproved === true;
+          updateApprovalButton();
+        }
+      }).catch(() => {});
+
       // FIX: remember position so the full rebuild doesn't jump the scroll
       const prevHeight = chatMessages.scrollHeight;
       const prevTop = chatMessages.scrollTop;
