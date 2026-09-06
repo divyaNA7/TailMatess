@@ -587,6 +587,48 @@
       box-shadow: 0 0 30px rgba(0, 245, 255, 0.4);
     }
 
+
+    /* PawMate match cards */
+    .matches-grid { display:flex; flex-direction:column; gap:14px; }
+    .mc {
+      display:grid;
+      grid-template-columns:52px 92px 1fr auto;
+      align-items:center;
+      gap:14px;
+    }
+    .match-img {
+      width:92px; height:92px; border-radius:16px; object-fit:cover;
+      border:1px solid var(--border); background:var(--bg-card);
+      display:block;
+    }
+    .match-img-wrap { position:relative; }
+    .match-img-wrap .rank-badge {
+      position:absolute; left:-8px; top:-8px; width:30px; height:30px;
+      border-radius:50%; display:flex; align-items:center; justify-content:center;
+      font-size:.72rem; font-weight:800; background:var(--bg-light);
+      border:1px solid var(--border); z-index:2;
+    }
+    .match-actions { display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+    .message-btn {
+      display:inline-flex; align-items:center; justify-content:center; gap:7px;
+      padding:9px 14px; border-radius:50px; text-decoration:none;
+      background:linear-gradient(135deg,var(--primary),var(--accent));
+      color:var(--bg); font-size:.78rem; font-weight:700;
+      border:0; white-space:nowrap; transition:.25s ease;
+    }
+    .message-btn:hover { transform:translateY(-2px); box-shadow:0 0 22px rgba(0,245,255,.3); }
+    .message-btn.disabled { opacity:.45; pointer-events:none; background:var(--bg-card); color:var(--text-dim); border:1px solid var(--border); }
+    .match-error { color:var(--secondary); font-size:.78rem; margin-top:7px; }
+    .result-title { text-align:center; margin-bottom:1.6rem; }
+    .result-title h3 { margin-bottom:.35rem; }
+    .result-title p { color:var(--text-dim); font-size:.9rem; }
+    @media (max-width:768px) {
+      .mc { grid-template-columns:42px 70px 1fr; }
+      .match-img { width:70px; height:70px; }
+      .match-actions { grid-column:2 / -1; align-items:stretch; }
+      .message-btn { width:100%; }
+    }
+
     /* Footer */
     footer {
       background: var(--bg-light);
@@ -881,6 +923,7 @@
       .opt, .btn, .profile-trigger, .chat-launcher, .chat-close, .chat-input button, .chat-quick button, .footer-newsletter button, .socials a { cursor: pointer; }
     }
   </style>
+
 </head>
 <body>
 
@@ -956,10 +999,6 @@
 </nav>
 
 <div class="pm-wrap" id="R">
-  <div class="pm-header">
-    <h2><i class="fa-solid fa-wand-magic-sparkles" style="margin-right: 10px;"></i>Find Your Perfect Companion</h2>
-    <p>Answer a few questions and let our AI match you with the ideal pet for your lifestyle.</p>
-  </div>
   <div class="dots" id="D"></div>
   <div id="C"></div>
 </div>
@@ -1036,7 +1075,40 @@
   </button>
 </div>
 
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
 <script>
+
+  // ===================== FIREBASE =====================
+  const firebaseConfig = {
+    apiKey: "AIzaSyBifu5Te7paXOFUFrDUtogIPpi5H0xR7rY",
+    authDomain: "tailmatess.firebaseapp.com",
+    projectId: "tailmatess",
+    storageBucket: "tailmatess.firebasestorage.app",
+    messagingSenderId: "445299543083",
+    appId: "1:445299543083:web:e7be85a3eae32f8ba5ee6e",
+    measurementId: "G-ZLQG062LVE"
+  };
+
+  let firebaseReady = false;
+  let auth = null;
+  let db = null;
+  let currentUser = null;
+
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    db = firebase.firestore();
+    firebaseReady = true;
+  } catch (e) {
+    console.error("Firebase initialization failed:", e);
+  }
+
+  const RTDB_URL =
+    "https://tailmatess-default-rtdb.asia-southeast1.firebasedatabase.app/.json";
 
   // ===================== CURSOR =====================
   const cursor = document.getElementById('cursor');
@@ -1044,88 +1116,86 @@
   let mouseX = 0, mouseY = 0, followerX = 0, followerY = 0;
 
   if (cursor && cursorFollower && window.matchMedia('(pointer: fine)').matches) {
-    document.addEventListener('mousemove', (e) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-      cursor.style.left = mouseX - 6 + 'px';
-      cursor.style.top = mouseY - 6 + 'px';
+    document.addEventListener('mousemove', e => {
+      mouseX = e.clientX; mouseY = e.clientY;
+      cursor.style.left = (mouseX - 6) + 'px';
+      cursor.style.top = (mouseY - 6) + 'px';
     });
-  }
-
-  function animateFollower() {
-    followerX += (mouseX - followerX) * 0.1;
-    followerY += (mouseY - followerY) * 0.1;
-    cursorFollower.style.left = followerX - 20 + 'px';
-    cursorFollower.style.top = followerY - 20 + 'px';
-    requestAnimationFrame(animateFollower);
-  }
-  if (cursor && cursorFollower && window.matchMedia('(pointer: fine)').matches) {
-    animateFollower();
-
-    const hoverElements = document.querySelectorAll('a, button, .opt, .mc, .chat-quick button');
-    hoverElements.forEach(el => {
-      el.addEventListener('mouseenter', () => {
-        cursor.classList.add('hover');
-        cursorFollower.classList.add('hover');
-      });
-      el.addEventListener('mouseleave', () => {
-        cursor.classList.remove('hover');
-        cursorFollower.classList.remove('hover');
-      });
-    });
-  }
-
-  // ===================== SCROLL PROGRESS =====================
-  const scrollProgress = document.getElementById('scrollProgress');
-  window.addEventListener('scroll', () => {
-    const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const scrollPercent = docHeight > 0
-      ? Math.min(100, Math.max(0, (scrollTop / docHeight) * 100))
-      : 0;
-    scrollProgress.style.width = scrollPercent + '%';
-  });
-
-  // ===================== PROFILE DROPDOWN =====================
-  const profileTrigger = document.getElementById('profileTrigger');
-  const profileDropdown = document.getElementById('profileDropdown');
-  const profileDropdownLoggedOut = document.getElementById('profileDropdownLoggedOut');
-  const profileDropdownLoggedIn = document.getElementById('profileDropdownLoggedIn');
-  let isLoggedIn = false;
-
-  function updateProfileDropdown() {
-    if (isLoggedIn) {
-      profileDropdownLoggedOut.style.display = 'none';
-      profileDropdownLoggedIn.style.display = 'block';
-    } else {
-      profileDropdownLoggedOut.style.display = 'block';
-      profileDropdownLoggedIn.style.display = 'none';
+    function animateFollower() {
+      followerX += (mouseX - followerX) * .1;
+      followerY += (mouseY - followerY) * .1;
+      cursorFollower.style.left = (followerX - 20) + 'px';
+      cursorFollower.style.top = (followerY - 20) + 'px';
+      requestAnimationFrame(animateFollower);
     }
-  }
-  updateProfileDropdown();
-
-  if (profileTrigger && profileDropdown) {
-    profileTrigger.addEventListener('click', (e) => {
-      e.stopPropagation();
-      profileDropdown.classList.toggle('active');
+    animateFollower();
+    document.addEventListener('mouseover', e => {
+      if (e.target.closest('a,button,.opt,.mc,.chat-quick button')) {
+        cursor.classList.add('hover'); cursorFollower.classList.add('hover');
+      }
     });
-    document.addEventListener('click', (e) => {
-      if (!profileTrigger.contains(e.target) && !profileDropdown.contains(e.target)) {
-        profileDropdown.classList.remove('active');
+    document.addEventListener('mouseout', e => {
+      const el=e.target.closest('a,button,.opt,.mc,.chat-quick button');
+      if (el && !(e.relatedTarget && el.contains(e.relatedTarget))) {
+        cursor.classList.remove('hover'); cursorFollower.classList.remove('hover');
       }
     });
   }
 
+  // ===================== SCROLL =====================
+  const scrollProgress = document.getElementById('scrollProgress');
+  window.addEventListener('scroll', () => {
+    if (!scrollProgress) return;
+    const h = document.documentElement.scrollHeight - window.innerHeight;
+    scrollProgress.style.width = (h > 0 ? Math.min(100, window.scrollY / h * 100) : 0) + '%';
+  });
+
+  // ===================== PROFILE / AUTH =====================
+  const profileTrigger = document.getElementById('profileTrigger');
+  const profileDropdown = document.getElementById('profileDropdown');
+  const loggedOutBox = document.getElementById('profileDropdownLoggedOut');
+  const loggedInBox = document.getElementById('profileDropdownLoggedIn');
+  const profileName = document.querySelector('.profile-name');
+  const dropdownUserName = document.getElementById('dropdownUserName');
+
+  function updateProfileUI(user) {
+    const loggedIn = !!user;
+    if (loggedOutBox) loggedOutBox.style.display = loggedIn ? 'none' : 'block';
+    if (loggedInBox) loggedInBox.style.display = loggedIn ? 'block' : 'none';
+    if (profileName) profileName.textContent = user ? (user.displayName || user.email || 'Profile') : 'Profile';
+    if (dropdownUserName) dropdownUserName.textContent = user ? (user.displayName || user.email || 'Profile') : 'Profile';
+  }
+
+  if (profileTrigger && profileDropdown) {
+    profileTrigger.addEventListener('click', e => {
+      e.stopPropagation();
+      profileDropdown.classList.toggle('active');
+    });
+    document.addEventListener('click', e => {
+      if (!profileTrigger.contains(e.target) && !profileDropdown.contains(e.target))
+        profileDropdown.classList.remove('active');
+    });
+  }
+
+  if (firebaseReady && auth) {
+    auth.onAuthStateChanged(async user => {
+      currentUser = user;
+      updateProfileUI(user);
+    });
+  } else {
+    updateProfileUI(null);
+  }
+
   document.querySelectorAll('.profile-logout').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async e => {
       e.preventDefault();
-      isLoggedIn = false;
-      updateProfileDropdown();
-      profileDropdown.classList.remove('active');
+      try { if (auth) await auth.signOut(); }
+      catch (err) { console.error('Logout failed:', err); }
+      if (profileDropdown) profileDropdown.classList.remove('active');
     });
   });
 
-  // ===================== CHAT WIDGET =====================
+  // ===================== TAILBOT =====================
   const chatLauncher = document.getElementById('chatLauncher');
   const chatPanel = document.getElementById('chatPanel');
   const chatClose = document.getElementById('chatClose');
@@ -1133,59 +1203,44 @@
   const chatInput = document.getElementById('chatInput');
   const chatMessages = document.getElementById('chatMessages');
 
-  if (chatLauncher && chatPanel) {
-    chatLauncher.addEventListener('click', () => chatPanel.classList.toggle('active'));
-  }
-  if (chatClose && chatPanel) {
-    chatClose.addEventListener('click', () => chatPanel.classList.remove('active'));
+  if (chatLauncher && chatPanel) chatLauncher.addEventListener('click', () => chatPanel.classList.toggle('active'));
+  if (chatClose && chatPanel) chatClose.addEventListener('click', () => chatPanel.classList.remove('active'));
+
+  function addMessage(text, isUser=false) {
+    if (!chatMessages) return;
+    const div=document.createElement('div');
+    div.className='chat-message '+(isUser?'user':'bot');
+    const bubble=document.createElement('div');
+    bubble.className='chat-bubble';
+    bubble.textContent=text;
+    div.appendChild(bubble);
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop=chatMessages.scrollHeight;
   }
 
-  function addMessage(text, isUser = false) {
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'chat-message ' + (isUser ? 'user' : 'bot');
-    const bubble = document.createElement('div');
-    bubble.className = 'chat-bubble';
-    bubble.textContent = text;
-    msgDiv.appendChild(bubble);
-    chatMessages.appendChild(msgDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
-
-  chatForm.addEventListener('submit', (e) => {
+  if (chatForm) chatForm.addEventListener('submit', e => {
     e.preventDefault();
-    const text = chatInput.value.trim();
-    if (text) {
-      addMessage(text, true);
-      chatInput.value = '';
-      setTimeout(() => {
-        const responses = [
-          "I'd love to help you find the perfect pet! What type of companion are you looking for?",
-          "That's a great question! Our PawMate AI can analyze your lifestyle to suggest the best matches.",
-          "We have many wonderful pets waiting for homes. Would you like to browse dogs, cats, or small pets?",
-          "All our pets come with complete health records and are from verified shelters. You can trust the process!"
-        ];
-        addMessage(responses[Math.floor(Math.random() * responses.length)]);
-      }, 1000);
-    }
+    const text=(chatInput?.value || '').trim();
+    if (!text) return;
+    addMessage(text,true);
+    chatInput.value='';
+    setTimeout(() => addMessage("I can help you find a pet that fits your lifestyle. Try PawMate AI to see your matches."),700);
   });
 
   document.querySelectorAll('.chat-quick button').forEach(btn => {
     btn.addEventListener('click', () => {
-      addMessage(btn.getAttribute('data-message'), true);
+      const msg=btn.getAttribute('data-message') || '';
+      addMessage(msg,true);
       setTimeout(() => {
-        const msg = btn.getAttribute('data-message');
-        let response = '';
-        if (msg.includes('dogs')) response = "We have over 120 dogs waiting for homes! From playful Labradors to loyal Indies. Browse our dog section to find your match.";
-        else if (msg.includes('cats')) response = "Our cat family has 80+ beautiful felines! From calm British Shorthairs to energetic tabbies. Check them out!";
-        else response = "Let's find your perfect match! I'll need to know about your living situation, work schedule, and experience with pets. Ready to start?";
-        addMessage(response);
-      }, 1000);
+        if (msg.includes('dogs')) addMessage("Use the PawMate questions to find the dogs that best fit your preferences.");
+        else if (msg.includes('cats')) addMessage("Use the PawMate questions to find the cats that best fit your preferences.");
+        else addMessage("Answer the PawMate questions and I will show your best matches.");
+      },700);
     });
   });
 
-  // ===================== PAWMATE QUIZ LOGIC =====================
-
-  const P = [
+  // ===================== PET DATA =====================
+const P = [
     [1,"Whiskers","Cat","Siamese",4.2,15,"L",3780,"L","L",1,1,"Vocal, Affectionate, Intelligent"],
     [2,"Luna","Cat","Persian",3.8,12,"M",4620,"L","H",1,1,"Calm, Gentle, Regal"],
     [3,"Simba","Cat","Maine Coon",6.5,13,"M",4200,"L","H",1,1,"Gentle Giant, Friendly, Playful"],
@@ -1371,156 +1426,333 @@
     }
   ];
 
+  let allPets = [];
+  const petMeta = new Map();
+
+  function cleanString(v, fallback='') {
+    return v === undefined || v === null ? fallback : String(v);
+  }
+
+  function normalizePet(raw, key) {
+    const p = raw || {};
+    const id = p.pet_id ?? p.id ?? key;
+    const name = cleanString(p.name, 'Pet');
+    const species = cleanString(p.species, 'Pet');
+    const breed = cleanString(p.breed, 'Mixed');
+    const weight = Number(p.weight_kg ?? p.weight ?? 0);
+    const lifespan = Number(p.lifespan_years ?? p.lifespan ?? 0);
+    const care = cleanString(p.care_level, 'M').toUpperCase().charAt(0);
+    const cost = Number(p.avg_monthly_cost_inr ?? p.monthly_cost ?? p.cost ?? 0);
+    const exercise = cleanString(p.exercise_needs, 'M').toUpperCase().charAt(0);
+    const grooming = cleanString(p.grooming_needs, 'M').toUpperCase().charAt(0);
+    const kids = !!(p.good_with_kids ?? p.goodWithKids);
+    const pets = !!(p.good_with_other_pets ?? p.goodWithOtherPets);
+    const temperament = cleanString(p.temperament, '');
+    const image = cleanString(
+      p.image_url ?? p.imageUrl ?? p.image ?? p.photoURL ?? p.photo,
+      ''
+    );
+    const ownerId = cleanString(
+      p.ownerId ?? p.owner_id ?? p.listerId ?? p.lister_id ?? p.userId ?? p.user_id ?? p.uid,
+      ''
+    );
+    const ownerName = cleanString(p.ownerName ?? p.owner_name ?? p.owner, '');
+
+    const arr = [
+      Number(id), name, species, breed, weight, lifespan, care || 'M',
+      cost, exercise || 'M', grooming || 'M', kids ? 1 : 0, pets ? 1 : 0,
+      temperament
+    ];
+
+    petMeta.set(String(id), {
+      id: String(id), name, species, breed, image, ownerId, ownerName,
+      raw: p
+    });
+    return arr;
+  }
+
+  async function loadPetsFromFirebase() {
+    try {
+      const response = await fetch(RTDB_URL + '?t=' + Date.now(), { cache:'no-store' });
+      if (!response.ok) throw new Error('Realtime Database request failed: ' + response.status);
+      const data = await response.json();
+
+      let source = data;
+      if (data && data.pets && typeof data.pets === 'object') source = data.pets;
+
+      const rows = [];
+      if (Array.isArray(source)) {
+        source.forEach((p,i) => rows.push(normalizePet(p, i+1)));
+      } else if (source && typeof source === 'object') {
+        Object.entries(source).forEach(([key,p]) => {
+          if (p && typeof p === 'object') rows.push(normalizePet(p,key));
+        });
+      }
+
+      if (rows.length) {
+        allPets = rows;
+        return;
+      }
+      throw new Error('No pet records found');
+    } catch (err) {
+      console.warn('Firebase pet load failed; using built-in pet data.', err);
+      allPets = P.map(p => {
+        petMeta.set(String(p[0]), {
+          id:String(p[0]), name:p[1], species:p[2], breed:p[3],
+          image:'', ownerId:'', ownerName:'', raw:null
+        });
+        return p;
+      });
+    }
+  }
+
+  // ===================== QUIZ =====================
   let cur = 0;
   let ans = {};
 
   const $ = id => document.getElementById(id);
 
+  function escapeHtml(value) {
+    const div=document.createElement('div');
+    div.textContent=cleanString(value);
+    return div.innerHTML;
+  }
+
   function renderDots() {
-    $('D').innerHTML = Q.map((_, i) =>
-      `<div class="dot ${i === cur ? 'a' : i < cur ? 'd' : ''}"></div>`
-    ).join('');
+    const D=$('D');
+    if (!D) return;
+    D.innerHTML=Q.map((_,i)=>`<div class="dot ${i===cur?'a':i<cur?'d':''}"></div>`).join('');
   }
 
   function renderQ() {
-    const q = Q[cur];
-    const sel = q.type === 'm' ? (Array.isArray(ans[q.id]) ? ans[q.id] : []) : ans[q.id];
-    let html = `<div class="card"><div class="qn">Question ${cur + 1} of ${Q.length}</div><div class="qt">${q.t}</div><div class="opts ${q.type === 'm' ? 'tgrid' : ''}">`;
-    q.opts.forEach(o => {
-      const isSel = q.type === 's' ? sel === o.v : sel.includes(o.v);
-      html += `<button type="button" class="opt ${isSel ? 'sel' : ''}" onclick="pick('${q.id}','${o.v}',${q.type === 'm'})">
-        <div class="${q.type === 'm' ? 'cb' : 'rd'}"></div>
-        <div>
-          <span class="opt-label">${o.l}</span>
-          ${o.d ? `<span class="opt-desc">${o.d}</span>` : ''}
-        </div>
-      </button>`;
+    const C=$('C');
+    if (!C) return;
+    const q=Q[cur];
+    const sel=q.type==='m' ? (Array.isArray(ans[q.id])?ans[q.id]:[]) : ans[q.id];
+
+    let out=`<div class="card"><div class="qn">Question ${cur+1} of ${Q.length}</div>
+      <div class="qt">${escapeHtml(q.t)}</div>
+      <div class="opts ${q.type==='m'?'tgrid':''}" id="questionOptions">`;
+
+    q.opts.forEach((o,index)=>{
+      const value=cleanString(o.v);
+      const selected=q.type==='m' ? sel.includes(value) : cleanString(sel)===value;
+      out+=`<button type="button" class="opt ${selected?'sel':''}" data-index="${index}" data-qid="${escapeHtml(q.id)}">
+        <div class="${q.type==='m'?'cb':'rd'}"></div><div>
+        <span class="opt-label">${escapeHtml(o.l)}</span>
+        ${o.d?`<span class="opt-desc">${escapeHtml(o.d)}</span>`:''}
+        </div></button>`;
     });
-    html += `</div><div class="btns">`;
-    if (cur > 0) html += `<button class="btn btn-g" onclick="prev()"><i class="fa-solid fa-arrow-left"></i> Back</button>`;
-    else html += `<div></div>`;
-    const ok = q.type === 's' ? sel !== undefined && sel !== null && sel !== '' : sel.length > 0;
-    const icon = cur === Q.length - 1 ? '<i class="fa-solid fa-wand-magic-sparkles"></i> ' : 'Next <i class="fa-solid fa-arrow-right"></i>';
-    html += `<button class="btn btn-p" ${!ok ? 'disabled' : ''} onclick="next()">${icon}</button></div></div>`;
-    if (q.type === 'm') html += `<div class="hint">Select up to 3 traits (${sel.length || 0}/3 selected)</div>`;
-    $('C').innerHTML = html;
+
+    const ok=q.type==='m' ? sel.length>0 : sel!==undefined && sel!==null && sel!=='';
+    out+=`</div><div class="btns">`;
+    out+=cur>0?`<button type="button" class="btn btn-g" id="backBtn"><i class="fa-solid fa-arrow-left"></i> Back</button>`:`<div></div>`;
+    out+=`<button type="button" class="btn btn-p" id="nextBtn" ${ok?'':'disabled'}>
+      ${cur===Q.length-1?'<i class="fa-solid fa-wand-magic-sparkles"></i> See matches':'Next <i class="fa-solid fa-arrow-right"></i>'}</button></div></div>`;
+    if(q.type==='m') out+=`<div class="hint">Select up to 3 traits (${sel.length}/3 selected)</div>`;
+
+    C.innerHTML=out;
+
+    C.querySelectorAll('.opt').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const qid=btn.dataset.qid;
+        const index=Number(btn.dataset.index);
+        const option=Q.find(x=>x.id===qid).opts[index];
+        const value=cleanString(option.v);
+
+        if(q.type==='m'){
+          let arr=Array.isArray(ans[qid])?[...ans[qid]]:[];
+          if(arr.includes(value)) arr=arr.filter(x=>x!==value);
+          else if(arr.length<3) arr.push(value);
+          ans[qid]=arr;
+        } else {
+          // Q5 and Q9 glitches are avoided by keeping all values as strings
+          // and using the question's option index instead of inline onclick code.
+          ans[qid]=value;
+        }
+        renderQ();
+      });
+    });
+
+    const back=$('backBtn');
+    if(back) back.addEventListener('click',prev);
+    const nextBtn=$('nextBtn');
+    if(nextBtn) nextBtn.addEventListener('click',next);
+
     renderDots();
   }
 
-  function pick(id, v, multi) {
-    if (multi) {
-      let arr = ans[id] || [];
-      if (arr.includes(v)) arr = arr.filter(x => x !== v);
-      else if (arr.length < 3) arr.push(v);
-      ans[id] = arr;
-    } else {
-      ans[id] = v;
-    }
-    renderQ();
-  }
-
   function prev() {
-    if (cur > 0) { cur--; renderQ(); }
+    if(cur>0){cur--;renderQ();window.scrollTo({top:0,behavior:'smooth'});}
   }
 
   function next() {
-    if (cur < Q.length - 1) { cur++; renderQ(); }
-    else { showRes(); }
+    const q=Q[cur];
+    const value=ans[q.id];
+    const valid=q.type==='m'?Array.isArray(value)&&value.length>0:value!==undefined&&value!==null&&value!=='';
+    if(!valid) return;
+    if(cur<Q.length-1){cur++;renderQ();window.scrollTo({top:0,behavior:'smooth'});}
+    else showRes();
   }
 
-  function szCat(w) { return w < 1 ? 'tiny' : w < 10 ? 'small' : w < 30 ? 'medium' : 'large'; }
-  function lfCat(l) { return l < 5 ? 'short' : l < 10 ? 'medium' : 'long'; }
-  function lvDist(a, b) { const o = { L: 0, M: 1, H: 2 }; return Math.abs((o[a] || 0) - (o[b] || 0)); }
+  function szCat(w) {
+    w=Number(w)||0;
+    return w<1?'tiny':w<10?'small':w<30?'medium':'large';
+  }
+  function lfCat(l) {
+    l=Number(l)||0;
+    return l<5?'short':l<10?'medium':'long';
+  }
+  function lvDist(a,b) {
+    const o={L:0,M:1,H:2};
+    return Math.abs((o[String(a).toUpperCase()] ?? 1)-(o[String(b).toUpperCase()] ?? 1));
+  }
 
   function score(p) {
-    let s = 0, max = 97;
-    if (ans.sp && p[2] === ans.sp) s += 15;
-    if (ans.ki === 'yes' && !p[10]) return -1;
-    if (ans.ki === 'yes' && p[10]) s += 10;
-    if (ans.op === 'yes' && !p[11]) return -1;
-    if (ans.op === 'yes' && p[11]) s += 10;
-    if (ans.cl) { const d = lvDist(p[6], ans.cl); s += d === 0 ? 10 : d === 1 ? 5 : 0; }
-    if (ans.bu) { const b = +ans.bu; if (p[7] <= b) s += 10; else if (p[7] <= b + 1500) s += 5; }
-    if (ans.ex) { const d = lvDist(p[8], ans.ex); s += d === 0 ? 10 : d === 1 ? 5 : 0; }
-    if (ans.gr) { const d = lvDist(p[9], ans.gr); s += d === 0 ? 10 : d === 1 ? 5 : 0; }
-    if (ans.sz) {
-      const sc = szCat(p[4]);
-      if (sc === ans.sz) s += 10;
-      else if ((sc === 'small' && ans.sz === 'tiny') || (sc === 'medium' && ans.sz === 'small') || (sc === 'large' && ans.sz === 'medium')) s += 5;
+    let s=0;
+    const max=107; // 15+10+10+10+10+10+10+10+12+10 = 107
+
+    if(ans.sp && p[2]===ans.sp) s+=15;
+
+    if(ans.ki==='yes') {
+      if(!p[10]) return -1;
+      s+=10;
     }
-    if (ans.tp && ans.tp.length > 0) {
-      const pt = p[12].toLowerCase();
-      ans.tp.forEach(t => { if (pt.includes(t.toLowerCase())) s += 4; });
+    if(ans.op==='yes') {
+      if(!p[11]) return -1;
+      s+=10;
     }
-    if (ans.lf) {
-      const lc = lfCat(p[5]);
-      if (lc === ans.lf) s += 10;
-      else if ((lc === 'short' && ans.lf === 'medium') || (lc === 'medium' && ans.lf === 'long')) s += 5;
+    if(ans.cl) { const d=lvDist(p[6],ans.cl); s+=d===0?10:d===1?5:0; }
+    if(ans.bu) {
+      const b=Number(ans.bu);
+      if(Number(p[7])<=b) s+=10;
+      else if(Number(p[7])<=b+1500) s+=5;
     }
-    return Math.round((s / max) * 100);
+    if(ans.ex) { const d=lvDist(p[8],ans.ex); s+=d===0?10:d===1?5:0; }
+    if(ans.gr) { const d=lvDist(p[9],ans.gr); s+=d===0?10:d===1?5:0; }
+    if(ans.sz) {
+      const sc=szCat(p[4]);
+      if(sc===ans.sz) s+=10;
+      else if((sc==='small'&&ans.sz==='tiny')||(sc==='medium'&&ans.sz==='small')||(sc==='large'&&ans.sz==='medium')) s+=5;
+    }
+    if(Array.isArray(ans.tp)) {
+      const pt=cleanString(p[12]).toLowerCase();
+      ans.tp.forEach(t=>{if(pt.includes(cleanString(t).toLowerCase())) s+=4;});
+    }
+    if(ans.lf) {
+      const lc=lfCat(p[5]);
+      if(lc===ans.lf) s+=10;
+      else if((lc==='short'&&ans.lf==='medium')||(lc==='medium'&&ans.lf==='long')) s+=5;
+    }
+    return Math.max(0,Math.min(100,Math.round(s/max*100)));
+  }
+
+  function getPetImage(p) {
+    const meta=petMeta.get(String(p[0]));
+    return meta?.image || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=500&h=500&fit=crop';
+  }
+
+  function buildMessageUrl(p, matchScore) {
+    const meta=petMeta.get(String(p[0])) || {};
+    const ownerId=meta.ownerId || '';
+    const params=new URLSearchParams({
+      pet:String(p[0]),
+      name:cleanString(p[1]),
+      breed:cleanString(p[3]),
+      img:getPetImage(p),
+      lister:ownerId,
+      owner:meta.ownerName || '',
+      match:String(matchScore)
+    });
+    return `message.html?${params.toString()}`;
   }
 
   function showRes() {
-    const ranked = P.map(p => {
-      const sc = score(p);
-      return sc >= 0 ? { p, sc } : null;
-    }).filter(x => x).sort((a, b) => b.sc - a.sc).slice(0, 5);
+    const source=allPets.length?allPets:P;
+    const ranked=source.map(p=>({p,sc:score(p)}))
+      .filter(x=>x.sc>=0)
+      .sort((a,b)=>b.sc-a.sc)
+      .slice(0,5);
 
-    let html = `<div class="res"><div class="rh"><h3><i class="fa-solid fa-sparkles" style="margin-right:8px"></i>Your Top Matches</h3><p>Based on your preferences, here are your best companions</p></div>`;
+    let out=`<div class="res">
+      <div class="result-title">
+        <h3><i class="fa-solid fa-sparkles" style="margin-right:8px"></i>Your Matches</h3>
+        <p>Pets matched to your preferences</p>
+      </div>
+      <div class="matches-grid">`;
 
-    if (ranked.length === 0) {
-      html += `<div class="card" style="text-align:center">
-        <h3 style="margin-bottom:8px">No exact matches found</h3>
-        <p style="color:var(--text-dim)">Try changing your pet type or compatibility preferences.</p>
+    if(!ranked.length){
+      out+=`<div class="card" style="text-align:center">
+        <h3 style="margin-bottom:8px">No matches found</h3>
+        <p style="color:var(--text-dim)">Try changing your preferences and search again.</p>
       </div>`;
     }
 
-    ranked.forEach((r, i) => {
-      const p = r.p;
-      const g = i === 0 ? 'g1' : i === 1 ? 'g2' : i === 2 ? 'g3' : 'gx';
-      const sz = p[4] < 1 ? (p[4] * 1000) + 'g' : p[4] + ' kg';
+    ranked.forEach((r,i)=>{
+      const p=r.p;
+      const meta=petMeta.get(String(p[0])) || {};
+      const g=i===0?'g1':i===1?'g2':i===2?'g3':'gx';
+      const size=Number(p[4])<1?((Number(p[4])*1000).toFixed(0)+'g'):(Number(p[4]).toFixed(1)+' kg');
+      const image=getPetImage(p);
+      const ownerId=meta.ownerId || '';
+      const messageUrl=buildMessageUrl(p,r.sc);
 
-      html += `<div class="mc">
-        <div class="rk ${g}">${i + 1}</div>
+      out+=`<div class="mc">
+        <div class="rk ${g}">${i+1}</div>
+        <div class="match-img-wrap">
+          <span class="rank-badge">${i+1}</span>
+          <img class="match-img" src="${escapeHtml(image)}" alt="${escapeHtml(p[1])}"
+               onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=500&h=500&fit=crop';">
+        </div>
         <div class="inf">
-          <div class="pn">${p[1]} <span style="color:var(--text-dim);font-weight:400">(${p[2]})</span></div>
-          <div class="pb">${p[3]} &middot; ${sz} &middot; ${p[5]} yrs lifespan</div>
+          <div class="pn">${escapeHtml(p[1])} <span style="color:var(--text-dim);font-weight:400">(${escapeHtml(p[2])})</span></div>
+          <div class="pb">${escapeHtml(p[3])} · ${escapeHtml(size)} · ${escapeHtml(p[5])} yrs lifespan</div>
           <div class="tags">
-            <span class="tag">Care: ${p[6] === 'L' ? 'Low' : p[6] === 'M' ? 'Medium' : 'High'}</span>
-            <span class="tag">Rs.${p[7]}/mo</span>
-            <span class="tag">${p[8] === 'L' ? 'Low' : p[8] === 'M' ? 'Medium' : 'High'} exercise</span>
-            <span class="tag">${p[9] === 'L' ? 'Low' : p[9] === 'M' ? 'Medium' : 'High'} grooming</span>
+            <span class="tag">Care: ${p[6]==='L'?'Low':p[6]==='M'?'Medium':'High'}</span>
+            <span class="tag">Rs.${Number(p[7]).toLocaleString('en-IN')}/mo</span>
+            <span class="tag">${p[8]==='L'?'Low':p[8]==='M'?'Medium':'High'} exercise</span>
+            <span class="tag">${p[9]==='L'?'Low':p[9]==='M'?'Medium':'High'} grooming</span>
           </div>
         </div>
-        <div class="sc">
-          <div class="sn">${r.sc}%</div>
-          <div class="sl">match</div>
-          <div class="bar"><div class="bf" style="width:${r.sc}%"></div></div>
+        <div class="match-actions">
+          <div class="sc">
+            <div class="sn">${r.sc}%</div><div class="sl">match</div>
+            <div class="bar"><div class="bf" style="width:${r.sc}%"></div></div>
+          </div>
+          ${ownerId
+            ? `<a class="message-btn" href="${escapeHtml(messageUrl)}"><i class="fa-solid fa-message"></i> Message</a>`
+            : `<span class="message-btn disabled" title="This pet does not have an ownerId yet"><i class="fa-solid fa-user-slash"></i> Owner unavailable</span>`
+          }
         </div>
       </div>`;
     });
 
-    html += `<button class="rst" onclick="restart()"><i class="fa-solid fa-rotate-right" style="margin-right:6px"></i>Start over</button></div>`;
-    $('C').innerHTML = html;
-    $('D').innerHTML = Q.map(() => '<div class="dot d"></div>').join('');
+    out+=`</div><button type="button" class="rst" id="restartBtn">
+      <i class="fa-solid fa-rotate-right" style="margin-right:6px"></i>Start over</button></div>`;
+
+    $('C').innerHTML=out;
+    $('D').innerHTML=Q.map(()=>'<div class="dot d"></div>').join('');
+    const restartBtn=$('restartBtn');
+    if(restartBtn) restartBtn.addEventListener('click',restart);
   }
 
   function restart() {
-    cur = 0;
-    ans = {};
+    cur=0; ans={};
     renderQ();
+    window.scrollTo({top:0,behavior:'smooth'});
   }
 
-  window.pick = pick;
+  window.pick = () => {}; // kept for compatibility with older cached markup
   window.prev = prev;
   window.next = next;
   window.restart = restart;
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', renderQ, { once: true });
-  } else {
+  // Load Firebase pets first; the built-in 110 pets remain a fallback.
+  (async function initPawMate(){
+    await loadPetsFromFirebase();
     renderQ();
-  }
+  })();
+
 </script>
 </body>
 </html>
