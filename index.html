@@ -160,12 +160,12 @@
         .profile-dropdown {
             position: absolute; top: calc(100% + 10px); right: 0;
             width: 240px; background: var(--bg-glass); border: 1px solid var(--border);
-            border-radius: 16px; backdrop-filter: blur(10px);
+            border-radius: 16px; backdrop-filter: blur(0px);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             padding: 0.8rem 0; opacity: 0; visibility: hidden;
             transform: translateY(-10px); transition: all 0.3s ease; z-index: 1001;
         }
-        .profile-dropdown.active { opacity: 1; visibility: visible; transform: translateY(0); }
+        .profile-dropdown.active { opacity: 10; visibility: visible; transform: translateY(0); }
         .profile-dropdown a {
             display: flex; align-items: center; gap: 10px;
             padding: 0.7rem 1.2rem; color: var(--text-dim); text-decoration: none;
