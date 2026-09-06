@@ -881,7 +881,6 @@
       .opt, .btn, .profile-trigger, .chat-launcher, .chat-close, .chat-input button, .chat-quick button, .footer-newsletter button, .socials a { cursor: pointer; }
     }
   </style>
-
 </head>
 <body>
 
@@ -1044,12 +1043,14 @@
   const cursorFollower = document.getElementById('cursorFollower');
   let mouseX = 0, mouseY = 0, followerX = 0, followerY = 0;
 
-  document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    cursor.style.left = mouseX - 6 + 'px';
-    cursor.style.top = mouseY - 6 + 'px';
-  });
+  if (cursor && cursorFollower && window.matchMedia('(pointer: fine)').matches) {
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      cursor.style.left = mouseX - 6 + 'px';
+      cursor.style.top = mouseY - 6 + 'px';
+    });
+  }
 
   function animateFollower() {
     followerX += (mouseX - followerX) * 0.1;
@@ -1058,26 +1059,30 @@
     cursorFollower.style.top = followerY - 20 + 'px';
     requestAnimationFrame(animateFollower);
   }
-  animateFollower();
+  if (cursor && cursorFollower && window.matchMedia('(pointer: fine)').matches) {
+    animateFollower();
 
-  const hoverElements = document.querySelectorAll('a, button, .opt, .mc, .chat-quick button');
-  hoverElements.forEach(el => {
-    el.addEventListener('mouseenter', () => {
-      cursor.classList.add('hover');
-      cursorFollower.classList.add('hover');
+    const hoverElements = document.querySelectorAll('a, button, .opt, .mc, .chat-quick button');
+    hoverElements.forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        cursor.classList.add('hover');
+        cursorFollower.classList.add('hover');
+      });
+      el.addEventListener('mouseleave', () => {
+        cursor.classList.remove('hover');
+        cursorFollower.classList.remove('hover');
+      });
     });
-    el.addEventListener('mouseleave', () => {
-      cursor.classList.remove('hover');
-      cursorFollower.classList.remove('hover');
-    });
-  });
+  }
 
   // ===================== SCROLL PROGRESS =====================
   const scrollProgress = document.getElementById('scrollProgress');
   window.addEventListener('scroll', () => {
     const scrollTop = window.scrollY;
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const scrollPercent = (scrollTop / docHeight) * 100;
+    const scrollPercent = docHeight > 0
+      ? Math.min(100, Math.max(0, (scrollTop / docHeight) * 100))
+      : 0;
     scrollProgress.style.width = scrollPercent + '%';
   });
 
@@ -1128,13 +1133,20 @@
   const chatInput = document.getElementById('chatInput');
   const chatMessages = document.getElementById('chatMessages');
 
-  chatLauncher.addEventListener('click', () => chatPanel.classList.toggle('active'));
-  chatClose.addEventListener('click', () => chatPanel.classList.remove('active'));
+  if (chatLauncher && chatPanel) {
+    chatLauncher.addEventListener('click', () => chatPanel.classList.toggle('active'));
+  }
+  if (chatClose && chatPanel) {
+    chatClose.addEventListener('click', () => chatPanel.classList.remove('active'));
+  }
 
   function addMessage(text, isUser = false) {
     const msgDiv = document.createElement('div');
     msgDiv.className = 'chat-message ' + (isUser ? 'user' : 'bot');
-    msgDiv.innerHTML = '<div class="chat-bubble">' + text + '</div>';
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble';
+    bubble.textContent = text;
+    msgDiv.appendChild(bubble);
     chatMessages.appendChild(msgDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
@@ -1372,11 +1384,11 @@
 
   function renderQ() {
     const q = Q[cur];
-    const sel = ans[q.id] || [];
+    const sel = q.type === 'm' ? (Array.isArray(ans[q.id]) ? ans[q.id] : []) : ans[q.id];
     let html = `<div class="card"><div class="qn">Question ${cur + 1} of ${Q.length}</div><div class="qt">${q.t}</div><div class="opts ${q.type === 'm' ? 'tgrid' : ''}">`;
     q.opts.forEach(o => {
       const isSel = q.type === 's' ? sel === o.v : sel.includes(o.v);
-      html += `<button class="opt ${isSel ? 'sel' : ''}" onclick="pick('${q.id}','${o.v}',${q.type === 'm'})">
+      html += `<button type="button" class="opt ${isSel ? 'sel' : ''}" onclick="pick('${q.id}','${o.v}',${q.type === 'm'})">
         <div class="${q.type === 'm' ? 'cb' : 'rd'}"></div>
         <div>
           <span class="opt-label">${o.l}</span>
@@ -1387,8 +1399,7 @@
     html += `</div><div class="btns">`;
     if (cur > 0) html += `<button class="btn btn-g" onclick="prev()"><i class="fa-solid fa-arrow-left"></i> Back</button>`;
     else html += `<div></div>`;
-    const ok = q.type === 's' ? sel !== undefined : sel.length > 0;
-    const lbl = cur === Q.length - 1 ? 'See matches' : 'Next';
+    const ok = q.type === 's' ? sel !== undefined && sel !== null && sel !== '' : sel.length > 0;
     const icon = cur === Q.length - 1 ? '<i class="fa-solid fa-wand-magic-sparkles"></i> ' : 'Next <i class="fa-solid fa-arrow-right"></i>';
     html += `<button class="btn btn-p" ${!ok ? 'disabled' : ''} onclick="next()">${icon}</button></div></div>`;
     if (q.type === 'm') html += `<div class="hint">Select up to 3 traits (${sel.length || 0}/3 selected)</div>`;
@@ -1422,7 +1433,7 @@
   function lvDist(a, b) { const o = { L: 0, M: 1, H: 2 }; return Math.abs((o[a] || 0) - (o[b] || 0)); }
 
   function score(p) {
-    let s = 0, max = 100;
+    let s = 0, max = 97;
     if (ans.sp && p[2] === ans.sp) s += 15;
     if (ans.ki === 'yes' && !p[10]) return -1;
     if (ans.ki === 'yes' && p[10]) s += 10;
@@ -1456,6 +1467,13 @@
     }).filter(x => x).sort((a, b) => b.sc - a.sc).slice(0, 5);
 
     let html = `<div class="res"><div class="rh"><h3><i class="fa-solid fa-sparkles" style="margin-right:8px"></i>Your Top Matches</h3><p>Based on your preferences, here are your best companions</p></div>`;
+
+    if (ranked.length === 0) {
+      html += `<div class="card" style="text-align:center">
+        <h3 style="margin-bottom:8px">No exact matches found</h3>
+        <p style="color:var(--text-dim)">Try changing your pet type or compatibility preferences.</p>
+      </div>`;
+    }
 
     ranked.forEach((r, i) => {
       const p = r.p;
@@ -1498,7 +1516,11 @@
   window.next = next;
   window.restart = restart;
 
-  renderQ();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderQ, { once: true });
+  } else {
+    renderQ();
+  }
 </script>
 </body>
 </html>
