@@ -1246,33 +1246,89 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     return arr;
   }
 
+  function looksLikePetRecord(value) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+    // A pet record in TailMates normally contains these fields.
+    // We intentionally do not require every field so older/newer records
+    // in Realtime Database are still included in matching.
+    const keys = Object.keys(value).map(k => k.toLowerCase());
+    const hasName = keys.includes('name');
+    const hasSpecies = keys.includes('species');
+    const hasBreed = keys.includes('breed');
+    const hasPetId = keys.includes('pet_id') || keys.includes('petid');
+    return (hasName && hasSpecies) || (hasPetId && (hasBreed || hasName));
+  }
+
+  function collectPetRecords(node, path='root', found=[]) {
+    if (!node || typeof node !== 'object') return found;
+
+    if (Array.isArray(node)) {
+      node.forEach((item, index) => {
+        if (looksLikePetRecord(item)) {
+          found.push({ key: item.pet_id ?? item.id ?? index + 1, value: item });
+        } else {
+          collectPetRecords(item, `${path}/${index}`, found);
+        }
+      });
+      return found;
+    }
+
+    if (looksLikePetRecord(node)) {
+      found.push({ key: node.pet_id ?? node.id ?? path.split('/').pop(), value: node });
+      return found;
+    }
+
+    Object.entries(node).forEach(([key, value]) => {
+      if (looksLikePetRecord(value)) {
+        found.push({ key: value.pet_id ?? value.id ?? key, value });
+      } else if (value && typeof value === 'object') {
+        collectPetRecords(value, `${path}/${key}`, found);
+      }
+    });
+
+    return found;
+  }
+
   async function loadPetsFromFirebase() {
     try {
-      const response = await fetch(RTDB_URL + '?t=' + Date.now(), { cache:'no-store' });
-      if (!response.ok) throw new Error('Realtime Database request failed: ' + response.status);
+      // Read the actual Realtime Database root. This keeps the matching
+      // engine Firebase-only; no hard-coded pet dataset is used.
+      const response = await fetch(RTDB_URL + '?t=' + Date.now(), {
+        cache: 'no-store',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!response.ok) {
+        throw new Error('Realtime Database request failed: ' + response.status);
+      }
+
       const data = await response.json();
+      const records = collectPetRecords(data);
 
-      let source = data;
-      if (data && data.pets && typeof data.pets === 'object') source = data.pets;
+      // Remove accidental duplicate references to the same pet.
+      const unique = new Map();
+      records.forEach(({key, value}) => {
+        const id = String(value.pet_id ?? value.id ?? key);
+        if (!unique.has(id)) unique.set(id, value);
+      });
 
-      const rows = [];
-      if (Array.isArray(source)) {
-        source.forEach((p,i) => rows.push(normalizePet(p, i+1)));
-      } else if (source && typeof source === 'object') {
-        Object.entries(source).forEach(([key,p]) => {
-          if (p && typeof p === 'object') rows.push(normalizePet(p,key));
-        });
+      const rows = Array.from(unique.entries()).map(([key, value]) =>
+        normalizePet(value, key)
+      );
+
+      if (!rows.length) {
+        throw new Error(
+          'No pet records found in the Realtime Database root. ' +
+          'Expected records containing name/species (or pet_id).'
+        );
       }
 
-      if (rows.length) {
-        allPets = rows;
-        return;
-      }
-      throw new Error('No pet records found');
+      allPets = rows;
+      console.log(`PawMate loaded ${allPets.length} pets directly from Firebase RTDB.`);
+      showFirebasePetStatus(`Loaded ${allPets.length} pets from Firebase.`);
     } catch (err) {
       console.error('Firebase pet load failed:', err);
       allPets = [];
-      showFirebasePetStatus('Unable to load pets from Firebase.');
+      showFirebasePetStatus('Unable to load pets from Firebase. Check Realtime Database rules and the database URL.');
     }
   }
 
@@ -1474,11 +1530,11 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
         <h3><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:8px"></i>Your Matches</h3>
         <p>Meet the pets that best fit your lifestyle and preferences.</p>
         <div class="result-summary">
-          <span class="summary-pill"><i class="fa-solid fa-paw"></i>${rankedAll.length} pets matched</span>
+          <span class="summary-pill"><i class="fa-solid fa-paw"></i>${rankedAll.length} pets analyzed</span>
           ${ranked[0] ? `<span class="summary-pill"><i class="fa-solid fa-star"></i>Top match ${ranked[0].sc}%</span>` : ''}
           <span class="summary-pill"><i class="fa-solid fa-database"></i>${source.length} pets checked</span>
         </div>
-        <p style="margin-top:10px;font-size:.78rem;color:var(--text-dim)">PawMate evaluated every pet loaded from Firebase and ranked them by compatibility.</p>
+        <p style="margin-top:10px;font-size:.78rem;color:var(--text-dim)">PawMate loaded every pet record from your Firebase Realtime Database, checked all of them, and shows the top 5 matches.</p>
       </div>`;
 
     if (!ranked.length) {
