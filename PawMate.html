@@ -1214,8 +1214,14 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     const cost = Number(p.avg_monthly_cost_inr ?? p.monthly_cost ?? p.cost ?? 0);
     const exercise = cleanString(p.exercise_needs, 'M').toUpperCase().charAt(0);
     const grooming = cleanString(p.grooming_needs, 'M').toUpperCase().charAt(0);
-    const kids = !!(p.good_with_kids ?? p.goodWithKids);
-    const pets = !!(p.good_with_other_pets ?? p.goodWithOtherPets);
+    const toBool = (v) => {
+      if (typeof v === 'boolean') return v;
+      if (typeof v === 'number') return v !== 0;
+      const t = cleanString(v).trim().toLowerCase();
+      return ['true','yes','1','y'].includes(t);
+    };
+    const kids = toBool(p.good_with_kids ?? p.goodWithKids);
+    const pets = toBool(p.good_with_other_pets ?? p.goodWithOtherPets);
     const temperament = cleanString(p.temperament, '');
     const image = cleanString(
       p.image_url ?? p.imageUrl ?? p.image ?? p.photoURL ?? p.photo,
@@ -1378,13 +1384,16 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
 
     if(ans.sp && p[2]===ans.sp) s+=15;
 
+    // Do NOT eliminate pets here. Every Firebase pet must be scored.
+    // Kid/pet friendliness is treated as a compatibility factor instead of
+    // a hard filter, so one answer cannot remove most of the database.
     if(ans.ki==='yes') {
-      if(!p[10]) return -1;
-      s+=10;
+      if(p[10]) s+=10;
+      else s+=2;
     }
     if(ans.op==='yes') {
-      if(!p[11]) return -1;
-      s+=10;
+      if(p[11]) s+=10;
+      else s+=2;
     }
     if(ans.cl) { const d=lvDist(p[6],ans.cl); s+=d===0?10:d===1?5:0; }
     if(ans.bu) {
@@ -1453,20 +1462,23 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
 
   function showRes() {
     const source = allPets;
-    const ranked = source.map(p => ({p, sc:score(p)}))
-      .filter(x => x.sc >= 0)
-      .sort((a,b) => b.sc - a.sc)
-      .slice(0,5);
+    // Score EVERY pet loaded from Firebase, then rank them.
+    // The UI shows the best 5 so the page stays manageable, but the
+    // matching engine evaluates the complete database first.
+    const rankedAll = source.map(p => ({p, sc:score(p)}))
+      .sort((a,b) => b.sc - a.sc);
+    const ranked = rankedAll.slice(0,5);
 
     let out = `<div class="res">
       <div class="result-title">
         <h3><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:8px"></i>Your Matches</h3>
         <p>Meet the pets that best fit your lifestyle and preferences.</p>
         <div class="result-summary">
-          <span class="summary-pill"><i class="fa-solid fa-paw"></i>${ranked.length} match${ranked.length===1?'':'es'} found</span>
+          <span class="summary-pill"><i class="fa-solid fa-paw"></i>${rankedAll.length} pets matched</span>
           ${ranked[0] ? `<span class="summary-pill"><i class="fa-solid fa-star"></i>Top match ${ranked[0].sc}%</span>` : ''}
           <span class="summary-pill"><i class="fa-solid fa-database"></i>${source.length} pets checked</span>
         </div>
+        <p style="margin-top:10px;font-size:.78rem;color:var(--text-dim)">PawMate evaluated every pet loaded from Firebase and ranked them by compatibility.</p>
       </div>`;
 
     if (!ranked.length) {
