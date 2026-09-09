@@ -973,7 +973,7 @@
     // This is the ONLY owner source for a pet.
     // New pets can have any valid Firebase Auth UID in owner_id.
     otherUserId = String(petData.owner_id || '').trim();
-    petOwnerName = String(petData.owner_name || '').trim();
+    petOwnerName = String(petData.owner_name || petData.ownerName || petData.owner || '').trim();
 
     if (!otherUserId) {
       showChatError(`The pet "${petName}" is not linked to an owner account yet. Add owner_id to this pet record.`);
@@ -1217,25 +1217,33 @@
   }
 
   async function loadOtherUserProfile() {
-    if (!otherUserId) return;
-    try {
-      const doc = await db.collection('users').doc(otherUserId).get();
-      const headerName = document.getElementById('header-name');
-      const statusEl = document.getElementById('header-status');
+    const headerName = document.getElementById('header-name');
+    const statusEl = document.getElementById('header-status');
 
-      if (doc.exists) {
-        otherUserProfile = doc.data();
-        
-        const displayName = otherUserProfile.name || otherUserProfile.displayName || petOwnerName || 'Pet Parent';
-        if (headerName) headerName.textContent = displayName;
-      } else if (headerName) {
-        headerName.textContent = petOwnerName || 'Pet Parent';
+    // The pet record is the primary source for the owner's displayed name.
+    // Do NOT replace it with the current tester/adopter's name.
+    let resolvedName = petOwnerName || '';
+
+    try {
+      // If owner_name was not stored on the pet, try the owner's Firestore user profile.
+      if (!resolvedName && otherUserId) {
+        const doc = await db.collection('users').doc(otherUserId).get();
+        if (doc.exists) {
+          otherUserProfile = doc.data() || {};
+          resolvedName = String(
+            otherUserProfile.name ||
+            otherUserProfile.displayName ||
+            otherUserProfile.fullName ||
+            ''
+          ).trim();
+        }
       }
-      if (statusEl) statusEl.textContent = 'Online';
     } catch (e) {
-      const headerName = document.getElementById('header-name');
-      if (headerName) headerName.textContent = petOwnerName || 'Pet Parent';
+      console.warn('Owner profile lookup failed:', e);
     }
+
+    if (headerName) headerName.textContent = resolvedName || 'Pet Owner';
+    if (statusEl) statusEl.textContent = 'Online';
   }
 
   function updateApprovalButton() {
@@ -1382,14 +1390,29 @@
 
   async function saveMessage(data) {
     if (!db || !currentUser) throw new Error('Firebase user/session is not ready.');
+    if (!otherUserId) throw new Error('The pet has no owner_id in Realtime Database.');
+    if (currentUser.uid === otherUserId) throw new Error('You are signed in as the pet owner. Test with a different account.');
 
-    if (!conversationId) {
-      conversationId = await getOrCreateConversation();
-    }
-    if (!conversationId) throw new Error('No conversation could be created.');
+    // ALWAYS create/verify the parent conversation first.
+    const id = await getOrCreateConversation();
+    if (!id) throw new Error('Conversation could not be created.');
+    conversationId = id;
 
     const convRef = db.collection('conversations').doc(conversationId);
     const msgRef = convRef.collection('messages').doc();
+
+    // First write the parent document in a separate request.
+    // This is required when Firestore rules use get() on the conversation
+    // while authorizing a message write.
+    await convRef.set({
+      participants: [conversationOwnerId || otherUserId, currentUser.uid].sort(),
+      ownerId: conversationOwnerId || otherUserId,
+      adopterId: currentUser.uid,
+      petId: petId || '',
+      petName: petName || '',
+      petImage: petImg || '',
+      ownerName: petOwnerName || 'Pet Owner'
+    }, { merge: true });
 
     const msgData = {
       ...data,
@@ -1398,27 +1421,21 @@
       time: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    // IMPORTANT: create/update the parent conversation BEFORE creating the message.
-    // Firestore rules commonly use get(conversations/{conversationId}) when
-    // authorizing message writes. A single batch does not make that parent
-    // document available to the rules for the message write, so the first
-    // message can be rejected even though the chat itself opens correctly.
+    // Then write the message by itself.
+    await msgRef.set(msgData);
+
+    // Finally update conversation preview/unread state separately.
     await convRef.set({
-      participants: [currentUser.uid, otherUserId].sort(),
-      ownerId: conversationOwnerId || otherUserId,
-      adopterId: currentUser.uid === (conversationOwnerId || otherUserId) ? otherUserId : currentUser.uid,
-      petId: petId || '',
-      petName: petName || '',
-      petImage: petImg || '',
-      lastMessage: data.type === 'text' ? data.text : (data.type === 'image' ? 'Photo' : (data.type === 'system' ? 'Meetup scheduled' : (data.live ? 'Live location' : 'Location'))),
+      lastMessage: data.type === 'text' ? data.text :
+        (data.type === 'image' ? 'Photo' :
+        (data.type === 'system' ? 'Meetup scheduled' :
+        (data.live ? 'Live location' : 'Location'))),
       lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
       lastSender: currentUser.uid,
       [`unread.${otherUserId}`]: firebase.firestore.FieldValue.increment(1),
       [`unread.${currentUser.uid}`]: 0
     }, { merge: true });
 
-    // Create the message only after the conversation document exists.
-    await msgRef.set(msgData);
     return msgRef;
   }
 
@@ -1438,7 +1455,9 @@
       messageInput.focus();
     } catch (e) {
       console.error('SEND MESSAGE ERROR:', e);
-      alert('Message could not be sent.\n\n' + formatFirebaseError(e));
+      const errorText = formatFirebaseError(e);
+      console.error('Firebase send failure details:', errorText);
+      alert('Message could not be sent.\n\n' + errorText);
     } finally {
       if (btn) btn.disabled = false;
     }
