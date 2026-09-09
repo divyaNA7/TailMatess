@@ -432,202 +432,82 @@
     }
 
     /* Results */
-    .res {
-      animation: fadeIn 0.6s ease;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .rh {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    .rh h3 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .rh p {
-      font-size: 0.95rem;
-      color: var(--text-dim);
-    }
-    .mc {
-      background: var(--bg-glass);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 1.2rem 1.5rem;
-      margin-bottom: 12px;
-      display: flex;
-      gap: 16px;
-      align-items: flex-start;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(10px);
-    }
-    .mc:hover {
-      border-color: rgba(0, 245, 255, 0.2);
-      transform: translateX(5px);
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-    }
-    .rk {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.85rem;
-      font-weight: 700;
-      flex-shrink: 0;
-      margin-top: 2px;
-      font-family: 'Space Grotesk', sans-serif;
-    }
-    .g1 {
-      background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(251, 191, 36, 0.05));
-      color: #fbbf24;
-      border: 1.5px solid rgba(251, 191, 36, 0.4);
-      box-shadow: 0 0 15px rgba(251, 191, 36, 0.15);
-    }
-    .g2 {
-      background: linear-gradient(135deg, rgba(148, 163, 184, 0.2), rgba(148, 163, 184, 0.05));
-      color: #94a3b8;
-      border: 1.5px solid rgba(148, 163, 184, 0.4);
-    }
-    .g3 {
-      background: linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(251, 146, 60, 0.05));
-      color: #fb923c;
-      border: 1.5px solid rgba(251, 146, 60, 0.4);
-    }
-    .gx {
-      background: var(--bg-card);
-      color: var(--text-dim);
-      border: 1.5px solid var(--border);
-    }
-    .inf { flex: 1; }
-    .pn {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin-bottom: 3px;
-      color: var(--text);
-    }
-    .pb {
-      font-size: 0.8rem;
-      color: var(--text-dim);
-      margin-bottom: 8px;
-    }
-    .tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .tag {
-      font-size: 0.7rem;
-      padding: 3px 10px;
-      border-radius: 50px;
-      background: var(--primary-dim);
-      color: var(--primary);
-      border: 1px solid rgba(0, 245, 255, 0.15);
-      font-weight: 500;
-    }
-    .sc {
-      text-align: right;
-      flex-shrink: 0;
-    }
-    .sn {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.6rem;
-      font-weight: 700;
-      line-height: 1;
-      font-variant-numeric: tabular-nums;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .sl {
-      font-size: 0.7rem;
-      color: var(--text-dim);
-      margin-top: 2px;
-    }
-    .bar {
-      width: 50px;
-      height: 4px;
-      background: var(--border);
-      border-radius: 2px;
-      margin-top: 8px;
-      overflow: hidden;
-    }
-    .bf {
-      height: 100%;
-      border-radius: 2px;
-      background: linear-gradient(90deg, var(--primary), var(--accent));
-      transition: width 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-      box-shadow: 0 0 10px rgba(0, 245, 255, 0.3);
-    }
-    .rst {
-      display: block;
-      margin: 2rem auto 0;
-      padding: 0.9rem 2rem;
-      border-radius: 50px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: none;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      color: var(--bg);
-      border: none;
-      font-family: inherit;
-      box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
-      transition: all 0.3s ease;
-    }
-    .rst:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 0 30px rgba(0, 245, 255, 0.4);
-    }
-
-
-    /* PawMate match cards */
-    .matches-grid { display:flex; flex-direction:column; gap:14px; }
-    .mc {
-      display:grid;
-      grid-template-columns:52px 92px 1fr auto;
-      align-items:center;
-      gap:14px;
-    }
-    .match-img {
-      width:92px; height:92px; border-radius:16px; object-fit:cover;
-      border:1px solid var(--border); background:var(--bg-card);
-      display:block;
-    }
-    .match-img-wrap { position:relative; }
-    .match-img-wrap .rank-badge {
-      position:absolute; left:-8px; top:-8px; width:30px; height:30px;
-      border-radius:50%; display:flex; align-items:center; justify-content:center;
-      font-size:.72rem; font-weight:800; background:var(--bg-light);
-      border:1px solid var(--border); z-index:2;
-    }
-    .match-actions { display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
-    .message-btn {
-      display:inline-flex; align-items:center; justify-content:center; gap:7px;
-      padding:9px 14px; border-radius:50px; text-decoration:none;
-      background:linear-gradient(135deg,var(--primary),var(--accent));
-      color:var(--bg); font-size:.78rem; font-weight:700;
-      border:0; white-space:nowrap; transition:.25s ease;
-    }
+    .res { animation: fadeIn .7s ease; padding-bottom: 2rem; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:translateY(0); } }
+    .result-title { text-align:center; margin-bottom:1.7rem; }
+    .result-title h3 { font-family:'Space Grotesk',sans-serif; font-size:clamp(2rem,5vw,2.7rem); font-weight:700; margin-bottom:.45rem; background:linear-gradient(135deg,var(--primary),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .result-title p { color:var(--text-dim); font-size:.92rem; }
+    .result-summary { display:flex; justify-content:center; gap:9px; flex-wrap:wrap; margin:1rem 0 1.7rem; }
+    .summary-pill { display:inline-flex; align-items:center; gap:7px; padding:7px 12px; border-radius:50px; background:var(--bg-glass); border:1px solid var(--border); color:var(--text-dim); font-size:.75rem; }
+    .summary-pill i { color:var(--primary); }
+    .featured-match { position:relative; overflow:hidden; display:grid; grid-template-columns:minmax(230px,42%) 1fr; min-height:310px; border:1px solid rgba(0,245,255,.24); border-radius:26px; background:linear-gradient(145deg,rgba(0,245,255,.08),rgba(168,85,247,.08) 55%,rgba(255,255,255,.025)); box-shadow:0 25px 80px rgba(0,0,0,.4),0 0 45px rgba(0,245,255,.08); margin-bottom:18px; }
+    .featured-match::before { content:''; position:absolute; width:230px; height:230px; border-radius:50%; background:var(--primary); filter:blur(100px); opacity:.1; right:-70px; bottom:-100px; pointer-events:none; }
+    .featured-photo { position:relative; min-height:310px; overflow:hidden; }
+    .featured-photo img { width:100%; height:100%; min-height:310px; object-fit:cover; display:block; transition:transform .7s ease; }
+    .featured-match:hover .featured-photo img { transform:scale(1.05); }
+    .featured-photo::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent 50%,rgba(10,10,15,.7)); }
+    .best-badge { position:absolute; top:16px; left:16px; z-index:2; padding:7px 11px; border-radius:50px; background:rgba(10,10,15,.72); border:1px solid rgba(251,191,36,.5); color:#fbbf24; font-size:.68rem; font-weight:800; letter-spacing:1.2px; backdrop-filter:blur(12px); }
+    .featured-info { position:relative; z-index:1; padding:28px; display:flex; flex-direction:column; justify-content:center; }
+    .eyebrow { color:var(--primary); text-transform:uppercase; letter-spacing:2px; font-size:.68rem; font-weight:800; margin-bottom:6px; }
+    .featured-info h4 { font-size:2rem; line-height:1; margin-bottom:6px; }
+    .featured-breed { color:var(--text-dim); font-size:.86rem; margin-bottom:18px; }
+    .score-row { display:flex; align-items:center; gap:15px; margin-bottom:18px; }
+    .score-ring { width:78px; height:78px; border-radius:50%; display:grid; place-items:center; flex-shrink:0; background:conic-gradient(var(--primary) calc(var(--score) * 1%), rgba(255,255,255,.08) 0); position:relative; box-shadow:0 0 25px rgba(0,245,255,.15); }
+    .score-ring::before { content:''; position:absolute; inset:7px; border-radius:50%; background:var(--bg-light); border:1px solid var(--border); }
+    .score-ring span { position:relative; z-index:1; font-family:'Space Grotesk',sans-serif; font-weight:800; font-size:1.05rem; }
+    .score-copy strong { display:block; font-size:.95rem; margin-bottom:3px; }
+    .score-copy span { color:var(--text-dim); font-size:.72rem; }
+    .why-title { font-size:.72rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:1.4px; margin-bottom:8px; font-weight:700; }
+    .why-chips { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:20px; }
+    .why-chip { display:inline-flex; align-items:center; gap:5px; padding:6px 9px; border-radius:9px; background:rgba(0,245,255,.07); border:1px solid rgba(0,245,255,.13); color:var(--text); font-size:.69rem; }
+    .why-chip i { color:var(--primary); font-size:.62rem; }
+    .featured-actions { display:flex; gap:9px; flex-wrap:wrap; }
+    .featured-actions .message-btn { padding:10px 17px; }
+    .matches-label { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:24px 0 12px; }
+    .matches-label h4 { font-size:1rem; }
+    .matches-label span { color:var(--text-dim); font-size:.72rem; }
+    .matches-grid { display:grid; grid-template-columns:1fr 1fr; gap:13px; }
+    .match-card { position:relative; overflow:hidden; background:var(--bg-glass); border:1px solid var(--border); border-radius:20px; padding:12px; transition:transform .3s ease,border-color .3s ease,box-shadow .3s ease; backdrop-filter:blur(14px); animation:cardIn .55s both; }
+    .match-card:hover { transform:translateY(-5px); border-color:rgba(0,245,255,.22); box-shadow:0 16px 45px rgba(0,0,0,.35); }
+    @keyframes cardIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    .card-photo { height:170px; position:relative; overflow:hidden; border-radius:14px; background:var(--bg-card); }
+    .card-photo img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s ease; }
+    .match-card:hover .card-photo img { transform:scale(1.06); }
+    .rank-pill { position:absolute; top:9px; left:9px; z-index:2; min-width:31px; height:31px; padding:0 8px; border-radius:50px; display:flex; align-items:center; justify-content:center; background:rgba(10,10,15,.78); border:1px solid var(--border); font-size:.68rem; font-weight:800; backdrop-filter:blur(10px); }
+    .match-percent { position:absolute; top:9px; right:9px; z-index:2; padding:6px 8px; border-radius:9px; background:rgba(10,10,15,.78); border:1px solid rgba(0,245,255,.22); color:var(--primary); font-size:.7rem; font-weight:800; backdrop-filter:blur(10px); }
+    .card-body { padding:12px 3px 2px; }
+    .card-name-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .card-name { font-size:1.03rem; font-weight:700; }
+    .card-species { color:var(--text-dim); font-size:.7rem; }
+    .card-breed { color:var(--text-dim); font-size:.72rem; margin-top:3px; }
+    .mini-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:11px 0; }
+    .mini-stat { padding:7px 5px; border-radius:9px; background:var(--bg-card); border:1px solid var(--border); text-align:center; }
+    .mini-stat strong { display:block; font-size:.68rem; color:var(--text); }
+    .mini-stat span { display:block; font-size:.57rem; color:var(--text-dim); margin-top:2px; }
+    .card-tags { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:11px; }
+    .tag { font-size:.62rem; padding:4px 7px; border-radius:50px; background:var(--primary-dim); color:var(--primary); border:1px solid rgba(0,245,255,.13); font-weight:600; }
+    .compat-line { height:4px; background:rgba(255,255,255,.07); border-radius:50px; overflow:hidden; margin-bottom:11px; }
+    .compat-line span { display:block; height:100%; width:var(--score); border-radius:50px; background:linear-gradient(90deg,var(--primary),var(--accent)); box-shadow:0 0 10px rgba(0,245,255,.25); }
+    .match-actions { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .message-btn { display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:8px 12px; border-radius:50px; text-decoration:none; background:linear-gradient(135deg,var(--primary),var(--accent)); color:var(--bg); font-size:.7rem; font-weight:800; border:0; white-space:nowrap; transition:.25s ease; }
     .message-btn:hover { transform:translateY(-2px); box-shadow:0 0 22px rgba(0,245,255,.3); }
     .message-btn.disabled { opacity:.45; pointer-events:none; background:var(--bg-card); color:var(--text-dim); border:1px solid var(--border); }
-    .match-error { color:var(--secondary); font-size:.78rem; margin-top:7px; }
-    .result-title { text-align:center; margin-bottom:1.6rem; }
-    .result-title h3 { margin-bottom:.35rem; }
-    .result-title p { color:var(--text-dim); font-size:.9rem; }
+    .match-note { color:var(--text-dim); font-size:.63rem; }
+    .no-match { text-align:center; padding:35px 20px; }
+    .no-match i { font-size:2rem; color:var(--primary); margin-bottom:12px; }
+    .no-match h4 { font-size:1.2rem; margin-bottom:6px; }
+    .no-match p { color:var(--text-dim); font-size:.82rem; }
+    .rst { display:block; margin:1.7rem auto 0; padding:.9rem 2rem; border-radius:50px; font-size:.9rem; font-weight:600; cursor:none; background:linear-gradient(135deg,var(--primary),var(--accent)); color:var(--bg); border:none; font-family:inherit; box-shadow:0 0 20px rgba(0,245,255,.2); transition:all .3s ease; }
+    .rst:hover { transform:translateY(-2px); box-shadow:0 0 30px rgba(0,245,255,.4); }
     @media (max-width:768px) {
-      .mc { grid-template-columns:42px 70px 1fr; }
-      .match-img { width:70px; height:70px; }
-      .match-actions { grid-column:2 / -1; align-items:stretch; }
-      .message-btn { width:100%; }
+      .featured-match { grid-template-columns:1fr; }
+      .featured-photo,.featured-photo img { min-height:235px; height:235px; }
+      .featured-photo::after { background:linear-gradient(0deg,rgba(10,10,15,.45),transparent 65%); }
+      .featured-info { padding:22px; }
+      .matches-grid { grid-template-columns:1fr; }
+      .card-photo { height:205px; }
     }
+    @media (max-width:460px) { .score-ring{width:68px;height:68px}.featured-info h4{font-size:1.65rem}.featured-actions .message-btn{width:100%}.matches-label{align-items:flex-start;flex-direction:column;gap:3px} }
 
     /* Footer */
     footer {
@@ -1551,73 +1431,114 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     return `message.html?${params.toString()}`;
   }
 
+  function getMatchReasons(p) {
+    const reasons = [];
+    if (ans.sp && p[2] === ans.sp) reasons.push(`${p[2]} lover`);
+    if (ans.ki === 'yes' && p[10]) reasons.push('Kid friendly');
+    if (ans.op === 'yes' && p[11]) reasons.push('Pet friendly');
+    if (ans.cl && lvDist(p[6], ans.cl) === 0) reasons.push('Care fits');
+    if (ans.bu && Number(p[7]) <= Number(ans.bu)) reasons.push('Budget fit');
+    if (ans.ex && lvDist(p[8], ans.ex) === 0) reasons.push('Activity fit');
+    if (ans.gr && lvDist(p[9], ans.gr) === 0) reasons.push('Easy grooming');
+    if (ans.sz && szCat(p[4]) === ans.sz) reasons.push('Preferred size');
+    if (Array.isArray(ans.tp)) {
+      const pt = cleanString(p[12]).toLowerCase();
+      ans.tp.forEach(t => { if (pt.includes(cleanString(t).toLowerCase()) && reasons.length < 5) reasons.push(cleanString(t)); });
+    }
+    if (ans.lf && lfCat(p[5]) === ans.lf) reasons.push('Commitment fit');
+    return [...new Set(reasons)].slice(0,5);
+  }
+
+  function levelText(v) { return v === 'L' ? 'Low' : v === 'M' ? 'Medium' : 'High'; }
+
   function showRes() {
-    const source=allPets;
-    const ranked=source.map(p=>({p,sc:score(p)}))
-      .filter(x=>x.sc>=0)
-      .sort((a,b)=>b.sc-a.sc)
+    const source = allPets;
+    const ranked = source.map(p => ({p, sc:score(p)}))
+      .filter(x => x.sc >= 0)
+      .sort((a,b) => b.sc - a.sc)
       .slice(0,5);
 
-    let out=`<div class="res">
+    let out = `<div class="res">
       <div class="result-title">
-        <h3><i class="fa-solid fa-sparkles" style="margin-right:8px"></i>Your Matches</h3>
-        <p>Pets matched to your preferences</p>
-      </div>
-      <div class="matches-grid">`;
-
-    if(!ranked.length){
-      out+=`<div class="card" style="text-align:center">
-        <h3 style="margin-bottom:8px">No matches found</h3>
-        <p style="color:var(--text-dim)">Try changing your preferences and search again.</p>
+        <h3><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:8px"></i>Your Matches</h3>
+        <p>Meet the pets that best fit your lifestyle and preferences.</p>
+        <div class="result-summary">
+          <span class="summary-pill"><i class="fa-solid fa-paw"></i>${ranked.length} match${ranked.length===1?'':'es'} found</span>
+          ${ranked[0] ? `<span class="summary-pill"><i class="fa-solid fa-star"></i>Top match ${ranked[0].sc}%</span>` : ''}
+          <span class="summary-pill"><i class="fa-solid fa-database"></i>${source.length} pets checked</span>
+        </div>
       </div>`;
+
+    if (!ranked.length) {
+      out += `<div class="card no-match"><i class="fa-solid fa-paw"></i><h4>No close matches yet</h4><p>Try changing one or two preferences and run PawMate again.</p></div>`;
+    } else {
+      const top = ranked[0];
+      const p = top.p;
+      const meta = petMeta.get(String(p[0])) || {};
+      const image = getPetImage(p);
+      const ownerId = meta.ownerId || '';
+      const messageUrl = buildMessageUrl(p, top.sc);
+      const reasons = getMatchReasons(p);
+      const topReasons = reasons.length ? reasons : ['Lifestyle compatibility', 'Great overall fit', 'Recommended for you'];
+
+      out += `<section class="featured-match">
+        <div class="featured-photo">
+          <span class="best-badge"><i class="fa-solid fa-crown"></i> BEST MATCH</span>
+          <img src="${escapeHtml(image)}" alt="${escapeHtml(p[1])}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=700&h=700&fit=crop';">
+        </div>
+        <div class="featured-info">
+          <div class="eyebrow">Your #1 companion</div>
+          <h4>${escapeHtml(p[1])}</h4>
+          <div class="featured-breed">${escapeHtml(p[3])} · ${escapeHtml(p[2])}</div>
+          <div class="score-row">
+            <div class="score-ring" style="--score:${top.sc}"><span>${top.sc}%</span></div>
+            <div class="score-copy"><strong>Excellent compatibility</strong><span>Based on your PawMate answers</span></div>
+          </div>
+          <div class="why-title">Why this match?</div>
+          <div class="why-chips">${topReasons.map(x=>`<span class="why-chip"><i class="fa-solid fa-check"></i>${escapeHtml(x)}</span>`).join('')}</div>
+          <div class="featured-actions">
+            ${ownerId ? `<a class="message-btn" href="${escapeHtml(messageUrl)}"><i class="fa-solid fa-message"></i> Message Owner</a>` : `<span class="message-btn disabled"><i class="fa-solid fa-user-slash"></i> Owner unavailable</span>`}
+          </div>
+        </div>
+      </section>`;
+
+      if (ranked.length > 1) {
+        out += `<div class="matches-label"><h4>More great matches</h4><span>Swipe through your next-best companions</span></div><div class="matches-grid">`;
+        ranked.slice(1).forEach((r,i)=>{
+          const q = r.p;
+          const m = petMeta.get(String(q[0])) || {};
+          const img = getPetImage(q);
+          const oid = m.ownerId || '';
+          const url = buildMessageUrl(q,r.sc);
+          const kg = Number(q[4]) < 1 ? `${(Number(q[4])*1000).toFixed(0)}g` : `${Number(q[4]).toFixed(1)} kg`;
+          out += `<article class="match-card" style="animation-delay:${i*80}ms">
+            <div class="card-photo">
+              <span class="rank-pill">#${i+2}</span><span class="match-percent">${r.sc}% match</span>
+              <img src="${escapeHtml(img)}" alt="${escapeHtml(q[1])}" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600&h=500&fit=crop';">
+            </div>
+            <div class="card-body">
+              <div class="card-name-row"><div class="card-name">${escapeHtml(q[1])}</div><div class="card-species">${escapeHtml(q[2])}</div></div>
+              <div class="card-breed">${escapeHtml(q[3])}</div>
+              <div class="mini-stats">
+                <div class="mini-stat"><strong>${escapeHtml(kg)}</strong><span>Weight</span></div>
+                <div class="mini-stat"><strong>${escapeHtml(q[5])} yrs</strong><span>Lifespan</span></div>
+                <div class="mini-stat"><strong>Rs.${Number(q[7]).toLocaleString('en-IN')}</strong><span>/ month</span></div>
+              </div>
+              <div class="card-tags"><span class="tag">${levelText(q[6])} care</span><span class="tag">${levelText(q[8])} exercise</span><span class="tag">${levelText(q[9])} grooming</span></div>
+              <div class="compat-line" style="--score:${r.sc}%"><span></span></div>
+              <div class="match-actions"><span class="match-note">Strong lifestyle fit</span>${oid ? `<a class="message-btn" href="${escapeHtml(url)}"><i class="fa-solid fa-message"></i> Message</a>` : `<span class="message-btn disabled"><i class="fa-solid fa-user-slash"></i> No owner</span>`}</div>
+            </div>
+          </article>`;
+        });
+        out += `</div>`;
+      }
     }
 
-    ranked.forEach((r,i)=>{
-      const p=r.p;
-      const meta=petMeta.get(String(p[0])) || {};
-      const g=i===0?'g1':i===1?'g2':i===2?'g3':'gx';
-      const size=Number(p[4])<1?((Number(p[4])*1000).toFixed(0)+'g'):(Number(p[4]).toFixed(1)+' kg');
-      const image=getPetImage(p);
-      const ownerId=meta.ownerId || '';
-      const messageUrl=buildMessageUrl(p,r.sc);
-
-      out+=`<div class="mc">
-        <div class="rk ${g}">${i+1}</div>
-        <div class="match-img-wrap">
-          <span class="rank-badge">${i+1}</span>
-          <img class="match-img" src="${escapeHtml(image)}" alt="${escapeHtml(p[1])}"
-               onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=500&h=500&fit=crop';">
-        </div>
-        <div class="inf">
-          <div class="pn">${escapeHtml(p[1])} <span style="color:var(--text-dim);font-weight:400">(${escapeHtml(p[2])})</span></div>
-          <div class="pb">${escapeHtml(p[3])} · ${escapeHtml(size)} · ${escapeHtml(p[5])} yrs lifespan</div>
-          <div class="tags">
-            <span class="tag">Care: ${p[6]==='L'?'Low':p[6]==='M'?'Medium':'High'}</span>
-            <span class="tag">Rs.${Number(p[7]).toLocaleString('en-IN')}/mo</span>
-            <span class="tag">${p[8]==='L'?'Low':p[8]==='M'?'Medium':'High'} exercise</span>
-            <span class="tag">${p[9]==='L'?'Low':p[9]==='M'?'Medium':'High'} grooming</span>
-          </div>
-        </div>
-        <div class="match-actions">
-          <div class="sc">
-            <div class="sn">${r.sc}%</div><div class="sl">match</div>
-            <div class="bar"><div class="bf" style="width:${r.sc}%"></div></div>
-          </div>
-          ${ownerId
-            ? `<a class="message-btn" href="${escapeHtml(messageUrl)}"><i class="fa-solid fa-message"></i> Message</a>`
-            : `<span class="message-btn disabled" title="This pet does not have an ownerId yet"><i class="fa-solid fa-user-slash"></i> Owner unavailable</span>`
-          }
-        </div>
-      </div>`;
-    });
-
-    out+=`</div><button type="button" class="rst" id="restartBtn">
-      <i class="fa-solid fa-rotate-right" style="margin-right:6px"></i>Start over</button></div>`;
-
-    $('C').innerHTML=out;
-    $('D').innerHTML=Q.map(()=>'<div class="dot d"></div>').join('');
-    const restartBtn=$('restartBtn');
-    if(restartBtn) restartBtn.addEventListener('click',restart);
+    out += `<button type="button" class="rst" id="restartBtn"><i class="fa-solid fa-rotate-right" style="margin-right:6px"></i>Try Different Preferences</button></div>`;
+    $('C').innerHTML = out;
+    $('D').innerHTML = Q.map(()=>'<div class="dot d"></div>').join('');
+    const restartBtn = $('restartBtn');
+    if (restartBtn) restartBtn.addEventListener('click',restart);
   }
 
   function restart() {
@@ -1631,7 +1552,7 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
   window.next = next;
   window.restart = restart;
 
-  // Load Firebase pets first; the built-in 110 pets remain a fallback.
+  // Load pet records from Firebase before starting the quiz.
   (async function initPawMate(){
     await loadPetsFromFirebase();
     renderQ();
