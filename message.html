@@ -876,17 +876,30 @@
   // ===================== SCROLL PROGRESS =====================
   const scrollProgress = document.getElementById('scrollProgress');
   window.addEventListener('scroll', () => {
-  const st = window.scrollY;
-  const dh =
-    document.documentElement.scrollHeight -
-    window.innerHeight;
-
-  const progress = dh > 0 ? (st / dh) * 100 : 0;
-  scrollProgress.style.width = `${progress}%`;
-});
+    const st = window.scrollY;
+    const dh = document.documentElement.scrollHeight - window.innerHeight;
+    scrollProgress.style.width = (dh > 0 ? Math.min(100, Math.max(0, st / dh * 100)) : 0) + '%';
+  });
 
   // ===================== FIREBASE =====================
- 
+  // SECURITY: restrict data with Firestore rules, e.g.
+  // rules_version = '2';
+  // service cloud.firestore {
+  //   match /databases/{db}/documents {
+  //     match /conversations/{id} {
+  //       allow read, update: if request.auth != null && request.auth.uid in resource.data.participants;
+  //       allow create: if request.auth != null && request.auth.uid in request.resource.data.participants;
+  //       match /messages/{msg} {
+  //         allow read, create: if request.auth != null
+  //           && request.auth.uid in get(/databases/$(db)/documents/conversations/$(id)).data.participants;
+  //       }
+  //     }
+  //     match /users/{uid} {
+  //       allow read: if request.auth != null;
+  //       allow write: if request.auth != null && request.auth.uid == uid;
+  //     }
+  //   }
+  // }
   const firebaseConfig = {
     apiKey: "AIzaSyBifu5Te7paXOFUFrDUtogIPpi5H0xR7rY",
     authDomain: "tailmatess.firebaseapp.com",
@@ -894,42 +907,91 @@
     storageBucket: "tailmatess.firebasestorage.app",
     messagingSenderId: "445299543083",
     appId: "1:445299543083:web:e7be85a3eae32f8ba5ee6e",
-    measurementId: "G-ZLQG062LVE"
+    measurementId: "G-ZLQG062LVE",
+    databaseURL: "https://tailmatess-default-rtdb.firebaseio.com"
   };
 
-  let db, auth, currentUser, conversationId, unsubMessages;
+  let db, auth, rtdb, currentUser, conversationId, unsubMessages;
   let firebaseReady = false;
+  let petId = '';
+  let petName = '';
+  let petBreed = '';
+  let petImg = '';
+  let otherUserId = '';
+  let petOwnerName = '';
+  let conversationOwnerId = null;
+  let petData = null;
 
   try {
     firebase.initializeApp(firebaseConfig);
     auth = firebase.auth();
     db = firebase.firestore();
+    rtdb = firebase.database();
     firebaseReady = true;
   } catch (e) { console.error("Firebase init failed:", e); }
 
   // ===================== PET DATA =====================
+  // IMPORTANT: The URL only needs the pet key/id.
+  // Owner information is ALWAYS read from Realtime Database.
   const urlParams = new URLSearchParams(window.location.search);
-  const petId = (urlParams.get('pet') || 'whiskers-001')
-    .replace(/[^a-zA-Z0-9_-]/g, '_')   // FIX: sanitize — Firestore doc IDs cannot contain '/'
-    .slice(0, 100) || 'pet';
-  const petName = urlParams.get('name') || 'Whiskers';
-  const petBreed = urlParams.get('breed') || 'Siamese';
-  const petImg = urlParams.get('img') || 'https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop';
-  const otherUserId = urlParams.get('lister') || '';
-  const urlOwnerId = urlParams.get('ownerId') || '';
+  const rawPetId = (urlParams.get('pet') || '').trim();
   const matchScore = urlParams.get('match') || '88';
 
   let selectedSpot = null;
   let selectedTime = null;
   let otherUserProfile = null;
-  let conversationOwnerId = null;
   let adoptionApproved = false;
+
+  async function loadPetFromDatabase() {
+    if (!rawPetId || !rtdb) return false;
+
+    // First try the exact database key (works for /pets/1, /pets/2, etc.).
+    let snap = await rtdb.ref('pets/' + rawPetId).once('value');
+
+    // If the database uses push keys but stores pet_id inside each record,
+    // search by pet_id as a fallback.
+    if (!snap.exists()) {
+      const byPetId = await rtdb.ref('pets').orderByChild('pet_id').equalTo(Number(rawPetId)).once('value');
+      if (byPetId.exists()) {
+        let firstKey = null, firstValue = null;
+        byPetId.forEach(child => { if (!firstKey) { firstKey = child.key; firstValue = child.val(); } });
+        if (firstValue) { snap = { exists: () => true, val: () => firstValue, key: firstKey }; }
+      }
+    }
+
+    if (!snap.exists()) {
+      showChatError('Pet #' + rawPetId + ' could not be found in the Realtime Database.');
+      return false;
+    }
+
+    petData = snap.val() || {};
+    petId = String(petData.pet_id ?? snap.key ?? rawPetId);
+    petName = String(petData.name || 'Pet');
+    petBreed = String(petData.breed || petData.species || '');
+    petImg = String(petData.image_url || petData.imageUrl || 'https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop');
+
+    // This is the ONLY owner source for a pet.
+    // New pets can have any valid Firebase Auth UID in owner_id.
+    otherUserId = String(petData.owner_id || '').trim();
+    petOwnerName = String(petData.owner_name || '').trim();
+
+    if (!otherUserId) {
+      showChatError(`The pet "${petName}" is not linked to an owner account yet. Add owner_id to this pet record.`);
+      return false;
+    }
+
+    document.title = `Chat - ${petName} | TailMates`;
+    const header = document.getElementById('header-name');
+    if (header) header.textContent = petOwnerName || 'Pet Parent';
+    return true;
+  }
 
   // ===================== AUTH =====================
   if (!firebaseReady) {
     console.error('Firebase failed to initialize. Chat is unavailable.');
     showNotLoggedIn();
   }
+
   auth.onAuthStateChanged(async (user) => {
     if (!user) {
       currentUser = null;
@@ -937,25 +999,29 @@
       showNotLoggedIn();
       return;
     }
+
     currentUser = user;
     document.getElementById('not-logged').style.display = 'none';
     document.getElementById('input-area').style.display = 'flex';
     document.getElementById('chat-messages').style.display = 'flex';
 
-    if (!otherUserId || otherUserId === 'lister_demo') {
-      // No owner was supplied: show the inbox only when the user explicitly
-      // opened message.html without pet-owner information.
-      if (urlParams.has('pet')) {
-        showChatError('This pet is not linked to an owner account yet. Please add the ownerId to the pet record in Firebase.');
-      } else {
-        await loadMyConversations();
-      }
-    } else if (otherUserId === currentUser.uid) {
-      showChatError('You cannot start an adoption conversation with your own account. Check the pet ownerId in Firebase.');
-    } else {
-      await initSingleChat();
-      updateApprovalButton();
+    // message.html with no pet parameter is the inbox.
+    if (!rawPetId) {
+      await loadMyConversations();
+      return;
     }
+
+    const petLoaded = await loadPetFromDatabase();
+    if (!petLoaded) return;
+
+    // An owner should normally open a conversation from the inbox.
+    // A direct pet link is for an adopter; don't create an owner-to-owner chat.
+    if (otherUserId === currentUser.uid) {
+      showChatError('This pet belongs to your account. Open an existing conversation from My Chats to message an adopter.');
+      return;
+    }
+
+    await initSingleChat();
   });
 
   let unsubInboxParticipants = null;
@@ -968,7 +1034,11 @@
 
     const chatMessages = document.getElementById('chat-messages');
     chatMessages.innerHTML = '<div class="date-separator"><span>Your Conversations</span></div>';
-    
+
+    // IMPORTANT: use only participants for the inbox.
+    // Firestore security rules are not filters: a query such as
+    // where(ownerId == currentUser.uid) cannot satisfy a rule that checks
+    // request.auth.uid in resource.data.participants.
     if (unsubInboxParticipants) unsubInboxParticipants();
 
     const conversationMap = new Map();
@@ -1019,10 +1089,9 @@
           item.style.justifyContent = 'flex-start';
           item.onclick = () => {
             const params = new URLSearchParams({
-  pet: conv.petId || ''
-});
-
-window.location.href = `message.html?${params.toString()}`;
+              pet: conv.petId || ''
+            });
+            window.location.href = `message.html?${params.toString()}`;
           };
           item.innerHTML = `
             <div class="msg-bubble">
@@ -1057,15 +1126,12 @@ window.location.href = `message.html?${params.toString()}`;
 
   async function initSingleChat() {
     const headerName = document.getElementById('header-name');
-    // Header shows the OWNER's name (fallback: 'owner' URL param, generic default)
-    if (headerName) headerName.textContent = urlParams.get('owner') || 'Pet Parent';
+    if (headerName) headerName.textContent = petOwnerName || 'Pet Parent';
     document.title = `Chat - ${petName} | TailMates`;
 
     const id = await getOrCreateConversation();
-    if (!id) {
-      showChatError('The pet owner could not be identified. Check the ownerId stored on this pet.');
-      return;
-    }
+    if (!id) return;
+
     await loadOtherUserProfile();
     loadMessagesFromFirebase();
   }
@@ -1092,11 +1158,14 @@ window.location.href = `message.html?${params.toString()}`;
   }
 
   async function getOrCreateConversation() {
-    if (!currentUser || !otherUserId || otherUserId === currentUser.uid) return null;
+    if (!currentUser || !otherUserId || otherUserId === currentUser.uid || !petId) return null;
 
     const participants = [currentUser.uid, otherUserId].sort();
-    conversationId = participants.join('_');
-    conversationOwnerId = urlOwnerId || conversationOwnerId || otherUserId;
+
+    // PET-SPECIFIC conversation IDs prevent two different pets owned by the
+    // same person from sharing one chat. Any new owner works automatically.
+    conversationId = 'pet_' + encodeURIComponent(petId) + '_' + participants.map(encodeURIComponent).join('_');
+    conversationOwnerId = otherUserId;
 
     const convRef = db.collection('conversations').doc(conversationId);
 
@@ -1105,50 +1174,44 @@ window.location.href = `message.html?${params.toString()}`;
 
       if (!convDoc.exists) {
         const newConversation = {
-          participants: participants,
-          ownerId: conversationOwnerId,
-          adopterId: currentUser.uid === conversationOwnerId ? otherUserId : currentUser.uid,
-          petId: petId || '',
-          petName: petName || '',
-          petImage: petImg || '',
+          participants,
+          ownerId: otherUserId,
+          adopterId: currentUser.uid,
+          petId,
+          petName,
+          petImage: petImg,
+          ownerName: petOwnerName || 'Pet Parent',
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           lastMessage: '',
           lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
           lastSender: '',
           adoptionApproved: false,
-          unread: {
-            [participants[0]]: 0,
-            [participants[1]]: 0
-          }
+          unread: { [participants[0]]: 0, [participants[1]]: 0 }
         };
-
         await convRef.set(newConversation);
-        console.log('Conversation CREATED:', conversationId, newConversation);
       } else {
         const data = convDoc.data() || {};
-        conversationOwnerId = data.ownerId || conversationOwnerId;
+        // Never replace the stored owner with the current user. The owner is
+        // determined by the pet's owner_id and remains stable.
+        conversationOwnerId = data.ownerId || otherUserId;
         adoptionApproved = data.adoptionApproved === true;
-
         await convRef.set({
-          participants: participants,
-          ownerId: data.ownerId || conversationOwnerId,
-          adopterId: data.adopterId || (currentUser.uid === conversationOwnerId ? otherUserId : currentUser.uid),
-          petId: data.petId || petId || '',
-          petName: data.petName || petName || '',
-          petImage: data.petImage || petImg || ''
+          participants,
+          ownerId: conversationOwnerId,
+          adopterId: data.adopterId || (currentUser.uid === conversationOwnerId ? participants.find(id => id !== currentUser.uid) : currentUser.uid),
+          petId,
+          petName,
+          petImage: petImg,
+          ownerName: petOwnerName || data.ownerName || 'Pet Parent'
         }, { merge: true });
-
-        await convRef.update({ [`unread.${currentUser.uid}`]: 0 });
+        await convRef.set({ [`unread.${currentUser.uid}`]: 0 }, { merge: true });
       }
 
       updateApprovalButton();
       return conversationId;
     } catch (e) {
       console.error('CONVERSATION CREATE/READ ERROR:', e);
-      showChatError(
-        'Firebase could not create/open the conversation.\n\n' +
-        (e.code ? e.code + ': ' : '') + (e.message || 'Unknown Firebase error')
-      );
+      showChatError('Firebase could not create/open the conversation.\n\n' + (e.code ? e.code + ': ' : '') + (e.message || 'Unknown Firebase error'));
       return null;
     }
   }
@@ -1157,18 +1220,24 @@ window.location.href = `message.html?${params.toString()}`;
     if (!otherUserId) return;
     try {
       const doc = await db.collection('users').doc(otherUserId).get();
+      const headerName = document.getElementById('header-name');
+      const statusEl = document.getElementById('header-status');
+
       if (doc.exists) {
         otherUserProfile = doc.data();
-        const headerName = document.getElementById('header-name');
-        const statusEl = document.getElementById('header-status');
-        if (headerName && otherUserProfile.name) headerName.textContent = otherUserProfile.name;  // owner name only
-        if (statusEl) statusEl.textContent = 'Online';   // this field is a status, not a name
+        // For an adopter, this is the owner. For an owner opening an inbox
+        // conversation, this is the other participant.
+        const displayName = otherUserProfile.name || otherUserProfile.displayName || petOwnerName || 'Pet Parent';
+        if (headerName) headerName.textContent = displayName;
+      } else if (headerName) {
+        headerName.textContent = petOwnerName || 'Pet Parent';
       }
-    } catch (e) { console.log('Could not load other user profile'); }
+      if (statusEl) statusEl.textContent = 'Online';
+    } catch (e) {
+      const headerName = document.getElementById('header-name');
+      if (headerName) headerName.textContent = petOwnerName || 'Pet Parent';
+    }
   }
-
-  const chatMessages = document.getElementById('chat-messages');
-  const messageInput = document.getElementById('message-input');
 
   function updateApprovalButton() {
     const btn = document.getElementById('approve-adoption-btn');
@@ -1740,12 +1809,13 @@ window.location.href = `message.html?${params.toString()}`;
       searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') searchLocation(); });
     }
   });
+
+  window.addEventListener('beforeunload', () => {
+    if (unsubMessages) unsubMessages();
+    if (unsubInboxParticipants) unsubInboxParticipants();
+    stopPanelLive();
+    if (livePosInterval) { clearInterval(livePosInterval); livePosInterval = null; }
+  });
 </script>
 </body>
 </html>
-
-<script>
-window.addEventListener('beforeunload', () => {
-  try { stopLiveShare(); } catch (e) {}
-});
-</script>
