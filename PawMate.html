@@ -1396,12 +1396,30 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
           if(arr.includes(value)) arr=arr.filter(x=>x!==value);
           else if(arr.length<3) arr.push(value);
           ans[qid]=arr;
+
+          // Update only the clicked option instead of rebuilding the whole card.
+          // This prevents the card entrance animation from replaying on every click.
+          btn.classList.toggle('sel', arr.includes(value));
+          const hint=C.querySelector('.hint');
+          if(hint) hint.textContent=`Select up to 3 traits (${arr.length}/3 selected)`;
         } else {
           // Q5 and Q9 glitches are avoided by keeping all values as strings
           // and using the question's option index instead of inline onclick code.
           ans[qid]=value;
+
+          // Update the radio selection in place. Re-rendering the entire card
+          // here caused the question to visibly glitch/animate after every click.
+          C.querySelectorAll('.opt').forEach(optionBtn=>optionBtn.classList.remove('sel'));
+          btn.classList.add('sel');
         }
-        renderQ();
+
+        // Enable/disable Next without replacing the question DOM.
+        const nextButton=C.querySelector('#nextBtn');
+        const currentValue=ans[qid];
+        const validNow=q.type==='m'
+          ? Array.isArray(currentValue)&&currentValue.length>0
+          : currentValue!==undefined&&currentValue!==null&&currentValue!=='';
+        if(nextButton) nextButton.disabled=!validNow;
       });
     });
 
