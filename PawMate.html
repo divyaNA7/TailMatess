@@ -1534,12 +1534,6 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
       <div class="result-title">
         <h3><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:8px"></i>Your Matches</h3>
         <p>Meet the pets that best fit your lifestyle and preferences.</p>
-        <div class="result-summary">
-          <span class="summary-pill"><i class="fa-solid fa-paw"></i>${rankedAll.length} pets analyzed</span>
-          ${ranked[0] ? `<span class="summary-pill"><i class="fa-solid fa-star"></i>Top match ${ranked[0].sc}%</span>` : ''}
-          <span class="summary-pill"><i class="fa-solid fa-database"></i>${source.length} pets checked</span>
-        </div>
-        <p style="margin-top:10px;font-size:.78rem;color:var(--text-dim)">PawMate loaded every pet record from your Firebase Realtime Database, checked all of them, and shows the top 5 matches.</p>
       </div>`;
 
     if (!ranked.length) {
