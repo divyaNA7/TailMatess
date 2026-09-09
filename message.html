@@ -741,7 +741,7 @@
           <button class="time-btn" onclick="selectTime(this)">6:00 PM</button>
           <button class="time-btn" onclick="selectTime(this)">7:00 PM</button>
         </div>
-        <button class="confirm-btn2" onclick="confirmMeetup()">Confirm Meetup</button>
+        <button type="button" class="confirm-btn2" onclick="confirmMeetup(event)">Confirm Meetup</button>
       </div>
     </div>
   </div>
@@ -774,7 +774,7 @@
       <button class="map-locate-btn map-live-btn" id="panel-live-btn" onclick="togglePanelLive()">
         <i class="fa-solid fa-tower-broadcast"></i> Live
       </button>
-      <button class="map-send-btn" id="map-send-btn" onclick="sendLocation()" disabled>
+      <button type="button" class="map-send-btn" id="map-send-btn" onclick="sendLocation(event)" disabled>
         <i class="fa-solid fa-paper-plane"></i> Send
       </button>
     </div>
@@ -830,7 +830,7 @@
         <input type="text" class="input-field" id="message-input" placeholder="Type a message..." autocomplete="off">
       </div>
 
-      <button class="send-btn" id="send-btn" onclick="sendMessage()" title="Send">
+      <button type="button" class="send-btn" id="send-btn" onclick="sendMessage(event)" title="Send">
         <i class="fa-solid fa-paper-plane" style="font-size:1rem;"></i>
       </button>
     </div>
@@ -1225,8 +1225,7 @@
 
       if (doc.exists) {
         otherUserProfile = doc.data();
-        // For an adopter, this is the owner. For an owner opening an inbox
-        // conversation, this is the other participant.
+        
         const displayName = otherUserProfile.name || otherUserProfile.displayName || petOwnerName || 'Pet Parent';
         if (headerName) headerName.textContent = displayName;
       } else if (headerName) {
@@ -1243,8 +1242,6 @@
     const btn = document.getElementById('approve-adoption-btn');
     if (!btn || !currentUser) return;
 
-    // CRITICAL: the button is rendered ONLY when the logged-in user is the
-    // stored pet owner/lister. Adopters never see it.
     const isOwner = conversationOwnerId && currentUser.uid === conversationOwnerId;
     btn.style.display = isOwner ? 'inline-flex' : 'none';
 
@@ -1263,8 +1260,6 @@
 
   async function approveAdoption() {
     if (!currentUser || !conversationId || !conversationOwnerId) return;
-
-    // Double-check ownership in JavaScript before allowing the action.
     if (currentUser.uid !== conversationOwnerId) {
       console.warn('Adoption approval blocked: current user is not the pet owner.');
       return;
@@ -1291,8 +1286,6 @@
         [`unread.${otherUserId}`]: firebase.firestore.FieldValue.increment(1)
       });
 
-      // Store a permanent system event in the chat so the adopter sees it
-      // in the conversation history.
       await db.collection('conversations')
         .doc(conversationId)
         .collection('messages')
@@ -1322,16 +1315,13 @@
     if (!conversationId || !currentUser) return;
     if (unsubMessages) unsubMessages();
 
-    // Firestore's initial onSnapshot contains the complete existing message history.
-    // Keeping a single realtime listener means old messages appear immediately and
-    // new messages continue arriving just like WhatsApp.
     const msgsRef = db.collection('conversations')
       .doc(conversationId)
       .collection('messages')
       .orderBy('time', 'asc');
 
     unsubMessages = msgsRef.onSnapshot(snapshot => {
-      // Keep approval state synchronized for both sides of the conversation.
+    
       db.collection('conversations').doc(conversationId).get().then(conv => {
         if (conv.exists) {
           const data = conv.data();
@@ -1341,7 +1331,6 @@
         }
       }).catch(() => {});
 
-      // FIX: remember position so the full rebuild doesn't jump the scroll
       const prevHeight = chatMessages.scrollHeight;
       const prevTop = chatMessages.scrollTop;
       const nearBottom = (prevHeight - prevTop - chatMessages.clientHeight) < 80;
@@ -1357,8 +1346,6 @@
         const type = isMe ? 'sent' : 'received';
         const messageDate = m.time && typeof m.time.toDate === 'function' ? m.time.toDate() : null;
         const time = messageDate ? messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-
-        // WhatsApp-style date separators for Today, Yesterday and older dates.
         if (messageDate) {
           const dateKey = messageDate.toLocaleDateString('en-CA');
           if (dateKey !== lastDateKey) {
@@ -1381,7 +1368,6 @@
         } else {
           addMessageToUI(type, m.text, time, m.read || false);
         }
-        // FIX: actually mark incoming messages read (updates ✓ -> ✓✓ for the sender)
         if (!isMe && !m.read) { readBatch.update(doc.ref, { read: true }); hasUnreadIncoming = true; }
       });
 
@@ -1432,22 +1418,41 @@
     return msgRef;
   }
 
-  async function sendMessage() {
+  async function sendMessage(event) {
+    if (event) event.preventDefault();
     const text = messageInput.value.trim();
-    if (!text || !currentUser) return;
+    if (!currentUser) { alert('Please sign in first.'); return; }
+    if (!text) return;
 
     const btn = document.getElementById('send-btn');
     try {
       if (btn) btn.disabled = true;
+      await ensureConversationReady();
       await saveMessage({ text, type: 'text', read: false });
       messageInput.value = '';
       messageInput.style.height = 'auto';
+      messageInput.focus();
     } catch (e) {
       console.error('SEND MESSAGE ERROR:', e);
-      alert('Message was not saved to Firebase.\n\n' + (e.code ? e.code + ': ' : '') + (e.message || 'Unknown error'));
+      alert('Message could not be sent.\n\n' + formatFirebaseError(e));
     } finally {
       if (btn) btn.disabled = false;
     }
+  }
+
+  async function ensureConversationReady() {
+    if (conversationId) return conversationId;
+    if (!petId || !otherUserId) {
+      throw new Error('This pet is not linked to an owner. Check owner_id in Realtime Database.');
+    }
+    const id = await getOrCreateConversation();
+    if (!id) throw new Error('The conversation could not be created.');
+    return id;
+  }
+
+  function formatFirebaseError(e) {
+    const code = e && e.code ? String(e.code) + ': ' : '';
+    return code + (e && e.message ? e.message : 'Unknown Firebase error');
   }
 
   function addMessageToUI(type, text, time, read) {
@@ -1463,6 +1468,19 @@
       </div>`;
     chatMessages.appendChild(row);
     scrollToBottom();
+  }
+
+  function addImageMessageToUI(type, imageUrl, time) {
+    const row = document.createElement('div');
+    row.className = `msg-row ${type}`;
+    row.innerHTML = `
+      <div class="msg-bubble" style="padding:.35rem;overflow:hidden;">
+        <img src="${escapeHtml(imageUrl || '')}" alt="Photo" style="display:block;max-width:260px;max-height:260px;border-radius:12px;object-fit:cover;">
+        <div class="msg-meta" style="right:.45rem;bottom:.45rem;background:rgba(0,0,0,.45);padding:2px 5px;border-radius:8px;">
+          <span class="msg-time">${escapeHtml(time || '')}</span>
+        </div>
+      </div>`;
+    chatMessages.appendChild(row);
   }
 
   function addSystemMessageToUI(text, subtext) {
@@ -1481,7 +1499,7 @@
   function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = String(text ?? '');
-    return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');  // FIX: quote-safe for attributes
+    return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;'); 
   }
 
   // ===================== MEETUP =====================
@@ -1510,33 +1528,48 @@
     selectedTime = btn.textContent;
   }
 
-  async function confirmMeetup() {
-    if (!currentUser) return;
+  async function confirmMeetup(event) {
+    if (event) event.preventDefault();
+    if (!currentUser) { alert('Please sign in first.'); return; }
     const dateVal = document.getElementById('meetup-date').value;
     if (!selectedSpot) { alert('Please select a meetup spot.'); return; }
     if (!dateVal) { alert('Please pick a date.'); return; }
     if (!selectedTime) { alert('Please pick a time slot.'); return; }
 
-    const dateObj = new Date(dateVal);
+    const btn = document.querySelector('.confirm-btn2');
+    const dateObj = new Date(dateVal + 'T00:00:00');
     const dateStr = dateObj.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
+    const spot = { ...selectedSpot };
+    const time = selectedTime;
 
-    await saveMessage({
-      type: 'system',
-      text: 'Meetup Scheduled',
-      subtext: `${selectedSpot.name} - ${dateStr} at ${selectedTime}`,
-      read: false
-    });
-    await saveMessage({
-      type: 'text',
-      text: `Great! I've noted the meetup at ${selectedSpot.name} on ${dateStr} at ${selectedTime}. See you there!`,
-      read: false
-    });
+    try {
+      if (btn) { btn.disabled = true; btn.textContent = 'Scheduling...'; }
+      await ensureConversationReady();
+      await saveMessage({
+        type: 'system',
+        text: 'Meetup Scheduled',
+        subtext: `${spot.name} - ${dateStr} at ${time}`,
+        read: false,
+        meetup: { spotName: spot.name, area: spot.area, date: dateVal, time }
+      });
+      await saveMessage({
+        type: 'text',
+        text: `Meetup scheduled at ${spot.name} on ${dateStr} at ${time}.`,
+        read: false,
+        meetup: { spotName: spot.name, area: spot.area, date: dateVal, time }
+      });
 
-    toggleMeetupPanel();
-    selectedSpot = null; selectedTime = null;
-    document.querySelectorAll('.spot-card2').forEach(c => c.classList.remove('selected'));
-    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
-    document.getElementById('datetime-section').style.display = 'none';
+      toggleMeetupPanel();
+      selectedSpot = null; selectedTime = null;
+      document.querySelectorAll('.spot-card2').forEach(c => c.classList.remove('selected'));
+      document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
+      document.getElementById('datetime-section').style.display = 'none';
+    } catch (e) {
+      console.error('MEETUP ERROR:', e);
+      alert('Meetup could not be scheduled.\n\n' + formatFirebaseError(e));
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Confirm Meetup'; }
+    }
   }
 
   // ===================== MAP =====================
@@ -1597,9 +1630,9 @@
     iconSize: [15, 15], iconAnchor: [8, 8]
   });
 
-  // Toggle LIVE tracking inside the share panel (watchPosition moves the pin in real time)
   function togglePanelLive() {
-    if (!navigator.geolocation) { alert('Geolocation is not supported.'); return; }
+    if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') { alert('Live location requires HTTPS (or localhost). Open this page through your Firebase Hosting/HTTPS URL.'); return; }
+    if (!navigator.geolocation) { alert('Geolocation is not supported by this browser.'); return; }
     if (panelLiveOn) { stopPanelLive(); return; }
     panelLiveOn = true;
     document.getElementById('panel-live-btn').classList.add('active');
@@ -1611,7 +1644,7 @@
       const address = await reverseGeocode(latitude, longitude);
       selectedLocation = { lat: latitude, lng: longitude, name: address.name, address: address.display_name };
       document.getElementById('map-send-btn').disabled = false;
-    }, (err) => { console.warn('Live tracking error:', err); stopPanelLive(); },
+    }, (err) => { console.warn('Live tracking error:', err); stopPanelLive(); alert('Live location could not start. Please allow location permission in your browser and use HTTPS.'); },
     { enableHighAccuracy: true, maximumAge: 5000 });
   }
 
@@ -1625,7 +1658,8 @@
   }
 
   function locateMe() {
-    if (!navigator.geolocation) { alert('Geolocation is not supported.'); return; }
+    if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') { alert('My Location requires HTTPS (or localhost).'); return; }
+    if (!navigator.geolocation) { alert('Geolocation is not supported by this browser.'); return; }
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
@@ -1635,7 +1669,7 @@
         selectedLocation = { lat: latitude, lng: longitude, name: address.name, address: address.display_name };
         document.getElementById('map-send-btn').disabled = false;
       },
-      (err) => { console.warn('Geolocation error:', err); },
+      (err) => { console.warn('Geolocation error:', err); alert(err.code === 1 ? 'Location permission was denied. Please allow location access and try again.' : 'Could not get your location. You can also click the map or search for a place.'); },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   }
@@ -1688,20 +1722,47 @@
     }
   }
 
-  async function sendLocation() {
-    if (!selectedLocation || !currentUser) return;
-    const loc = { ...selectedLocation };   // snapshot BEFORE toggleMapPanel() nulls it
-    const isLive = panelLiveOn;
-    const time = formatTime(new Date());
-    addLocationMessageToUI('sent', loc, time, isLive, 'optimistic');
-    scrollToBottom();
-    const ref = await saveMessage({
-      type: 'location', lat: loc.lat, lng: loc.lng,
-      name: loc.name, address: loc.address, live: isLive, read: false
-    });
-    if (isLive && ref) startLiveSharing(ref);
-    stopPanelLive();
-    toggleMapPanel();                      // close panel only AFTER saving
+  async function sendLocation(event) {
+    if (event) event.preventDefault();
+    if (!currentUser) { alert('Please sign in first.'); return; }
+    if (!selectedLocation) { alert('Choose a location on the map, use My Location, or search for a place first.'); return; }
+
+    const loc = { ...selectedLocation };
+    const isLive = !!panelLiveOn;
+    const btn = document.getElementById('map-send-btn');
+
+    try {
+      if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...'; }
+      await ensureConversationReady();
+      const ref = await saveMessage({
+        type: 'location',
+        lat: Number(loc.lat),
+        lng: Number(loc.lng),
+        name: loc.name || 'Shared Location',
+        address: loc.address || '',
+        live: isLive,
+        read: false
+      });
+
+      if (isLive && ref) startLiveSharing(ref);
+      stopPanelLive();
+      closeMapPanelAfterSend();
+    } catch (e) {
+      console.error('SEND LOCATION ERROR:', e);
+      alert('Location could not be sent.\n\n' + formatFirebaseError(e));
+    } finally {
+      if (btn) { btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send'; btn.disabled = !selectedLocation; }
+    }
+  }
+
+  function closeMapPanelAfterSend() {
+    const panel = document.getElementById('map-panel');
+    const overlay = document.getElementById('map-overlay');
+    if (panel) panel.classList.remove('open');
+    if (overlay) overlay.classList.remove('open');
+    selectedLocation = null;
+    const btn = document.getElementById('map-send-btn');
+    if (btn) btn.disabled = true;
   }
 
   // ===================== LIVE LOCATION SHARING =====================
@@ -1709,7 +1770,7 @@
     myLiveShare = { ref };
     const btn = document.getElementById('stop-live-btn');
     if (btn) btn.style.display = 'flex';
-    if (livePosInterval) return;   // already streaming
+    if (livePosInterval) return;   
     livePosInterval = setInterval(() => {
       if (!myLiveShare || !navigator.geolocation) return;
       navigator.geolocation.getCurrentPosition((pos) => {
@@ -1719,7 +1780,7 @@
           lng: pos.coords.longitude
         }).catch(e => console.error('Live sync error:', e));
       }, () => {}, { enableHighAccuracy: false, maximumAge: 10000 });
-    }, 15000);   // stream new coords to Firestore every 15s; receiver's snapshot updates the pin
+    }, 15000);   
   }
 
   function stopLiveShare() {
@@ -1732,7 +1793,6 @@
     if (btn) btn.style.display = 'none';
   }
 
-  // Live mini-map inside a message bubble (re-created on each snapshot render)
   function initLiveBubbleMap(docId, lat, lng) {
     const el = document.getElementById('live-map-' + docId);
     if (!el || typeof L === 'undefined') return;
@@ -1754,7 +1814,6 @@
     row.className = `msg-row ${type}`;
     const safeId = String(docId).replace(/[^a-zA-Z0-9_-]/g, '_');
     if (live) {
-      // LIVE: interactive Leaflet map inside the bubble; coords update via snapshot
       row.innerHTML = `
         <div class="msg-bubble location-bubble">
           <div style="position:relative;">
@@ -1800,7 +1859,7 @@
   }
 
   messageInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(e); }
   });
 
   document.addEventListener('DOMContentLoaded', () => {
