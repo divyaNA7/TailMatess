@@ -1398,9 +1398,12 @@
       time: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    const batch = db.batch();
-    batch.set(msgRef, msgData);
-    batch.set(convRef, {
+    // IMPORTANT: create/update the parent conversation BEFORE creating the message.
+    // Firestore rules commonly use get(conversations/{conversationId}) when
+    // authorizing message writes. A single batch does not make that parent
+    // document available to the rules for the message write, so the first
+    // message can be rejected even though the chat itself opens correctly.
+    await convRef.set({
       participants: [currentUser.uid, otherUserId].sort(),
       ownerId: conversationOwnerId || otherUserId,
       adopterId: currentUser.uid === (conversationOwnerId || otherUserId) ? otherUserId : currentUser.uid,
@@ -1414,7 +1417,8 @@
       [`unread.${currentUser.uid}`]: 0
     }, { merge: true });
 
-    await batch.commit();
+    // Create the message only after the conversation document exists.
+    await msgRef.set(msgData);
     return msgRef;
   }
 
