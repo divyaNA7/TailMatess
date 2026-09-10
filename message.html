@@ -169,6 +169,220 @@
       }
     }
 
+
+    /* ===================== WHATSAPP-STYLE INBOX ===================== */
+    .messenger-layout {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+      width: 100%;
+    }
+    .inbox-panel {
+      width: 330px;
+      flex: 0 0 330px;
+      border-right: 1px solid var(--border);
+      background: rgba(10,10,15,.72);
+      backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .inbox-top {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .inbox-title {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:.5rem;
+    }
+    .inbox-title h2 {
+      font-size:1.15rem;
+      font-weight:700;
+    }
+    .inbox-subtitle {
+      margin-top:.25rem;
+      color:var(--text-dim);
+      font-size:.72rem;
+    }
+    .inbox-search {
+      margin-top:.8rem;
+      display:flex;
+      align-items:center;
+      gap:.5rem;
+      padding:.55rem .75rem;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:rgba(255,255,255,.04);
+    }
+    .inbox-search i { color:var(--text-dim); font-size:.8rem; }
+    .inbox-search input {
+      width:100%;
+      border:0;
+      outline:0;
+      background:transparent;
+      color:var(--text);
+      font-family:inherit;
+      font-size:.8rem;
+    }
+    .inbox-list {
+      flex:1;
+      overflow-y:auto;
+      padding:.45rem;
+    }
+    .inbox-list::-webkit-scrollbar { width:5px; }
+    .inbox-list::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:10px; }
+    .inbox-empty {
+      padding:3rem 1rem;
+      text-align:center;
+      color:var(--text-dim);
+    }
+    .inbox-empty i {
+      font-size:2rem;
+      margin-bottom:.75rem;
+      color:var(--primary);
+      opacity:.7;
+    }
+    .inbox-chat {
+      display:flex;
+      align-items:center;
+      gap:.7rem;
+      padding:.75rem;
+      border-radius:14px;
+      cursor:pointer;
+      transition:background .2s ease, transform .2s ease;
+      margin-bottom:.2rem;
+    }
+    .inbox-chat:hover { background:rgba(255,255,255,.05); transform:translateX(2px); }
+    .inbox-chat.active {
+      background:rgba(0,245,255,.09);
+      border:1px solid rgba(0,245,255,.15);
+    }
+    .inbox-avatar {
+      width:48px;
+      height:48px;
+      border-radius:50%;
+      object-fit:cover;
+      flex:0 0 48px;
+      border:1px solid var(--border);
+      background:var(--bg-light);
+    }
+    .inbox-chat-main { min-width:0; flex:1; }
+    .inbox-chat-top {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:.5rem;
+    }
+    .inbox-chat-name {
+      color:var(--text);
+      font-size:.84rem;
+      font-weight:650;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .inbox-chat-time {
+      color:var(--text-dim);
+      font-size:.62rem;
+      white-space:nowrap;
+    }
+    .inbox-chat-bottom {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:.5rem;
+      margin-top:.2rem;
+    }
+    .inbox-chat-preview {
+      color:var(--text-dim);
+      font-size:.72rem;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .inbox-unread {
+      min-width:1.15rem;
+      height:1.15rem;
+      padding:0 .3rem;
+      border-radius:1rem;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      background:var(--secondary);
+      color:#fff;
+      font-size:.62rem;
+      font-weight:800;
+      flex-shrink:0;
+    }
+    .chat-pane {
+      flex:1;
+      min-width:0;
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+    }
+    .chat-pane-empty {
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:2rem;
+      color:var(--text-dim);
+    }
+    .chat-pane-empty .empty-icon {
+      width:74px;
+      height:74px;
+      border-radius:24px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(0,245,255,.08);
+      border:1px solid rgba(0,245,255,.14);
+      margin-bottom:1rem;
+      color:var(--primary);
+      font-size:1.8rem;
+    }
+    .chat-pane-empty h3 {
+      color:var(--text);
+      font-size:1.15rem;
+      margin-bottom:.4rem;
+    }
+    .chat-pane-empty p {
+      max-width:360px;
+      font-size:.8rem;
+      line-height:1.5;
+    }
+    .inbox-back {
+      display:none;
+    }
+
+    @media (max-width: 900px) {
+      .inbox-panel { width:290px; flex-basis:290px; }
+    }
+    @media (max-width: 700px) {
+      .messenger-layout { position:relative; }
+      .inbox-panel {
+        width:100%;
+        flex-basis:100%;
+        border-right:0;
+      }
+      .chat-pane {
+        position:absolute;
+        inset:0;
+        background:var(--bg);
+        z-index:5;
+        transform:translateX(100%);
+        transition:transform .25s ease;
+      }
+      .messenger-layout.chat-open .chat-pane { transform:translateX(0); }
+      .messenger-layout.chat-open .inbox-panel { visibility:hidden; }
+      .inbox-back { display:flex; }
+    }
+
     /* Chat Header */
     .wa-header {
       background: linear-gradient(135deg, rgba(0, 245, 255, 0.1), rgba(168, 85, 247, 0.1));
@@ -782,9 +996,33 @@
 
   <!-- Chat Container -->
   <div class="chat-container" id="chat-container">
+    <div class="messenger-layout" id="messenger-layout">
+      <aside class="inbox-panel" id="inbox-panel">
+        <div class="inbox-top">
+          <div class="inbox-title">
+            <h2><i class="fa-solid fa-comments" style="color:var(--primary);margin-right:.4rem;"></i>Chats</h2>
+            <a href="message.html" class="icon-btn" title="Refresh chats">
+              <i class="fa-solid fa-rotate-right" style="font-size:.9rem;"></i>
+            </a>
+          </div>
+          <div class="inbox-subtitle">Your TailMates conversations</div>
+          <div class="inbox-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="inbox-search-input" type="text" placeholder="Search chats..." autocomplete="off">
+          </div>
+        </div>
+        <div class="inbox-list" id="inbox-list">
+          <div class="inbox-empty">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <div>Loading chats...</div>
+          </div>
+        </div>
+      </aside>
+      <div class="chat-pane" id="chat-pane">
+
     <div class="wa-header">
       <div class="header-left">
-        <button class="back-btn" onclick="history.back()">
+        <button class="back-btn" onclick="closeInboxChat()">
           <i class="fa-solid fa-arrow-left"></i>
         </button>
         <div class="header-info">
@@ -833,6 +1071,8 @@
       <button type="button" class="send-btn" id="send-btn" onclick="sendMessage(event)" title="Send">
         <i class="fa-solid fa-paper-plane" style="font-size:1rem;"></i>
       </button>
+    </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1065,106 +1305,229 @@
     }
 
     await initSingleChat();
+    const layout = document.getElementById('messenger-layout');
+    if (layout) layout.classList.add('chat-open');
   });
 
   let unsubInboxParticipants = null;
 
   async function loadMyConversations() {
     document.title = 'My Chats | TailMates';
-    document.getElementById('header-name').textContent = 'My Chats';
-    document.getElementById('header-status').textContent = 'All conversations';
-    document.getElementById('input-area').style.display = 'none';
-
+    const headerName = document.getElementById('header-name');
+    const headerStatus = document.getElementById('header-status');
+    const inputArea = document.getElementById('input-area');
     const chatMessages = document.getElementById('chat-messages');
-    chatMessages.innerHTML = '<div class="date-separator"><span>Your Conversations</span></div>';
+    const inboxList = document.getElementById('inbox-list');
+    const layout = document.getElementById('messenger-layout');
+    const chatPane = document.getElementById('chat-pane');
 
-    // IMPORTANT: use only participants for the inbox.
-    // Firestore security rules are not filters: a query such as
-    // where(ownerId == currentUser.uid) cannot satisfy a rule that checks
-    // request.auth.uid in resource.data.participants.
-    if (unsubInboxParticipants) unsubInboxParticipants();
+    if (headerName) headerName.textContent = 'Select a chat';
+    if (headerStatus) headerStatus.textContent = 'Your conversations';
+    if (inputArea) inputArea.style.display = 'none';
+
+    // Inbox is the default view when message.html is opened without a pet.
+    // Keep the chat pane empty until a conversation is selected.
+    chatMessages.innerHTML = `
+      <div class="chat-pane-empty">
+        <div class="empty-icon"><i class="fa-solid fa-comments"></i></div>
+        <h3>Your messages</h3>
+        <p>Select a conversation from the left to continue chatting. New conversations from the Adopt page will appear here automatically.</p>
+      </div>`;
+    chatMessages.style.display = 'flex';
+
+    if (layout) layout.classList.remove('chat-open');
+
+    if (unsubInboxParticipants) {
+      unsubInboxParticipants();
+      unsubInboxParticipants = null;
+    }
 
     const conversationMap = new Map();
-    let renderTimer = null;
 
-    const renderInbox = async () => {
-      clearTimeout(renderTimer);
-      renderTimer = setTimeout(async () => {
-        const docs = Array.from(conversationMap.values()).sort((a, b) => {
-          const ta = a.data().lastMessageTime?.toMillis ? a.data().lastMessageTime.toMillis() : 0;
-          const tb = b.data().lastMessageTime?.toMillis ? b.data().lastMessageTime.toMillis() : 0;
-          return tb - ta;
-        });
+    function formatInboxTime(ts) {
+      if (!ts || typeof ts.toDate !== 'function') return '';
+      const d = ts.toDate();
+      const now = new Date();
+      if (d.toDateString() === now.toDateString()) {
+        return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      }
+      const diff = Math.floor((new Date(now.getFullYear(), now.getMonth(), now.getDate()) -
+        new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 86400000);
+      if (diff === 1) return 'Yesterday';
+      if (diff < 7) return d.toLocaleDateString([], {weekday:'short'});
+      return d.toLocaleDateString([], {day:'numeric', month:'short'});
+    }
 
-        chatMessages.innerHTML = '<div class="date-separator"><span>Your Conversations</span></div>';
+    async function getConversationPerson(conv) {
+      const otherUid = (conv.participants || []).find(id => id !== currentUser.uid) || '';
+      let name = conv.ownerName || conv.adopterName || 'User';
+      let avatar = conv.petImage || 'https://ui-avatars.com/api/?name=User&background=random';
 
-        if (!docs.length) {
-          chatMessages.innerHTML += `
-            <div style="text-align:center;padding:3rem 1rem;color:var(--text-dim);">
-              <p style="font-size:1rem;margin-bottom:.5rem;">No chats yet</p>
-              <p style="font-size:.85rem;">When an adopter sends a message, the conversation will appear here automatically.</p>
-            </div>`;
-          return;
+      // For an owner viewing a conversation, the other person is the adopter.
+      // For an adopter, the other person is the owner.
+      try {
+        if (otherUid) {
+          const userDoc = await db.collection('users').doc(otherUid).get();
+          if (userDoc.exists) {
+            const u = userDoc.data() || {};
+            name = u.name || u.displayName || name;
+            avatar = u.avatar || u.photoURL || avatar;
+          }
         }
+      } catch (_) {}
 
-        for (const doc of docs) {
-          const conv = doc.data();
-          const otherUid = (conv.participants || []).find(id => id !== currentUser.uid);
-          if (!otherUid) continue;
+      return { otherUid, name, avatar };
+    }
 
-          let otherName = 'User';
-          let otherAvatar = `https://ui-avatars.com/api/?name=User&background=random`;
-          try {
-            const userDoc = await db.collection('users').doc(otherUid).get();
-            if (userDoc.exists) {
-              const data = userDoc.data();
-              otherName = data.name || data.displayName || 'User';
-              otherAvatar = data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherName)}&background=random`;
-            }
-          } catch (_) {}
+    async function renderInbox() {
+      const docs = Array.from(conversationMap.values()).sort((a, b) => {
+        const ta = a.data().lastMessageTime?.toMillis ? a.data().lastMessageTime.toMillis() : 0;
+        const tb = b.data().lastMessageTime?.toMillis ? b.data().lastMessageTime.toMillis() : 0;
+        return tb - ta;
+      });
 
-          const time = conv.lastMessageTime?.toDate
-            ? conv.lastMessageTime.toDate().toLocaleDateString('en-IN', {month:'short', day:'numeric'}) : '';
-          const unread = (conv.unread && conv.unread[currentUser.uid]) || 0;
+      inboxList.innerHTML = '';
 
-          const item = document.createElement('div');
-          item.className = 'msg-row inbox-item';
-          item.style.justifyContent = 'flex-start';
-          item.onclick = () => {
-            const params = new URLSearchParams({
-              pet: conv.petId || ''
-            });
-            window.location.href = `message.html?${params.toString()}`;
-          };
-          item.innerHTML = `
-            <div class="msg-bubble">
-              <img src="${escapeHtml(otherAvatar)}" style="width:2.5rem;height:2.5rem;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid var(--border);">
-              <div style="flex:1;min-width:0;">
-                <div style="font-weight:600;font-size:.9rem;color:var(--text);display:flex;justify-content:space-between;gap:.5rem;">
-                  <span>${escapeHtml(otherName)} &middot; ${escapeHtml(conv.petName || 'Pet')}</span>
-                  <span style="font-weight:400;font-size:.7rem;color:var(--text-dim);white-space:nowrap;">${time}</span>
-                </div>
-                <div style="font-size:.8rem;color:var(--text-dim);margin-top:.125rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;justify-content:space-between;gap:.5rem;">
-                  <span style="overflow:hidden;text-overflow:ellipsis;">${escapeHtml(conv.lastMessage || 'Start chatting')}</span>
-                  ${unread > 0 ? `<span style="background:var(--secondary);color:#fff;font-size:.65rem;font-weight:700;min-width:1.1rem;height:1.1rem;border-radius:1rem;display:inline-flex;align-items:center;justify-content:center;padding:0 .3rem;">${unread > 9 ? '9+' : unread}</span>` : ''}
-                </div>
-              </div>
-            </div>`;
-          chatMessages.appendChild(item);
-        }
-      }, 50);
-    };
+      if (!docs.length) {
+        inboxList.innerHTML = `
+          <div class="inbox-empty">
+            <i class="fa-regular fa-comment-dots"></i>
+            <div style="color:var(--text);font-weight:600;margin-bottom:.35rem;">No chats yet</div>
+            <div style="font-size:.72rem;">Start a conversation from the Adopt page and it will appear here.</div>
+          </div>`;
+        return;
+      }
 
+      for (const doc of docs) {
+        const conv = doc.data() || {};
+        const person = await getConversationPerson(conv);
+        if (!person.otherUid) continue;
+
+        const unread = Number((conv.unread && conv.unread[currentUser.uid]) || 0);
+        const time = formatInboxTime(conv.lastMessageTime);
+        const preview = conv.lastMessage || 'Start chatting';
+        const petLabel = conv.petName ? ` · ${conv.petName}` : '';
+
+        const item = document.createElement('div');
+        item.className = 'inbox-chat' + (conversationId === doc.id ? ' active' : '');
+        item.dataset.conversationId = doc.id;
+        item.dataset.search = `${person.name} ${conv.petName || ''} ${preview}`.toLowerCase();
+
+        item.innerHTML = `
+          <img class="inbox-avatar" src="${escapeHtml(person.avatar)}" alt="">
+          <div class="inbox-chat-main">
+            <div class="inbox-chat-top">
+              <div class="inbox-chat-name">${escapeHtml(person.name + petLabel)}</div>
+              <div class="inbox-chat-time">${escapeHtml(time)}</div>
+            </div>
+            <div class="inbox-chat-bottom">
+              <div class="inbox-chat-preview">${escapeHtml(preview)}</div>
+              ${unread > 0 ? `<span class="inbox-unread">${unread > 9 ? '9+' : unread}</span>` : ''}
+            </div>
+          </div>`;
+
+        item.onclick = () => openConversationFromInbox(doc.id, conv, person);
+        inboxList.appendChild(item);
+      }
+
+      filterInbox();
+    }
+
+    async function openConversationFromInbox(id, conv, person) {
+      if (!currentUser) return;
+
+      if (unsubMessages) {
+        unsubMessages();
+        unsubMessages = null;
+      }
+
+      conversationId = id;
+      conversationOwnerId = conv.ownerId || null;
+      adoptionApproved = conv.adoptionApproved === true;
+
+      const otherUid = person.otherUid;
+      otherUserId = otherUid;
+      petId = String(conv.petId || '');
+      petName = String(conv.petName || 'Pet');
+      petBreed = String(conv.petBreed || '');
+      petImg = String(conv.petImage || '');
+      petOwnerName = String(conv.ownerName || person.name || '');
+
+      // Do not run the RTDB pet lookup here. The conversation already contains
+      // everything needed to open an existing chat.
+      const headerName = document.getElementById('header-name');
+      const headerStatus = document.getElementById('header-status');
+      if (headerName) headerName.textContent = person.name + (petName ? ` · ${petName}` : '');
+      if (headerStatus) headerStatus.textContent = 'Online';
+      if (inputArea) inputArea.style.display = 'flex';
+      document.title = `Chat - ${person.name} | TailMates`;
+
+      updateApprovalButton();
+
+      document.querySelectorAll('.inbox-chat').forEach(el => {
+        el.classList.toggle('active', el.dataset.conversationId === id);
+      });
+
+      if (layout) layout.classList.add('chat-open');
+
+      // Clear unread count for this user in the conversation.
+      try {
+        await db.collection('conversations').doc(id).set({
+          [`unread.${currentUser.uid}`]: 0
+        }, {merge:true});
+      } catch (e) {
+        console.warn('Could not clear conversation unread count:', e);
+      }
+
+      loadMessagesFromFirebase();
+    }
+
+    window.openConversationFromInbox = openConversationFromInbox;
+
+    function filterInbox() {
+      const q = (document.getElementById('inbox-search-input')?.value || '').trim().toLowerCase();
+      document.querySelectorAll('.inbox-chat').forEach(el => {
+        el.style.display = !q || el.dataset.search.includes(q) ? 'flex' : 'none';
+      });
+    }
+
+    const searchInput = document.getElementById('inbox-search-input');
+    if (searchInput && !searchInput.dataset.bound) {
+      searchInput.dataset.bound = '1';
+      searchInput.addEventListener('input', filterInbox);
+    }
+
+    // IMPORTANT: query by participants because Firestore rules authorize access
+    // using request.auth.uid in resource.data.participants.
     unsubInboxParticipants = db.collection('conversations')
       .where('participants', 'array-contains', currentUser.uid)
       .onSnapshot(snapshot => {
         conversationMap.clear();
         snapshot.forEach(doc => conversationMap.set(doc.id, doc));
-        renderInbox();
+        renderInbox().catch(e => console.error('Inbox render error:', e));
       }, err => {
-        console.error('Owner inbox Firestore error:', err);
-        chatMessages.innerHTML = `<div class="firebase-debug"><strong>Firebase inbox error:</strong><br>${escapeHtml(err.message || 'Permission denied')}<br><br>Check Firestore Rules and make sure this page uses the same Firebase project.</div>`;
+        console.error('Inbox Firestore error:', err);
+        inboxList.innerHTML = `
+          <div class="inbox-empty">
+            <i class="fa-solid fa-triangle-exclamation" style="color:var(--secondary);"></i>
+            <div style="color:var(--text);font-weight:600;margin-bottom:.4rem;">Could not load chats</div>
+            <div style="font-size:.72rem;">${escapeHtml(err.message || 'Firestore permission denied')}</div>
+          </div>`;
       });
+  }
+
+
+  function closeInboxChat() {
+    const layout = document.getElementById('messenger-layout');
+    if (layout) layout.classList.remove('chat-open');
+    if (unsubMessages) {
+      unsubMessages();
+      unsubMessages = null;
+    }
+    conversationId = null;
+    document.getElementById('input-area').style.display = 'none';
+    document.getElementById('header-name').textContent = 'My Chats';
+    document.getElementById('header-status').textContent = 'Your conversations';
   }
 
   async function initSingleChat() {
@@ -1218,21 +1581,24 @@
     };
 
     try {
-      // Parent must exist BEFORE any message is created because the Firestore
-      // message rule checks the parent conversation with get().
+      // Write first. This avoids a permission-denied read on a conversation
+      // that does not exist yet under rules that authorize reads by participants.
+      await convRef.set(conversationData, { merge: true });
+
       const existing = await convRef.get();
-      if (!existing.exists) {
-        await convRef.set(conversationData);
-      } else {
+      if (existing.exists) {
         const data = existing.data() || {};
         conversationOwnerId = data.ownerId || otherUserId;
         adoptionApproved = data.adoptionApproved === true;
         await convRef.set({
-          participants, ownerId: conversationOwnerId,
-          adopterId: data.adopterId || currentUser.uid, petId, petName, petImage: petImg,
+          participants,
+          ownerId: conversationOwnerId,
+          adopterId: data.adopterId || currentUser.uid,
+          petId, petName, petImage: petImg,
           ownerName: petOwnerName || data.ownerName || 'Pet Parent'
         }, { merge: true });
       }
+
       updateApprovalButton();
       return conversationId;
     } catch (e) {
