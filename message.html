@@ -937,6 +937,9 @@
   const rawPetId = (urlParams.get('pet') || '').trim();
   const matchScore = urlParams.get('match') || '88';
 
+  // Chat input element (must be defined before keyboard/send handlers run)
+  const messageInput = document.getElementById('message-input');
+
   let selectedSpot = null;
   let selectedTime = null;
   let otherUserProfile = null;
@@ -1158,7 +1161,9 @@
   }
 
   async function getOrCreateConversation() {
-    if (!currentUser || !otherUserId || otherUserId === currentUser.uid || !petId) return null;
+    if (!currentUser || !otherUserId || otherUserId === currentUser.uid || !petId) {
+      throw new Error('Pet owner or signed-in user is missing.');
+    }
 
     const participants = [currentUser.uid, otherUserId].sort();
     conversationId = 'pet_' + encodeURIComponent(petId) + '_' + participants.map(encodeURIComponent).join('_');
@@ -1166,72 +1171,45 @@
 
     const convRef = db.collection('conversations').doc(conversationId);
 
-    try {
-      // IMPORTANT: Do not call convRef.get() before creating the conversation.
-      // Your Firestore read rule checks resource.data.participants, which does
-      // not exist for a brand-new document. A direct set() is allowed by the
-      // create rule because request.resource already contains participants.
-      const conversationData = {
-        participants,
-        ownerId: otherUserId,
-        adopterId: currentUser.uid,
-        petId,
-        petName,
-        petImage: petImg,
-        ownerName: petOwnerName || 'Pet Owner',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        lastMessage: '',
-        lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
-        lastSender: '',
-        adoptionApproved: false,
-        unread: { [participants[0]]: 0, [participants[1]]: 0 }
-      };
+    const conversationData = {
+      participants,
+      ownerId: otherUserId,
+      adopterId: currentUser.uid,
+      petId,
+      petName,
+      petImage: petImg,
+      ownerName: petOwnerName || 'Pet Parent',
+      adoptionApproved: false,
+      lastMessage: '',
+      lastSender: '',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+      unread: { [participants[0]]: 0, [participants[1]]: 0 }
+    };
 
-      // This works for both a new conversation (create) and an existing one
-      // (update). It also guarantees the parent exists before a message write.
-      await convRef.set(conversationData, { merge: true });
+    // Create/update the parent first. This is important because the message
+    // security rule reads the parent conversation document with get().
+    await convRef.set(conversationData, { merge: true });
 
-      // Read the now-existing document only after it has been written.
-      const convDoc = await convRef.get();
-      if (convDoc.exists) {
-        const data = convDoc.data() || {};
-        conversationOwnerId = data.ownerId || otherUserId;
-        adoptionApproved = data.adoptionApproved === true;
-      }
-
-      updateApprovalButton();
-      return conversationId;
-    } catch (e) {
-      console.error('CONVERSATION CREATE/READ ERROR:', e);
-      showChatError('Firebase could not create/open the conversation.\n\n' +
-        (e.code ? e.code + ': ' : '') + (e.message || 'Unknown Firebase error'));
-      return null;
+    const convDoc = await convRef.get();
+    if (convDoc.exists) {
+      const data = convDoc.data() || {};
+      conversationOwnerId = data.ownerId || otherUserId;
+      adoptionApproved = data.adoptionApproved === true;
     }
+
+    updateApprovalButton();
+    return conversationId;
   }
 
   async function loadOtherUserProfile() {
     const headerName = document.getElementById('header-name');
     const statusEl = document.getElementById('header-status');
 
-    // The pet's RTDB owner_name is the source of truth for the header.
-    // Do not use the currently logged-in tester's Firebase Auth displayName.
-    let resolvedName = String(petOwnerName || '').trim();
-
-    if (!resolvedName && otherUserId) {
-      try {
-        const doc = await db.collection('users').doc(otherUserId).get();
-        if (doc.exists) {
-          const profile = doc.data() || {};
-          resolvedName = String(
-            profile.name || profile.displayName || profile.fullName || ''
-          ).trim();
-        }
-      } catch (e) {
-        console.warn('Owner profile lookup failed:', e);
-      }
-    }
-
-    if (headerName) headerName.textContent = resolvedName || 'Pet Owner';
+    // The pet record is the authoritative source for the owner name.
+    // Do not replace it with the adopter/test account's profile name.
+    const ownerName = String(petOwnerName || '').trim();
+    if (headerName) headerName.textContent = ownerName || 'Pet Parent';
     if (statusEl) statusEl.textContent = 'Online';
   }
 
@@ -1379,17 +1357,16 @@
 
   async function saveMessage(data) {
     if (!db || !currentUser) throw new Error('Firebase user/session is not ready.');
-    if (!petId || !otherUserId) throw new Error('Pet/owner information is missing.');
-    if (currentUser.uid === otherUserId) throw new Error('You are signed in as the pet owner. Use the other test account.');
+    if (!petId || !otherUserId) throw new Error('Pet or owner information is missing.');
+    if (currentUser.uid === otherUserId) throw new Error('The signed-in account is the pet owner. Use the adopter test account.');
+
+    await ensureConversationReady();
 
     const participants = [currentUser.uid, otherUserId].sort();
-    conversationId = conversationId ||
-      ('pet_' + encodeURIComponent(petId) + '_' + participants.map(encodeURIComponent).join('_'));
-    conversationOwnerId = otherUserId;
-
     const convRef = db.collection('conversations').doc(conversationId);
 
-    // STEP 1: parent conversation MUST exist before messages are written.
+    // Parent conversation MUST already exist before creating a message,
+    // because Firestore rules call get(conversations/{conversationId}).
     await convRef.set({
       participants,
       ownerId: otherUserId,
@@ -1397,10 +1374,10 @@
       petId,
       petName,
       petImage: petImg,
-      ownerName: petOwnerName || 'Pet Owner'
+      ownerName: petOwnerName || 'Pet Parent'
     }, { merge: true });
 
-    // STEP 2: write the message as a separate Firestore request.
+    const msgRef = convRef.collection('messages').doc();
     const msgData = {
       ...data,
       sender: currentUser.uid,
@@ -1408,15 +1385,15 @@
       time: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    const msgRef = convRef.collection('messages').doc();
     await msgRef.set(msgData);
 
-    // STEP 3: update conversation preview after message succeeds.
+    const lastMessage = data.type === 'text' ? data.text
+      : data.type === 'image' ? 'Photo'
+      : data.type === 'system' ? 'Meetup scheduled'
+      : data.live ? 'Live location' : 'Location';
+
     await convRef.set({
-      lastMessage: data.type === 'text' ? data.text :
-        (data.type === 'image' ? 'Photo' :
-        (data.type === 'system' ? 'Meetup scheduled' :
-        (data.live ? 'Live location' : 'Location'))),
+      lastMessage,
       lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
       lastSender: currentUser.uid,
       [`unread.${otherUserId}`]: firebase.firestore.FieldValue.increment(1),
@@ -1428,7 +1405,7 @@
 
   async function sendMessage(event) {
     if (event) event.preventDefault();
-    const text = messageInput.value.trim();
+    const text = messageInput ? messageInput.value.trim() : '';
     if (!currentUser) { alert('Please sign in first.'); return; }
     if (!text) return;
 
@@ -1437,9 +1414,11 @@
       if (btn) btn.disabled = true;
       await ensureConversationReady();
       await saveMessage({ text, type: 'text', read: false });
-      messageInput.value = '';
-      messageInput.style.height = 'auto';
-      messageInput.focus();
+      if (messageInput) {
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+        messageInput.focus();
+      }
     } catch (e) {
       console.error('SEND MESSAGE ERROR:', e);
       const errorText = formatFirebaseError(e);
@@ -1868,9 +1847,11 @@
     if (auth) auth.signOut().then(() => location.reload());
   }
 
-  messageInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(e); }
-  });
+  if (messageInput) {
+    messageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(e); }
+    });
+  }
 
   document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('map-search-input');
