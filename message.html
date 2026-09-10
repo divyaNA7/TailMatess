@@ -1726,7 +1726,9 @@
         const isMe = m.sender === currentUser.uid;
         const type = isMe ? 'sent' : 'received';
         const messageDate = m.time && typeof m.time.toDate === 'function' ? m.time.toDate() : null;
-        const time = messageDate ? messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+        const time = messageDate
+          ? messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          : (isMe ? 'Sending…' : '');
         if (messageDate) {
           const dateKey = messageDate.toLocaleDateString('en-CA');
           if (dateKey !== lastDateKey) {
@@ -1758,7 +1760,14 @@
       if (hasUnreadIncoming && !snapshot.metadata.hasPendingWrites) {
         readBatch.commit().catch(e => console.error('Mark-read error:', e));
       }
-    }, err => console.error("Messages error:", err));
+    }, err => {
+      console.error("Messages error:", err);
+      chatMessages.innerHTML = `
+        <div class="firebase-debug">
+          <strong>Could not load messages.</strong><br>
+          ${escapeHtml(formatFirebaseError(err))}
+        </div>`;
+    });
   }
 
   async function saveMessage(data) {
@@ -1805,13 +1814,26 @@
     const btn = document.getElementById('send-btn');
     try {
       if (btn) btn.disabled = true;
+
       await ensureConversationReady();
-      await saveMessage({ text, type: 'text', read: false });
+
+      // Save first, then immediately show the sent bubble.
+      // Firestore remains the source of truth through the snapshot listener.
+      const msgRef = await saveMessage({
+        text,
+        type: 'text',
+        read: false
+      });
+
+      addMessageToUI('sent', text, formatTime(new Date()), false);
+
       if (messageInput) {
         messageInput.value = '';
         messageInput.style.height = 'auto';
         messageInput.focus();
       }
+
+      if (msgRef) console.log('Message saved successfully:', msgRef.id);
     } catch (e) {
       console.error('SEND MESSAGE ERROR:', e);
       const errorText = formatFirebaseError(e);
