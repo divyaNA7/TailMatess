@@ -935,6 +935,11 @@
   // Owner information is ALWAYS read from Realtime Database.
   const urlParams = new URLSearchParams(window.location.search);
   const rawPetId = (urlParams.get('pet') || '').trim();
+  const urlOwnerId = (urlParams.get('lister') || urlParams.get('ownerId') || urlParams.get('owner_id') || '').trim();
+  const urlOwnerName = (urlParams.get('owner') || urlParams.get('ownerName') || urlParams.get('owner_name') || '').trim();
+  const urlPetName = (urlParams.get('name') || '').trim();
+  const urlPetBreed = (urlParams.get('breed') || '').trim();
+  const urlPetImg = (urlParams.get('img') || '').trim();
   const matchScore = urlParams.get('match') || '88';
 
   // Chat input element (must be defined before keyboard/send handlers run)
@@ -946,40 +951,75 @@
   let adoptionApproved = false;
 
   async function loadPetFromDatabase() {
-    if (!rawPetId || !rtdb) return false;
+    // Adopt passes the pet ID plus the owner's Auth UID/name. Use those URL
+    // values as a reliable fallback so messaging still works if the RTDB key
+    // is different from the displayed pet ID.
+    if (!rtdb) {
+      petId = rawPetId;
+      petName = urlPetName || 'Pet';
+      petBreed = urlPetBreed;
+      petImg = urlPetImg;
+      otherUserId = urlOwnerId;
+      petOwnerName = urlOwnerName;
+      return !!otherUserId;
+    }
 
-    // First try the exact database key (works for /pets/1, /pets/2, etc.).
-    let snap = await rtdb.ref('pets/' + rawPetId).once('value');
+    let snap = null;
 
-    // If the database uses push keys but stores pet_id inside each record,
-    // search by pet_id as a fallback.
-    if (!snap.exists()) {
-      const byPetId = await rtdb.ref('pets').orderByChild('pet_id').equalTo(Number(rawPetId)).once('value');
-      if (byPetId.exists()) {
-        let firstKey = null, firstValue = null;
-        byPetId.forEach(child => { if (!firstKey) { firstKey = child.key; firstValue = child.val(); } });
-        if (firstValue) { snap = { exists: () => true, val: () => firstValue, key: firstKey }; }
+    try {
+      if (rawPetId) {
+        // First try the exact RTDB key: /pets/1, /pets/2, etc.
+        snap = await rtdb.ref('pets/' + rawPetId).once('value');
+
+        // If the database uses push keys, find the record by pet_id.
+        if (!snap.exists() && /^\d+$/.test(rawPetId)) {
+          const byPetId = await rtdb.ref('pets')
+            .orderByChild('pet_id')
+            .equalTo(Number(rawPetId))
+            .once('value');
+          if (byPetId.exists()) {
+            let firstKey = null, firstValue = null;
+            byPetId.forEach(child => {
+              if (!firstKey) { firstKey = child.key; firstValue = child.val(); }
+            });
+            if (firstValue) {
+              snap = { exists: () => true, val: () => firstValue, key: firstKey };
+            }
+          }
+        }
       }
+    } catch (e) {
+      console.warn('RTDB pet lookup failed; using URL owner information:', e);
     }
 
-    if (!snap.exists()) {
-      showChatError('Pet #' + rawPetId + ' could not be found in the Realtime Database.');
-      return false;
+    if (snap && snap.exists()) {
+      petData = snap.val() || {};
+      petId = String(petData.pet_id ?? snap.key ?? rawPetId);
+      petName = String(petData.name || urlPetName || 'Pet');
+      petBreed = String(petData.breed || petData.species || urlPetBreed || '');
+      petImg = String(petData.image_url || petData.imageUrl || urlPetImg || 'https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop');
+
+      // RTDB is preferred, but Adopt's URL values are a fallback.
+      otherUserId = String(
+        petData.owner_id || petData.ownerId || petData.owner_uid ||
+        petData.ownerUid || petData.userId || petData.listerId || urlOwnerId || ''
+      ).trim();
+      petOwnerName = String(
+        petData.owner_name || petData.ownerName || petData.owner || urlOwnerName || ''
+      ).trim();
+    } else {
+      // The pet may still be valid if Adopt already supplied its owner UID.
+      petData = null;
+      petId = rawPetId;
+      petName = urlPetName || 'Pet';
+      petBreed = urlPetBreed;
+      petImg = urlPetImg || 'https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop';
+      otherUserId = urlOwnerId;
+      petOwnerName = urlOwnerName;
     }
-
-    petData = snap.val() || {};
-    petId = String(petData.pet_id ?? snap.key ?? rawPetId);
-    petName = String(petData.name || 'Pet');
-    petBreed = String(petData.breed || petData.species || '');
-    petImg = String(petData.image_url || petData.imageUrl || 'https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop');
-
-    // This is the ONLY owner source for a pet.
-    // New pets can have any valid Firebase Auth UID in owner_id.
-    otherUserId = String(petData.owner_id || '').trim();
-    petOwnerName = String(petData.owner_name || petData.ownerName || petData.owner || '').trim();
 
     if (!otherUserId) {
-      showChatError(`The pet "${petName}" is not linked to an owner account yet. Add owner_id to this pet record.`);
+      showChatError(`The pet "${petName}" is not linked to an owner account yet. Add owner_id to this pet record or pass the owner's Firebase Auth UID from the Adopt page.`);
       return false;
     }
 
