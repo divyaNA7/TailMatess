@@ -788,7 +788,7 @@
           <i class="fa-solid fa-arrow-left"></i>
         </button>
         <div class="header-info">
-          <h2 id="header-name">Owner name</h2>
+          <h2 id="header-name">Loading owner...</h2>
           <div class="header-status" id="header-status">Online</div>
         </div>
       </div>
@@ -1161,57 +1161,50 @@
     if (!currentUser || !otherUserId || otherUserId === currentUser.uid || !petId) return null;
 
     const participants = [currentUser.uid, otherUserId].sort();
-
-    // PET-SPECIFIC conversation IDs prevent two different pets owned by the
-    // same person from sharing one chat. Any new owner works automatically.
     conversationId = 'pet_' + encodeURIComponent(petId) + '_' + participants.map(encodeURIComponent).join('_');
     conversationOwnerId = otherUserId;
 
     const convRef = db.collection('conversations').doc(conversationId);
 
     try {
-      const convDoc = await convRef.get();
+      // IMPORTANT: Do not call convRef.get() before creating the conversation.
+      // Your Firestore read rule checks resource.data.participants, which does
+      // not exist for a brand-new document. A direct set() is allowed by the
+      // create rule because request.resource already contains participants.
+      const conversationData = {
+        participants,
+        ownerId: otherUserId,
+        adopterId: currentUser.uid,
+        petId,
+        petName,
+        petImage: petImg,
+        ownerName: petOwnerName || 'Pet Owner',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastMessage: '',
+        lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+        lastSender: '',
+        adoptionApproved: false,
+        unread: { [participants[0]]: 0, [participants[1]]: 0 }
+      };
 
-      if (!convDoc.exists) {
-        const newConversation = {
-          participants,
-          ownerId: otherUserId,
-          adopterId: currentUser.uid,
-          petId,
-          petName,
-          petImage: petImg,
-          ownerName: petOwnerName || 'Pet Parent',
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          lastMessage: '',
-          lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
-          lastSender: '',
-          adoptionApproved: false,
-          unread: { [participants[0]]: 0, [participants[1]]: 0 }
-        };
-        await convRef.set(newConversation);
-      } else {
+      // This works for both a new conversation (create) and an existing one
+      // (update). It also guarantees the parent exists before a message write.
+      await convRef.set(conversationData, { merge: true });
+
+      // Read the now-existing document only after it has been written.
+      const convDoc = await convRef.get();
+      if (convDoc.exists) {
         const data = convDoc.data() || {};
-        // Never replace the stored owner with the current user. The owner is
-        // determined by the pet's owner_id and remains stable.
         conversationOwnerId = data.ownerId || otherUserId;
         adoptionApproved = data.adoptionApproved === true;
-        await convRef.set({
-          participants,
-          ownerId: conversationOwnerId,
-          adopterId: data.adopterId || (currentUser.uid === conversationOwnerId ? participants.find(id => id !== currentUser.uid) : currentUser.uid),
-          petId,
-          petName,
-          petImage: petImg,
-          ownerName: petOwnerName || data.ownerName || 'Pet Parent'
-        }, { merge: true });
-        await convRef.set({ [`unread.${currentUser.uid}`]: 0 }, { merge: true });
       }
 
       updateApprovalButton();
       return conversationId;
     } catch (e) {
       console.error('CONVERSATION CREATE/READ ERROR:', e);
-      showChatError('Firebase could not create/open the conversation.\n\n' + (e.code ? e.code + ': ' : '') + (e.message || 'Unknown Firebase error'));
+      showChatError('Firebase could not create/open the conversation.\n\n' +
+        (e.code ? e.code + ': ' : '') + (e.message || 'Unknown Firebase error'));
       return null;
     }
   }
@@ -1220,26 +1213,22 @@
     const headerName = document.getElementById('header-name');
     const statusEl = document.getElementById('header-status');
 
-    // The pet record is the primary source for the owner's displayed name.
-    // Do NOT replace it with the current tester/adopter's name.
-    let resolvedName = petOwnerName || '';
+    // The pet's RTDB owner_name is the source of truth for the header.
+    // Do not use the currently logged-in tester's Firebase Auth displayName.
+    let resolvedName = String(petOwnerName || '').trim();
 
-    try {
-      // If owner_name was not stored on the pet, try the owner's Firestore user profile.
-      if (!resolvedName && otherUserId) {
+    if (!resolvedName && otherUserId) {
+      try {
         const doc = await db.collection('users').doc(otherUserId).get();
         if (doc.exists) {
-          otherUserProfile = doc.data() || {};
+          const profile = doc.data() || {};
           resolvedName = String(
-            otherUserProfile.name ||
-            otherUserProfile.displayName ||
-            otherUserProfile.fullName ||
-            ''
+            profile.name || profile.displayName || profile.fullName || ''
           ).trim();
         }
+      } catch (e) {
+        console.warn('Owner profile lookup failed:', e);
       }
-    } catch (e) {
-      console.warn('Owner profile lookup failed:', e);
     }
 
     if (headerName) headerName.textContent = resolvedName || 'Pet Owner';
@@ -1390,30 +1379,28 @@
 
   async function saveMessage(data) {
     if (!db || !currentUser) throw new Error('Firebase user/session is not ready.');
-    if (!otherUserId) throw new Error('The pet has no owner_id in Realtime Database.');
-    if (currentUser.uid === otherUserId) throw new Error('You are signed in as the pet owner. Test with a different account.');
+    if (!petId || !otherUserId) throw new Error('Pet/owner information is missing.');
+    if (currentUser.uid === otherUserId) throw new Error('You are signed in as the pet owner. Use the other test account.');
 
-    // ALWAYS create/verify the parent conversation first.
-    const id = await getOrCreateConversation();
-    if (!id) throw new Error('Conversation could not be created.');
-    conversationId = id;
+    const participants = [currentUser.uid, otherUserId].sort();
+    conversationId = conversationId ||
+      ('pet_' + encodeURIComponent(petId) + '_' + participants.map(encodeURIComponent).join('_'));
+    conversationOwnerId = otherUserId;
 
     const convRef = db.collection('conversations').doc(conversationId);
-    const msgRef = convRef.collection('messages').doc();
 
-    // First write the parent document in a separate request.
-    // This is required when Firestore rules use get() on the conversation
-    // while authorizing a message write.
+    // STEP 1: parent conversation MUST exist before messages are written.
     await convRef.set({
-      participants: [conversationOwnerId || otherUserId, currentUser.uid].sort(),
-      ownerId: conversationOwnerId || otherUserId,
+      participants,
+      ownerId: otherUserId,
       adopterId: currentUser.uid,
-      petId: petId || '',
-      petName: petName || '',
-      petImage: petImg || '',
+      petId,
+      petName,
+      petImage: petImg,
       ownerName: petOwnerName || 'Pet Owner'
     }, { merge: true });
 
+    // STEP 2: write the message as a separate Firestore request.
     const msgData = {
       ...data,
       sender: currentUser.uid,
@@ -1421,10 +1408,10 @@
       time: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    // Then write the message by itself.
+    const msgRef = convRef.collection('messages').doc();
     await msgRef.set(msgData);
 
-    // Finally update conversation preview/unread state separately.
+    // STEP 3: update conversation preview after message succeeds.
     await convRef.set({
       lastMessage: data.type === 'text' ? data.text :
         (data.type === 'image' ? 'Photo' :
