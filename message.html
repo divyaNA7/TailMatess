@@ -1153,6 +1153,13 @@
 
   let db, auth, rtdb, currentUser, conversationId, unsubMessages;
   let chatMessages;
+
+  function getChatMessagesEl() {
+    if (!chatMessages || !document.body.contains(chatMessages)) {
+      chatMessages = document.getElementById('chat-messages');
+    }
+    return chatMessages;
+  }
   let firebaseReady = false;
   let petId = '';
   let petName = '';
@@ -1306,6 +1313,7 @@
     }
 
     await initSingleChat();
+    chatMessages = document.getElementById('chat-messages');
     const layout = document.getElementById('messenger-layout');
     if (layout) layout.classList.add('chat-open');
   });
@@ -1536,6 +1544,7 @@
     if (headerName) headerName.textContent = petOwnerName || 'Pet Parent';
     document.title = `Chat - ${petName} | TailMates`;
 
+    chatMessages = document.getElementById('chat-messages');
     const id = await getOrCreateConversation();
     if (!id) return;
 
@@ -1713,11 +1722,13 @@
         }
       }).catch(() => {});
 
-      const prevHeight = chatMessages.scrollHeight;
-      const prevTop = chatMessages.scrollTop;
-      const nearBottom = (prevHeight - prevTop - chatMessages.clientHeight) < 80;
+      const container = getChatMessagesEl();
+      if (!container) { console.error('Chat message area #chat-messages not found.'); return; }
+      const prevHeight = container.scrollHeight;
+      const prevTop = container.scrollTop;
+      const nearBottom = (prevHeight - prevTop - container.clientHeight) < 80;
 
-      chatMessages.innerHTML = '';
+      container.innerHTML = '';
       let lastDateKey = '';
       const readBatch = db.batch();
       let hasUnreadIncoming = false;
@@ -1738,7 +1749,7 @@
             const startMessage = new Date(messageDate.getFullYear(), messageDate.getMonth(), messageDate.getDate());
             const daysAgo = Math.round((startToday - startMessage) / 86400000);
             const label = daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : messageDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: messageDate.getFullYear() === now.getFullYear() ? undefined : 'numeric' });
-            chatMessages.insertAdjacentHTML('beforeend', `<div class="date-separator"><span>${escapeHtml(label)}</span></div>`);
+            container.insertAdjacentHTML('beforeend', `<div class="date-separator"><span>${escapeHtml(label)}</span></div>`);
             lastDateKey = dateKey;
           }
         }
@@ -1756,7 +1767,7 @@
       });
 
       if (nearBottom || prevHeight === 0) scrollToBottom();
-      else chatMessages.scrollTop = chatMessages.scrollHeight - prevHeight + prevTop;
+      else container.scrollTop = container.scrollHeight - prevHeight + prevTop;
 
       if (hasUnreadIncoming && !snapshot.metadata.hasPendingWrites) {
         readBatch.commit().catch(e => console.error('Mark-read error:', e));
@@ -1871,7 +1882,9 @@
           ${type === 'sent' ? `<span class="msg-read ${read ? '' : 'pending'}">${read ? '\u2713\u2713' : '\u2713'}</span>` : ''}
         </div>
       </div>`;
-    chatMessages.appendChild(row);
+    const container = getChatMessagesEl();
+    if (!container) throw new Error('Chat message area is not available.');
+    container.appendChild(row);
     scrollToBottom();
   }
 
@@ -1885,7 +1898,9 @@
           <span class="msg-time">${escapeHtml(time || '')}</span>
         </div>
       </div>`;
-    chatMessages.appendChild(row);
+    const container = getChatMessagesEl();
+    if (!container) throw new Error('Chat message area is not available.');
+    container.appendChild(row);
   }
 
   function addSystemMessageToUI(text, subtext) {
@@ -1896,10 +1911,12 @@
         <p>${escapeHtml(text)}</p>
         ${subtext ? `<p>${escapeHtml(subtext)}</p>` : ''}
       </div>`;
-    chatMessages.appendChild(row);
+    const container = getChatMessagesEl();
+    if (!container) throw new Error('Chat message area is not available.');
+    container.appendChild(row);
   }
 
-  function scrollToBottom() { chatMessages.scrollTop = chatMessages.scrollHeight; }
+  function scrollToBottom() { const container = getChatMessagesEl(); if (container) container.scrollTop = container.scrollHeight; }
   function formatTime(date) { return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
   function escapeHtml(text) {
     const div = document.createElement('div');
@@ -2235,7 +2252,9 @@
             ${type === 'sent' ? `<span class="msg-read">\u2713\u2713</span>` : ''}
           </div>
         </div>`;
-      chatMessages.appendChild(row);
+      const container = getChatMessagesEl();
+    if (!container) throw new Error('Chat message area is not available.');
+    container.appendChild(row);
       setTimeout(() => initLiveBubbleMap(safeId, loc.lat, loc.lng), 60);
       return;
     }
@@ -2252,7 +2271,9 @@
           ${type === 'sent' ? `<span class="msg-read">\u2713\u2713</span>` : ''}
         </div>
       </div>`;
-    chatMessages.appendChild(row);
+    const container = getChatMessagesEl();
+    if (!container) throw new Error('Chat message area is not available.');
+    container.appendChild(row);
   }
 
   function openInMaps(lat, lng) {
