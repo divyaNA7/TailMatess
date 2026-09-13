@@ -1152,6 +1152,7 @@
   };
 
   let db, auth, rtdb, currentUser, conversationId, unsubMessages;
+  let chatMessages;
   let firebaseReady = false;
   let petId = '';
   let petName = '';
@@ -1316,7 +1317,7 @@
     const headerName = document.getElementById('header-name');
     const headerStatus = document.getElementById('header-status');
     const inputArea = document.getElementById('input-area');
-    const chatMessages = document.getElementById('chat-messages');
+    chatMessages = document.getElementById('chat-messages');
     const inboxList = document.getElementById('inbox-list');
     const layout = document.getElementById('messenger-layout');
     const chatPane = document.getElementById('chat-pane');
