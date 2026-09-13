@@ -1432,6 +1432,73 @@
       return { otherUid, name, avatar };
     }
 
+    async function repairConversationRoles(conv) {
+      if (!conv || !conv.__id || !currentUser) return conv;
+
+      const ownerId = String(conv.ownerId || '');
+      const adopterId = String(conv.adopterId || '');
+      const participants = Array.isArray(conv.participants) ? conv.participants.map(String) : [];
+
+      // If roles are already valid, keep them.
+      if (ownerId && adopterId && ownerId !== adopterId &&
+          participants.includes(ownerId) && participants.includes(adopterId)) {
+        return conv;
+      }
+
+      // For an adopter's conversation, RTDB pet data is the most reliable
+      // source for the owner ID.
+      let repairedOwnerId = ownerId;
+      let repairedAdopterId = adopterId;
+
+      if (conv.petId && rtdb) {
+        try {
+          let snap = await rtdb.ref(String(conv.petId)).once('value');
+          if (!snap.exists()) snap = await rtdb.ref('pets/' + String(conv.petId)).once('value');
+          if (snap.exists()) {
+            const pet = snap.val() || {};
+            const petOwnerId = String(
+              pet.owner_id || pet.ownerId || pet.owner_uid ||
+              pet.ownerUid || pet.userId || pet.listerId || ''
+            ).trim();
+
+            if (petOwnerId) {
+              repairedOwnerId = petOwnerId;
+              if (currentUser.uid !== petOwnerId) repairedAdopterId = currentUser.uid;
+              else if (!repairedAdopterId || repairedAdopterId === petOwnerId) {
+                repairedAdopterId = participants.find(p => p !== petOwnerId) || repairedAdopterId;
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
+      // If this is an owner viewing the chat, the other participant is the adopter.
+      if (currentUser.uid === repairedOwnerId) {
+        repairedAdopterId = repairedAdopterId ||
+          participants.find(p => p !== repairedOwnerId) || '';
+      }
+
+      if (!repairedOwnerId || !repairedAdopterId || repairedOwnerId === repairedAdopterId) {
+        return conv;
+      }
+
+      const repaired = {
+        ...conv,
+        ownerId: repairedOwnerId,
+        adopterId: repairedAdopterId,
+        participants: [repairedOwnerId, repairedAdopterId].sort()
+      };
+
+      // Persist the repair so both sides use the same roles after reload.
+      db.collection('conversations').doc(conv.__id).set({
+        ownerId: repairedOwnerId,
+        adopterId: repairedAdopterId,
+        participants: repaired.participants
+      }, { merge: true }).catch(() => {});
+
+      return repaired;
+    }
+
     async function renderInbox() {
       const renderVersion = ++inboxRenderVersion;
       const docs = Array.from(conversationMap.values()).sort((a, b) => {
@@ -1454,8 +1521,9 @@
 
       for (const doc of docs) {
         if (renderVersion !== inboxRenderVersion) return;
-        const conv = doc.data() || {};
+        let conv = doc.data() || {};
         conv.__id = doc.id;
+        conv = await repairConversationRoles(conv);
         const person = await getConversationPerson(conv);
         if (!person.otherUid) continue;
 
@@ -1681,15 +1749,29 @@
       const existing = await convRef.get();
       if (existing.exists) {
         const data = existing.data() || {};
+
+        // Existing conversation metadata is authoritative.
+        // This is especially important when reopening as the adopter after
+        // the owner has already sent messages.
         conversationOwnerId = data.ownerId || otherUserId;
         adoptionApproved = data.adoptionApproved === true;
+
+        const safeOwnerId = data.ownerId || otherUserId;
+        const safeAdopterId = data.adopterId ||
+          (safeOwnerId === currentUser.uid ? otherUserId : currentUser.uid);
+
         await convRef.set({
-          participants,
-          ownerId: conversationOwnerId,
-          adopterId: data.adopterId || currentUser.uid,
-          petId, petName, petImage: petImg,
-          ownerName: petOwnerName || data.ownerName || 'Pet Parent',
-          adopterName: data.adopterName || currentUser.displayName || currentUser.email || 'Adopter'
+          participants: [safeOwnerId, safeAdopterId].sort(),
+          ownerId: safeOwnerId,
+          adopterId: safeAdopterId,
+          petId: data.petId || petId,
+          petName: data.petName || petName,
+          petImage: data.petImage || petImg,
+          ownerName: data.ownerName || petOwnerName || 'Pet Parent',
+          adopterName: data.adopterName ||
+            (safeAdopterId === currentUser.uid
+              ? (currentUser.displayName || currentUser.email || 'Adopter')
+              : 'Adopter')
         }, { merge: true });
       }
 
@@ -1870,19 +1952,67 @@
     if (!db || !currentUser) throw new Error('Firebase user/session is not ready.');
     await ensureConversationReady();
 
-    const participants = [currentUser.uid, otherUserId].sort();
     const convRef = db.collection('conversations').doc(conversationId);
 
-    // Keep the parent conversation present and authorized first.
+    // IMPORTANT:
+    // Never derive ownerId/adopterId from "otherUserId".
+    // On the owner's side, otherUserId is the adopter. On the adopter's side,
+    // otherUserId is the owner. Rebuilding the roles here used to swap the
+    // conversation roles every time the owner sent a message.
+    const existingSnap = await convRef.get();
+    const existing = existingSnap.exists ? (existingSnap.data() || {}) : {};
+
+    let ownerId = existing.ownerId || conversationOwnerId || null;
+    let adopterId = existing.adopterId || null;
+
+    // Repair older conversations whose roles were accidentally reversed.
+    if (!ownerId || !adopterId || ownerId === adopterId) {
+      if (existing.ownerId === currentUser.uid && existing.adopterId !== currentUser.uid) {
+        ownerId = currentUser.uid;
+        adopterId = existing.adopterId || otherUserId;
+      } else if (existing.adopterId === currentUser.uid && existing.ownerId !== currentUser.uid) {
+        ownerId = existing.ownerId || otherUserId;
+        adopterId = currentUser.uid;
+      } else if (conversationOwnerId && conversationOwnerId !== currentUser.uid) {
+        ownerId = conversationOwnerId;
+        adopterId = currentUser.uid;
+      } else if (otherUserId && otherUserId !== currentUser.uid) {
+        // Direct Adopt chat: the pet record identifies the owner.
+        ownerId = otherUserId;
+        adopterId = currentUser.uid;
+      }
+    }
+
+    if (!ownerId || !adopterId || ownerId === adopterId) {
+      throw new Error('Could not determine the owner and adopter for this conversation.');
+    }
+
+    const participants = [ownerId, adopterId].sort();
+
+    // Preserve all conversation metadata and only fill missing fields.
+    // Do not reset adoptionApproved, lastMessage, or the participant roles.
     await convRef.set({
-      participants, ownerId: otherUserId, adopterId: currentUser.uid,
-      petId, petName, petImage: petImg, ownerName: petOwnerName || 'Pet Parent',
-      adopterName: currentUser.displayName || currentUser.email || 'Adopter'
+      participants,
+      ownerId,
+      adopterId,
+      petId: existing.petId || petId,
+      petName: existing.petName || petName,
+      petImage: existing.petImage || petImg,
+      ownerName: existing.ownerName || petOwnerName || 'Pet Parent',
+      adopterName: existing.adopterName ||
+        (currentUser.uid === adopterId
+          ? (currentUser.displayName || currentUser.email || 'Adopter')
+          : 'Adopter')
     }, { merge: true });
+
+    // Keep globals consistent for the rest of the page.
+    conversationOwnerId = ownerId;
+    otherUserId = currentUser.uid === ownerId ? adopterId : ownerId;
 
     const msgRef = convRef.collection('messages').doc();
     await msgRef.set({
-      ...data, sender: currentUser.uid,
+      ...data,
+      sender: currentUser.uid,
       senderName: currentUser.displayName || currentUser.email || 'User',
       time: firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -1892,8 +2022,11 @@
       data.type === 'system' ? 'Meetup scheduled' :
       data.live ? 'Live location' : 'Location';
 
+    // Unread belongs to the OTHER participant, never to a role guessed from
+    // the current page.
     await convRef.set({
-      lastMessage, lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+      lastMessage,
+      lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
       lastSender: currentUser.uid,
       [`unread.${otherUserId}`]: firebase.firestore.FieldValue.increment(1),
       [`unread.${currentUser.uid}`]: 0
