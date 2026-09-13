@@ -1026,7 +1026,7 @@
           <i class="fa-solid fa-arrow-left"></i>
         </button>
         <div class="header-info">
-          <h2 id="header-name">Loading owner...</h2>
+          <h2 id="header-name">Select a chat</h2>
           <div class="header-status" id="header-status">Online</div>
         </div>
       </div>
@@ -1197,6 +1197,7 @@
   let selectedTime = null;
   let otherUserProfile = null;
   let adoptionApproved = false;
+  let pendingPetToOpen = null;
 
   async function loadPetFromDatabase() {
     // The TailMates export can store pets either directly at the RTDB root
@@ -1296,26 +1297,28 @@
     document.getElementById('input-area').style.display = 'flex';
     document.getElementById('chat-messages').style.display = 'flex';
 
-    // message.html with no pet parameter is the inbox.
-    if (!rawPetId) {
-      await loadMyConversations();
-      return;
+    // IMPORTANT:
+    // Always load the WhatsApp-style inbox, even when message.html was opened
+    // from Adopt with a ?pet=... parameter. This is what lets adopters see all
+    // of their previous chats after a reload.
+    if (rawPetId) {
+      const petLoaded = await loadPetFromDatabase();
+      if (!petLoaded) return;
+
+      // A direct link for the owner to their own pet must not create a new
+      // owner-to-owner conversation. Owners can open their adopter chats
+      // from the inbox instead.
+      if (otherUserId === currentUser.uid) {
+        pendingPetToOpen = null;
+      } else {
+        pendingPetToOpen = petId;
+      }
+    } else {
+      pendingPetToOpen = null;
     }
 
-    const petLoaded = await loadPetFromDatabase();
-    if (!petLoaded) return;
-
-    // An owner should normally open a conversation from the inbox.
-    // A direct pet link is for an adopter; don't create an owner-to-owner chat.
-    if (otherUserId === currentUser.uid) {
-      showChatError('This pet belongs to your account. Open an existing conversation from My Chats to message an adopter.');
-      return;
-    }
-
-    await initSingleChat();
+    await loadMyConversations();
     chatMessages = document.getElementById('chat-messages');
-    const layout = document.getElementById('messenger-layout');
-    if (layout) layout.classList.add('chat-open');
   });
 
   let unsubInboxParticipants = null;
@@ -1392,8 +1395,10 @@
             const u = userDoc.data() || {};
             const profileName = String(u.name || u.displayName || u.fullName || '').trim();
             const profileAvatar = u.avatar || u.photoURL || '';
-            if (profileName) name = profileName;
-            if (profileAvatar) avatar = profileAvatar;
+            // Only use the user's profile as a fallback. A persisted
+            // ownerName/adopterName in the conversation is authoritative.
+            if (!name && profileName) name = profileName;
+            if (!avatar && profileAvatar) avatar = profileAvatar;
           }
         }
       } catch (_) {}
@@ -1481,7 +1486,37 @@
         inboxList.appendChild(item);
       }
 
-      if (renderVersion === inboxRenderVersion) filterInbox();
+      if (renderVersion === inboxRenderVersion) {
+        filterInbox();
+
+        // If we arrived here from Adopt (?pet=...), keep the inbox visible
+        // and automatically open that pet's existing conversation.
+        if (pendingPetToOpen && currentUser) {
+          const targetDoc = docs.find(d => {
+            const c = d.data() || {};
+            return String(c.petId || '') === String(pendingPetToOpen) &&
+                   Array.isArray(c.participants) &&
+                   c.participants.includes(currentUser.uid);
+          });
+
+          if (targetDoc) {
+            const targetConv = targetDoc.data() || {};
+            targetConv.__id = targetDoc.id;
+            const targetPerson = await getConversationPerson(targetConv);
+            pendingPetToOpen = null;
+            await openConversationFromInbox(targetDoc.id, targetConv, targetPerson);
+          } else if (docs.length === 0 || rawPetId) {
+            // No conversation exists yet. Create the selected Adopt chat,
+            // then keep the inbox architecture for all future reloads.
+            pendingPetToOpen = null;
+            await initSingleChat();
+            if (unsubInboxParticipants) {
+              // The conversation write above will normally trigger the inbox
+              // listener automatically and add the new chat to the left.
+            }
+          }
+        }
+      }
     }
 
     async function openConversationFromInbox(id, conv, person) {
@@ -1502,7 +1537,11 @@
       petName = String(conv.petName || 'Pet');
       petBreed = String(conv.petBreed || '');
       petImg = String(conv.petImage || '');
-      petOwnerName = String(conv.ownerName || (! (conv.ownerId === currentUser.uid) ? person.name : '') || '');
+      petOwnerName = String(
+        conv.ownerName ||
+        (conv.ownerId !== currentUser.uid ? person.name : '') ||
+        ''
+      );
 
       // Do not run the RTDB pet lookup here. The conversation already contains
       // everything needed to open an existing chat.
@@ -1625,9 +1664,10 @@
     const convRef = db.collection('conversations').doc(conversationId);
     const conversationData = {
       participants, ownerId: otherUserId, adopterId: currentUser.uid,
-      petId, petName, petImage: petImg, ownerName: petOwnerName || 'Pet Parent',
+      petId, petName, petImage: petImg,
+      ownerName: petOwnerName || 'Pet Parent',
       adopterName: currentUser.displayName || currentUser.email || 'Adopter',
-      adoptionApproved: false, lastMessage: '', lastSender: '',
+      lastMessage: '', lastSender: '',
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
       unread: { [participants[0]]: 0, [participants[1]]: 0 }
