@@ -1352,6 +1352,7 @@
     }
 
     const conversationMap = new Map();
+    let inboxRenderVersion = 0;
 
     function formatInboxTime(ts) {
       if (!ts || typeof ts.toDate !== 'function') return '';
@@ -1368,27 +1369,66 @@
     }
 
     async function getConversationPerson(conv) {
-      const otherUid = (conv.participants || []).find(id => id !== currentUser.uid) || '';
-      let name = conv.ownerName || conv.adopterName || 'User';
-      let avatar = conv.petImage || 'https://ui-avatars.com/api/?name=User&background=random';
+      const participants = Array.isArray(conv.participants) ? conv.participants : [];
+      const otherUid = participants.find(id => id !== currentUser.uid) || '';
+      const isOwner = String(conv.ownerId || '') === String(currentUser.uid);
 
-      // For an owner viewing a conversation, the other person is the adopter.
-      // For an adopter, the other person is the owner.
+      // IMPORTANT: when the logged-in user is the adopter, the chat title must
+      // be the PET OWNER's name. When the logged-in user is the owner, it must
+      // be the ADOPTER's name. Never blindly replace ownerName with the other
+      // user's profile because that made owner names disappear for adopters.
+      let name = isOwner
+        ? (conv.adopterName || conv.adopterDisplayName || '')
+        : (conv.ownerName || conv.owner_display_name || '');
+      let avatar = isOwner
+        ? (conv.adopterAvatar || '')
+        : (conv.ownerAvatar || conv.petImage || '');
+
+      // Fill missing names from the user's Firestore profile.
       try {
         if (otherUid) {
           const userDoc = await db.collection('users').doc(otherUid).get();
           if (userDoc.exists) {
             const u = userDoc.data() || {};
-            name = u.name || u.displayName || name;
-            avatar = u.avatar || u.photoURL || avatar;
+            const profileName = String(u.name || u.displayName || u.fullName || '').trim();
+            const profileAvatar = u.avatar || u.photoURL || '';
+            if (profileName) name = profileName;
+            if (profileAvatar) avatar = profileAvatar;
           }
         }
       } catch (_) {}
 
+      // Older conversations may not contain ownerName. For adopter chats,
+      // recover it directly from the same RTDB pet record and persist it so
+      // it remains available after a page reload.
+      if (!isOwner && !name && conv.petId && rtdb) {
+        try {
+          let petSnap = await rtdb.ref(String(conv.petId)).once('value');
+          if (!petSnap.exists()) petSnap = await rtdb.ref('pets/' + String(conv.petId)).once('value');
+          if (petSnap.exists()) {
+            const pet = petSnap.val() || {};
+            name = String(pet.owner_name || pet.ownerName || pet.owner || '').trim();
+            if (!avatar) avatar = pet.owner_image || pet.ownerImage || pet.owner_photo || '';
+            if (name) {
+              db.collection('conversations').doc(conv.__id || '').set({
+                ownerName: name,
+                ownerId: conv.ownerId || otherUid,
+                petId: String(conv.petId),
+                petName: conv.petName || pet.name || 'Pet',
+                petImage: conv.petImage || pet.image_url || pet.imageUrl || ''
+              }, {merge:true}).catch(() => {});
+            }
+          }
+        } catch (_) {}
+      }
+
+      if (!name) name = isOwner ? 'Adopter' : 'Pet Owner';
+      if (!avatar) avatar = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=random';
       return { otherUid, name, avatar };
     }
 
     async function renderInbox() {
+      const renderVersion = ++inboxRenderVersion;
       const docs = Array.from(conversationMap.values()).sort((a, b) => {
         const ta = a.data().lastMessageTime?.toMillis ? a.data().lastMessageTime.toMillis() : 0;
         const tb = b.data().lastMessageTime?.toMillis ? b.data().lastMessageTime.toMillis() : 0;
@@ -1408,13 +1448,15 @@
       }
 
       for (const doc of docs) {
+        if (renderVersion !== inboxRenderVersion) return;
         const conv = doc.data() || {};
+        conv.__id = doc.id;
         const person = await getConversationPerson(conv);
         if (!person.otherUid) continue;
 
         const unread = Number((conv.unread && conv.unread[currentUser.uid]) || 0);
         const time = formatInboxTime(conv.lastMessageTime);
-        const preview = conv.lastMessage || 'Start chatting';
+        const preview = conv.lastMessage || (conv.lastMessageText || 'Start chatting');
         const petLabel = conv.petName ? ` · ${conv.petName}` : '';
 
         const item = document.createElement('div');
@@ -1439,7 +1481,7 @@
         inboxList.appendChild(item);
       }
 
-      filterInbox();
+      if (renderVersion === inboxRenderVersion) filterInbox();
     }
 
     async function openConversationFromInbox(id, conv, person) {
@@ -1460,7 +1502,7 @@
       petName = String(conv.petName || 'Pet');
       petBreed = String(conv.petBreed || '');
       petImg = String(conv.petImage || '');
-      petOwnerName = String(conv.ownerName || person.name || '');
+      petOwnerName = String(conv.ownerName || (! (conv.ownerId === currentUser.uid) ? person.name : '') || '');
 
       // Do not run the RTDB pet lookup here. The conversation already contains
       // everything needed to open an existing chat.
@@ -1584,6 +1626,7 @@
     const conversationData = {
       participants, ownerId: otherUserId, adopterId: currentUser.uid,
       petId, petName, petImage: petImg, ownerName: petOwnerName || 'Pet Parent',
+      adopterName: currentUser.displayName || currentUser.email || 'Adopter',
       adoptionApproved: false, lastMessage: '', lastSender: '',
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
@@ -1605,7 +1648,8 @@
           ownerId: conversationOwnerId,
           adopterId: data.adopterId || currentUser.uid,
           petId, petName, petImage: petImg,
-          ownerName: petOwnerName || data.ownerName || 'Pet Parent'
+          ownerName: petOwnerName || data.ownerName || 'Pet Parent',
+          adopterName: data.adopterName || currentUser.displayName || currentUser.email || 'Adopter'
         }, { merge: true });
       }
 
@@ -1792,7 +1836,8 @@
     // Keep the parent conversation present and authorized first.
     await convRef.set({
       participants, ownerId: otherUserId, adopterId: currentUser.uid,
-      petId, petName, petImage: petImg, ownerName: petOwnerName || 'Pet Parent'
+      petId, petName, petImage: petImg, ownerName: petOwnerName || 'Pet Parent',
+      adopterName: currentUser.displayName || currentUser.email || 'Adopter'
     }, { merge: true });
 
     const msgRef = convRef.collection('messages').doc();
