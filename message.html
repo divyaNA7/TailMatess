@@ -1026,7 +1026,7 @@
           <i class="fa-solid fa-arrow-left"></i>
         </button>
         <div class="header-info">
-          <h2 id="header-name">Select a chat</h2>
+          <h2 id="header-name">Loading owner...</h2>
           <div class="header-status" id="header-status">Online</div>
         </div>
       </div>
@@ -1152,14 +1152,6 @@
   };
 
   let db, auth, rtdb, currentUser, conversationId, unsubMessages;
-  let chatMessages;
-
-  function getChatMessagesEl() {
-    if (!chatMessages || !document.body.contains(chatMessages)) {
-      chatMessages = document.getElementById('chat-messages');
-    }
-    return chatMessages;
-  }
   let firebaseReady = false;
   let petId = '';
   let petName = '';
@@ -1190,14 +1182,16 @@
   const urlPetImg = (urlParams.get('img') || '').trim();
   const matchScore = urlParams.get('match') || '88';
 
-  // Chat input element (must be defined before keyboard/send handlers run)
+  // Chat elements used by the messaging functions.
+  // They must be in the outer script scope because sendMessage(),
+  // location messages, and the Firestore listener all use them.
   const messageInput = document.getElementById('message-input');
+  const chatMessages = document.getElementById('chat-messages');
 
   let selectedSpot = null;
   let selectedTime = null;
   let otherUserProfile = null;
   let adoptionApproved = false;
-  let pendingPetToOpen = null;
 
   async function loadPetFromDatabase() {
     // The TailMates export can store pets either directly at the RTDB root
@@ -1297,28 +1291,25 @@
     document.getElementById('input-area').style.display = 'flex';
     document.getElementById('chat-messages').style.display = 'flex';
 
-    // IMPORTANT:
-    // Always load the WhatsApp-style inbox, even when message.html was opened
-    // from Adopt with a ?pet=... parameter. This is what lets adopters see all
-    // of their previous chats after a reload.
-    if (rawPetId) {
-      const petLoaded = await loadPetFromDatabase();
-      if (!petLoaded) return;
-
-      // A direct link for the owner to their own pet must not create a new
-      // owner-to-owner conversation. Owners can open their adopter chats
-      // from the inbox instead.
-      if (otherUserId === currentUser.uid) {
-        pendingPetToOpen = null;
-      } else {
-        pendingPetToOpen = petId;
-      }
-    } else {
-      pendingPetToOpen = null;
+    // message.html with no pet parameter is the inbox.
+    if (!rawPetId) {
+      await loadMyConversations();
+      return;
     }
 
-    await loadMyConversations();
-    chatMessages = document.getElementById('chat-messages');
+    const petLoaded = await loadPetFromDatabase();
+    if (!petLoaded) return;
+
+    // An owner should normally open a conversation from the inbox.
+    // A direct pet link is for an adopter; don't create an owner-to-owner chat.
+    if (otherUserId === currentUser.uid) {
+      showChatError('This pet belongs to your account. Open an existing conversation from My Chats to message an adopter.');
+      return;
+    }
+
+    await initSingleChat();
+    const layout = document.getElementById('messenger-layout');
+    if (layout) layout.classList.add('chat-open');
   });
 
   let unsubInboxParticipants = null;
@@ -1328,7 +1319,6 @@
     const headerName = document.getElementById('header-name');
     const headerStatus = document.getElementById('header-status');
     const inputArea = document.getElementById('input-area');
-    chatMessages = document.getElementById('chat-messages');
     const inboxList = document.getElementById('inbox-list');
     const layout = document.getElementById('messenger-layout');
     const chatPane = document.getElementById('chat-pane');
@@ -1355,7 +1345,6 @@
     }
 
     const conversationMap = new Map();
-    let inboxRenderVersion = 0;
 
     function formatInboxTime(ts) {
       if (!ts || typeof ts.toDate !== 'function') return '';
@@ -1372,135 +1361,27 @@
     }
 
     async function getConversationPerson(conv) {
-      const participants = Array.isArray(conv.participants) ? conv.participants : [];
-      const otherUid = participants.find(id => id !== currentUser.uid) || '';
-      const isOwner = String(conv.ownerId || '') === String(currentUser.uid);
+      const otherUid = (conv.participants || []).find(id => id !== currentUser.uid) || '';
+      let name = conv.ownerName || conv.adopterName || 'User';
+      let avatar = conv.petImage || 'https://ui-avatars.com/api/?name=User&background=random';
 
-      // IMPORTANT: when the logged-in user is the adopter, the chat title must
-      // be the PET OWNER's name. When the logged-in user is the owner, it must
-      // be the ADOPTER's name. Never blindly replace ownerName with the other
-      // user's profile because that made owner names disappear for adopters.
-      let name = isOwner
-        ? (conv.adopterName || conv.adopterDisplayName || '')
-        : (conv.ownerName || conv.owner_display_name || '');
-      let avatar = isOwner
-        ? (conv.adopterAvatar || '')
-        : (conv.ownerAvatar || conv.petImage || '');
-
-      // Fill missing names from the user's Firestore profile.
+      // For an owner viewing a conversation, the other person is the adopter.
+      // For an adopter, the other person is the owner.
       try {
         if (otherUid) {
           const userDoc = await db.collection('users').doc(otherUid).get();
           if (userDoc.exists) {
             const u = userDoc.data() || {};
-            const profileName = String(u.name || u.displayName || u.fullName || '').trim();
-            const profileAvatar = u.avatar || u.photoURL || '';
-            // Only use the user's profile as a fallback. A persisted
-            // ownerName/adopterName in the conversation is authoritative.
-            if (!name && profileName) name = profileName;
-            if (!avatar && profileAvatar) avatar = profileAvatar;
+            name = u.name || u.displayName || name;
+            avatar = u.avatar || u.photoURL || avatar;
           }
         }
       } catch (_) {}
 
-      // Older conversations may not contain ownerName. For adopter chats,
-      // recover it directly from the same RTDB pet record and persist it so
-      // it remains available after a page reload.
-      if (!isOwner && !name && conv.petId && rtdb) {
-        try {
-          let petSnap = await rtdb.ref(String(conv.petId)).once('value');
-          if (!petSnap.exists()) petSnap = await rtdb.ref('pets/' + String(conv.petId)).once('value');
-          if (petSnap.exists()) {
-            const pet = petSnap.val() || {};
-            name = String(pet.owner_name || pet.ownerName || pet.owner || '').trim();
-            if (!avatar) avatar = pet.owner_image || pet.ownerImage || pet.owner_photo || '';
-            if (name) {
-              db.collection('conversations').doc(conv.__id || '').set({
-                ownerName: name,
-                ownerId: conv.ownerId || otherUid,
-                petId: String(conv.petId),
-                petName: conv.petName || pet.name || 'Pet',
-                petImage: conv.petImage || pet.image_url || pet.imageUrl || ''
-              }, {merge:true}).catch(() => {});
-            }
-          }
-        } catch (_) {}
-      }
-
-      if (!name) name = isOwner ? 'Adopter' : 'Pet Owner';
-      if (!avatar) avatar = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=random';
       return { otherUid, name, avatar };
     }
 
-    async function repairConversationRoles(conv) {
-      if (!conv || !conv.__id || !currentUser) return conv;
-
-      const ownerId = String(conv.ownerId || '');
-      const adopterId = String(conv.adopterId || '');
-      const participants = Array.isArray(conv.participants) ? conv.participants.map(String) : [];
-
-      // If roles are already valid, keep them.
-      if (ownerId && adopterId && ownerId !== adopterId &&
-          participants.includes(ownerId) && participants.includes(adopterId)) {
-        return conv;
-      }
-
-      // For an adopter's conversation, RTDB pet data is the most reliable
-      // source for the owner ID.
-      let repairedOwnerId = ownerId;
-      let repairedAdopterId = adopterId;
-
-      if (conv.petId && rtdb) {
-        try {
-          let snap = await rtdb.ref(String(conv.petId)).once('value');
-          if (!snap.exists()) snap = await rtdb.ref('pets/' + String(conv.petId)).once('value');
-          if (snap.exists()) {
-            const pet = snap.val() || {};
-            const petOwnerId = String(
-              pet.owner_id || pet.ownerId || pet.owner_uid ||
-              pet.ownerUid || pet.userId || pet.listerId || ''
-            ).trim();
-
-            if (petOwnerId) {
-              repairedOwnerId = petOwnerId;
-              if (currentUser.uid !== petOwnerId) repairedAdopterId = currentUser.uid;
-              else if (!repairedAdopterId || repairedAdopterId === petOwnerId) {
-                repairedAdopterId = participants.find(p => p !== petOwnerId) || repairedAdopterId;
-              }
-            }
-          }
-        } catch (_) {}
-      }
-
-      // If this is an owner viewing the chat, the other participant is the adopter.
-      if (currentUser.uid === repairedOwnerId) {
-        repairedAdopterId = repairedAdopterId ||
-          participants.find(p => p !== repairedOwnerId) || '';
-      }
-
-      if (!repairedOwnerId || !repairedAdopterId || repairedOwnerId === repairedAdopterId) {
-        return conv;
-      }
-
-      const repaired = {
-        ...conv,
-        ownerId: repairedOwnerId,
-        adopterId: repairedAdopterId,
-        participants: [repairedOwnerId, repairedAdopterId].sort()
-      };
-
-      // Persist the repair so both sides use the same roles after reload.
-      db.collection('conversations').doc(conv.__id).set({
-        ownerId: repairedOwnerId,
-        adopterId: repairedAdopterId,
-        participants: repaired.participants
-      }, { merge: true }).catch(() => {});
-
-      return repaired;
-    }
-
     async function renderInbox() {
-      const renderVersion = ++inboxRenderVersion;
       const docs = Array.from(conversationMap.values()).sort((a, b) => {
         const ta = a.data().lastMessageTime?.toMillis ? a.data().lastMessageTime.toMillis() : 0;
         const tb = b.data().lastMessageTime?.toMillis ? b.data().lastMessageTime.toMillis() : 0;
@@ -1520,16 +1401,13 @@
       }
 
       for (const doc of docs) {
-        if (renderVersion !== inboxRenderVersion) return;
-        let conv = doc.data() || {};
-        conv.__id = doc.id;
-        conv = await repairConversationRoles(conv);
+        const conv = doc.data() || {};
         const person = await getConversationPerson(conv);
         if (!person.otherUid) continue;
 
         const unread = Number((conv.unread && conv.unread[currentUser.uid]) || 0);
         const time = formatInboxTime(conv.lastMessageTime);
-        const preview = conv.lastMessage || (conv.lastMessageText || 'Start chatting');
+        const preview = conv.lastMessage || 'Start chatting';
         const petLabel = conv.petName ? ` · ${conv.petName}` : '';
 
         const item = document.createElement('div');
@@ -1554,37 +1432,7 @@
         inboxList.appendChild(item);
       }
 
-      if (renderVersion === inboxRenderVersion) {
-        filterInbox();
-
-        // If we arrived here from Adopt (?pet=...), keep the inbox visible
-        // and automatically open that pet's existing conversation.
-        if (pendingPetToOpen && currentUser) {
-          const targetDoc = docs.find(d => {
-            const c = d.data() || {};
-            return String(c.petId || '') === String(pendingPetToOpen) &&
-                   Array.isArray(c.participants) &&
-                   c.participants.includes(currentUser.uid);
-          });
-
-          if (targetDoc) {
-            const targetConv = targetDoc.data() || {};
-            targetConv.__id = targetDoc.id;
-            const targetPerson = await getConversationPerson(targetConv);
-            pendingPetToOpen = null;
-            await openConversationFromInbox(targetDoc.id, targetConv, targetPerson);
-          } else if (docs.length === 0 || rawPetId) {
-            // No conversation exists yet. Create the selected Adopt chat,
-            // then keep the inbox architecture for all future reloads.
-            pendingPetToOpen = null;
-            await initSingleChat();
-            if (unsubInboxParticipants) {
-              // The conversation write above will normally trigger the inbox
-              // listener automatically and add the new chat to the left.
-            }
-          }
-        }
-      }
+      filterInbox();
     }
 
     async function openConversationFromInbox(id, conv, person) {
@@ -1605,11 +1453,7 @@
       petName = String(conv.petName || 'Pet');
       petBreed = String(conv.petBreed || '');
       petImg = String(conv.petImage || '');
-      petOwnerName = String(
-        conv.ownerName ||
-        (conv.ownerId !== currentUser.uid ? person.name : '') ||
-        ''
-      );
+      petOwnerName = String(conv.ownerName || person.name || '');
 
       // Do not run the RTDB pet lookup here. The conversation already contains
       // everything needed to open an existing chat.
@@ -1693,7 +1537,6 @@
     if (headerName) headerName.textContent = petOwnerName || 'Pet Parent';
     document.title = `Chat - ${petName} | TailMates`;
 
-    chatMessages = document.getElementById('chat-messages');
     const id = await getOrCreateConversation();
     if (!id) return;
 
@@ -1732,10 +1575,8 @@
     const convRef = db.collection('conversations').doc(conversationId);
     const conversationData = {
       participants, ownerId: otherUserId, adopterId: currentUser.uid,
-      petId, petName, petImage: petImg,
-      ownerName: petOwnerName || 'Pet Parent',
-      adopterName: currentUser.displayName || currentUser.email || 'Adopter',
-      lastMessage: '', lastSender: '',
+      petId, petName, petImage: petImg, ownerName: petOwnerName || 'Pet Parent',
+      adoptionApproved: false, lastMessage: '', lastSender: '',
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
       unread: { [participants[0]]: 0, [participants[1]]: 0 }
@@ -1749,29 +1590,14 @@
       const existing = await convRef.get();
       if (existing.exists) {
         const data = existing.data() || {};
-
-        // Existing conversation metadata is authoritative.
-        // This is especially important when reopening as the adopter after
-        // the owner has already sent messages.
         conversationOwnerId = data.ownerId || otherUserId;
         adoptionApproved = data.adoptionApproved === true;
-
-        const safeOwnerId = data.ownerId || otherUserId;
-        const safeAdopterId = data.adopterId ||
-          (safeOwnerId === currentUser.uid ? otherUserId : currentUser.uid);
-
         await convRef.set({
-          participants: [safeOwnerId, safeAdopterId].sort(),
-          ownerId: safeOwnerId,
-          adopterId: safeAdopterId,
-          petId: data.petId || petId,
-          petName: data.petName || petName,
-          petImage: data.petImage || petImg,
-          ownerName: data.ownerName || petOwnerName || 'Pet Parent',
-          adopterName: data.adopterName ||
-            (safeAdopterId === currentUser.uid
-              ? (currentUser.displayName || currentUser.email || 'Adopter')
-              : 'Adopter')
+          participants,
+          ownerId: conversationOwnerId,
+          adopterId: data.adopterId || currentUser.uid,
+          petId, petName, petImage: petImg,
+          ownerName: petOwnerName || data.ownerName || 'Pet Parent'
         }, { merge: true });
       }
 
@@ -1888,13 +1714,11 @@
         }
       }).catch(() => {});
 
-      const container = getChatMessagesEl();
-      if (!container) { console.error('Chat message area #chat-messages not found.'); return; }
-      const prevHeight = container.scrollHeight;
-      const prevTop = container.scrollTop;
-      const nearBottom = (prevHeight - prevTop - container.clientHeight) < 80;
+      const prevHeight = chatMessages.scrollHeight;
+      const prevTop = chatMessages.scrollTop;
+      const nearBottom = (prevHeight - prevTop - chatMessages.clientHeight) < 80;
 
-      container.innerHTML = '';
+      chatMessages.innerHTML = '';
       let lastDateKey = '';
       const readBatch = db.batch();
       let hasUnreadIncoming = false;
@@ -1915,7 +1739,7 @@
             const startMessage = new Date(messageDate.getFullYear(), messageDate.getMonth(), messageDate.getDate());
             const daysAgo = Math.round((startToday - startMessage) / 86400000);
             const label = daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : messageDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: messageDate.getFullYear() === now.getFullYear() ? undefined : 'numeric' });
-            container.insertAdjacentHTML('beforeend', `<div class="date-separator"><span>${escapeHtml(label)}</span></div>`);
+            chatMessages.insertAdjacentHTML('beforeend', `<div class="date-separator"><span>${escapeHtml(label)}</span></div>`);
             lastDateKey = dateKey;
           }
         }
@@ -1933,7 +1757,7 @@
       });
 
       if (nearBottom || prevHeight === 0) scrollToBottom();
-      else container.scrollTop = container.scrollHeight - prevHeight + prevTop;
+      else chatMessages.scrollTop = chatMessages.scrollHeight - prevHeight + prevTop;
 
       if (hasUnreadIncoming && !snapshot.metadata.hasPendingWrites) {
         readBatch.commit().catch(e => console.error('Mark-read error:', e));
@@ -1952,67 +1776,18 @@
     if (!db || !currentUser) throw new Error('Firebase user/session is not ready.');
     await ensureConversationReady();
 
+    const participants = [currentUser.uid, otherUserId].sort();
     const convRef = db.collection('conversations').doc(conversationId);
 
-    // IMPORTANT:
-    // Never derive ownerId/adopterId from "otherUserId".
-    // On the owner's side, otherUserId is the adopter. On the adopter's side,
-    // otherUserId is the owner. Rebuilding the roles here used to swap the
-    // conversation roles every time the owner sent a message.
-    const existingSnap = await convRef.get();
-    const existing = existingSnap.exists ? (existingSnap.data() || {}) : {};
-
-    let ownerId = existing.ownerId || conversationOwnerId || null;
-    let adopterId = existing.adopterId || null;
-
-    // Repair older conversations whose roles were accidentally reversed.
-    if (!ownerId || !adopterId || ownerId === adopterId) {
-      if (existing.ownerId === currentUser.uid && existing.adopterId !== currentUser.uid) {
-        ownerId = currentUser.uid;
-        adopterId = existing.adopterId || otherUserId;
-      } else if (existing.adopterId === currentUser.uid && existing.ownerId !== currentUser.uid) {
-        ownerId = existing.ownerId || otherUserId;
-        adopterId = currentUser.uid;
-      } else if (conversationOwnerId && conversationOwnerId !== currentUser.uid) {
-        ownerId = conversationOwnerId;
-        adopterId = currentUser.uid;
-      } else if (otherUserId && otherUserId !== currentUser.uid) {
-        // Direct Adopt chat: the pet record identifies the owner.
-        ownerId = otherUserId;
-        adopterId = currentUser.uid;
-      }
-    }
-
-    if (!ownerId || !adopterId || ownerId === adopterId) {
-      throw new Error('Could not determine the owner and adopter for this conversation.');
-    }
-
-    const participants = [ownerId, adopterId].sort();
-
-    // Preserve all conversation metadata and only fill missing fields.
-    // Do not reset adoptionApproved, lastMessage, or the participant roles.
+    // Keep the parent conversation present and authorized first.
     await convRef.set({
-      participants,
-      ownerId,
-      adopterId,
-      petId: existing.petId || petId,
-      petName: existing.petName || petName,
-      petImage: existing.petImage || petImg,
-      ownerName: existing.ownerName || petOwnerName || 'Pet Parent',
-      adopterName: existing.adopterName ||
-        (currentUser.uid === adopterId
-          ? (currentUser.displayName || currentUser.email || 'Adopter')
-          : 'Adopter')
+      participants, ownerId: otherUserId, adopterId: currentUser.uid,
+      petId, petName, petImage: petImg, ownerName: petOwnerName || 'Pet Parent'
     }, { merge: true });
-
-    // Keep globals consistent for the rest of the page.
-    conversationOwnerId = ownerId;
-    otherUserId = currentUser.uid === ownerId ? adopterId : ownerId;
 
     const msgRef = convRef.collection('messages').doc();
     await msgRef.set({
-      ...data,
-      sender: currentUser.uid,
+      ...data, sender: currentUser.uid,
       senderName: currentUser.displayName || currentUser.email || 'User',
       time: firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -2022,11 +1797,8 @@
       data.type === 'system' ? 'Meetup scheduled' :
       data.live ? 'Live location' : 'Location';
 
-    // Unread belongs to the OTHER participant, never to a role guessed from
-    // the current page.
     await convRef.set({
-      lastMessage,
-      lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+      lastMessage, lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
       lastSender: currentUser.uid,
       [`unread.${otherUserId}`]: firebase.firestore.FieldValue.increment(1),
       [`unread.${currentUser.uid}`]: 0
@@ -2090,6 +1862,10 @@
   }
 
   function addMessageToUI(type, text, time, read) {
+    if (!chatMessages) {
+      console.error('Chat messages container was not found.');
+      return;
+    }
     const row = document.createElement('div');
     row.className = `msg-row ${type}`;
     row.innerHTML = `
@@ -2100,9 +1876,7 @@
           ${type === 'sent' ? `<span class="msg-read ${read ? '' : 'pending'}">${read ? '\u2713\u2713' : '\u2713'}</span>` : ''}
         </div>
       </div>`;
-    const container = getChatMessagesEl();
-    if (!container) throw new Error('Chat message area is not available.');
-    container.appendChild(row);
+    chatMessages.appendChild(row);
     scrollToBottom();
   }
 
@@ -2116,9 +1890,7 @@
           <span class="msg-time">${escapeHtml(time || '')}</span>
         </div>
       </div>`;
-    const container = getChatMessagesEl();
-    if (!container) throw new Error('Chat message area is not available.');
-    container.appendChild(row);
+    chatMessages.appendChild(row);
   }
 
   function addSystemMessageToUI(text, subtext) {
@@ -2129,12 +1901,10 @@
         <p>${escapeHtml(text)}</p>
         ${subtext ? `<p>${escapeHtml(subtext)}</p>` : ''}
       </div>`;
-    const container = getChatMessagesEl();
-    if (!container) throw new Error('Chat message area is not available.');
-    container.appendChild(row);
+    chatMessages.appendChild(row);
   }
 
-  function scrollToBottom() { const container = getChatMessagesEl(); if (container) container.scrollTop = container.scrollHeight; }
+  function scrollToBottom() { chatMessages.scrollTop = chatMessages.scrollHeight; }
   function formatTime(date) { return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
   function escapeHtml(text) {
     const div = document.createElement('div');
@@ -2470,9 +2240,7 @@
             ${type === 'sent' ? `<span class="msg-read">\u2713\u2713</span>` : ''}
           </div>
         </div>`;
-      const container = getChatMessagesEl();
-    if (!container) throw new Error('Chat message area is not available.');
-    container.appendChild(row);
+      chatMessages.appendChild(row);
       setTimeout(() => initLiveBubbleMap(safeId, loc.lat, loc.lng), 60);
       return;
     }
@@ -2489,9 +2257,7 @@
           ${type === 'sent' ? `<span class="msg-read">\u2713\u2713</span>` : ''}
         </div>
       </div>`;
-    const container = getChatMessagesEl();
-    if (!container) throw new Error('Chat message area is not available.');
-    container.appendChild(row);
+    chatMessages.appendChild(row);
   }
 
   function openInMaps(lat, lng) {
