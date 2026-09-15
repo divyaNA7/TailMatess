@@ -770,6 +770,7 @@
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBifu5Te7paXOFUFrDUtogIPpi5H0xR7rY",
@@ -783,6 +784,7 @@ const firebaseConfig = {
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const rtdb = getDatabase(app);
 let db = null;
 try { db = getFirestore(app); } catch (e) { console.warn("Firestore unavailable:", e); }
 
@@ -921,33 +923,103 @@ const profileDropdownLoggedOut = document.getElementById('profileDropdownLoggedO
 const profileDropdownLoggedIn = document.getElementById('profileDropdownLoggedIn');
 const logoutBtn = document.getElementById('logoutBtn');
 
-// Listen for auth state changes
-onAuthStateChanged(auth, (user) => {
-    currentUser = user;
-    if (user) {
-        // User is signed in
-        const displayName = user.displayName || user.email.split('@')[0];
-        profileName.textContent = displayName;
-        profileAvatar.innerHTML = '<i class="fa-solid fa-user-check"></i>';
-        dropdownUserName.textContent = displayName;
-        profileDropdownLoggedOut.style.display = 'none';
-        profileDropdownLoggedIn.style.display = 'block';
-        localStorage.setItem('tailmates_user', JSON.stringify({
-            uid: user.uid,
-            email: user.email,
-            displayName: displayName,
-            photoURL: user.photoURL
-        }));
-    } else {
-        // User is signed out
-        profileName.textContent = 'Account';
-        profileAvatar.innerHTML = '<i class="fa-solid fa-user"></i>';
-        dropdownUserName.textContent = 'Profile';
-        profileDropdownLoggedOut.style.display = 'block';
-        profileDropdownLoggedIn.style.display = 'none';
-        localStorage.removeItem('tailmates_user');
+// ===================== LOAD PETS FROM REALTIME DATABASE =====================
+let petsLoadStarted = false;
+
+async function loadPetsFromFirebase() {
+    if (petsLoadStarted) return;
+    petsLoadStarted = true;
+
+    const statusEl = document.getElementById("status");
+
+    try {
+        // Firebase SDK automatically uses the signed-in user's ID token
+        // when the Realtime Database rules require authentication.
+        const snapshot = await get(ref(rtdb, "/"));
+
+        if (!snapshot.exists()) {
+            allPets = [];
+            statusEl.style.display = 'block';
+            statusEl.className = 'status';
+            statusEl.innerHTML =
+                '<i class="fa-solid fa-circle-exclamation"></i>' +
+                'No pets found in the database.';
+            return;
+        }
+
+        const data = snapshot.val();
+        allPets = [];
+
+        // Support both root-level pets and pets stored under /pets.
+        const containers = [data, data && data.pets];
+
+        for (const container of containers) {
+            if (!container || typeof container !== 'object' || Array.isArray(container)) continue;
+
+            for (const key of Object.keys(container)) {
+                const entry = container[key];
+
+                if (
+                    entry &&
+                    typeof entry === 'object' &&
+                    !Array.isArray(entry) &&
+                    entry.name &&
+                    entry.species
+                ) {
+                    // Prevent duplicates when the same pet is exposed in
+                    // more than one supported database location.
+                    const duplicate = allPets.some(p =>
+                        String(p._id) === String(key) ||
+                        (p.pet_id != null && entry.pet_id != null &&
+                         String(p.pet_id) === String(entry.pet_id))
+                    );
+
+                    if (!duplicate) {
+                        allPets.push({ ...entry, _id: key });
+                    }
+                }
+            }
+        }
+
+        console.log("Loaded pets from Firebase:", allPets.length);
+
+        if (allPets.length === 0) {
+            statusEl.style.display = 'block';
+            statusEl.className = 'status';
+            statusEl.innerHTML =
+                '<i class="fa-solid fa-circle-exclamation"></i>' +
+                'No pets found in the database.';
+            return;
+        }
+
+        allPets.sort((a, b) => {
+            const aId = Number(a.pet_id);
+            const bId = Number(b.pet_id);
+            if (Number.isFinite(aId) && Number.isFinite(bId)) return aId - bId;
+            return String(a.name || '').localeCompare(String(b.name || ''));
+        });
+
+        statusEl.style.display = 'none';
+        renderPets(getFilteredPets());
+
+    } catch (err) {
+        console.error("Firebase Realtime Database load failed:", err);
+
+        statusEl.style.display = 'block';
+        statusEl.className = 'status error';
+
+        if (err && (err.code === 'PERMISSION_DENIED' || /permission|unauthorized|401/i.test(err.message || ''))) {
+            statusEl.innerHTML =
+                '<i class="fa-solid fa-lock"></i>' +
+                'Your Firebase account does not have permission to read the pets database. ' +
+                'Please sign in with a TailMates account that has database read access.';
+        } else {
+            statusEl.innerHTML =
+                '<i class="fa-solid fa-triangle-exclamation"></i>' +
+                'Could not load pets. Please check your Firebase Realtime Database configuration and try again.';
+        }
     }
-});
+}
 
 // ===================== LOGOUT =====================
 if (logoutBtn) {
@@ -1530,52 +1602,42 @@ if (petSearch) {
 }
 updateSearchUI();
 
-// ===================== FETCH PETS =====================
-fetch(DB_URL)
-    .then(response => {
-        if (!response.ok) throw new Error("HTTP " + response.status);
-        return response.json();
-    })
-    .then(data => {
-        allPets = [];
+// ===================== START PET LOADING =====================
+// Wait for Firebase Auth to initialize before reading the Realtime Database.
+// This is important when database rules require an authenticated user.
+onAuthStateChanged(auth, (user) => {
+    currentUser = user;
 
-        // Load BOTH root-level pets and the nested "pets" node (user-registered pets)
-        const containers = [data, data ? data.pets : null];
-        for (const container of containers) {
-            if (!container || typeof container !== 'object') continue;
-            for (const key in container) {
-                const entry = container[key];
-                if (entry && typeof entry === 'object' && entry.name && entry.species) {
-                    allPets.push({ ...entry, _id: key });
-                }
-            }
-        }
+    if (user) {
+        const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'Account');
+        profileName.textContent = displayName;
+        profileAvatar.innerHTML = '<i class="fa-solid fa-user-check"></i>';
+        dropdownUserName.textContent = displayName;
+        profileDropdownLoggedOut.style.display = 'none';
+        profileDropdownLoggedIn.style.display = 'block';
 
-        console.log("Loaded pets:", allPets.length);
+        localStorage.setItem('tailmates_user', JSON.stringify({
+            uid: user.uid,
+            email: user.email,
+            displayName: displayName,
+            photoURL: user.photoURL
+        }));
 
-        if (allPets.length === 0) {
-            const statusEl = document.getElementById("status");
-            statusEl.style.display = 'block';
-            statusEl.className = 'status';
-            statusEl.innerHTML =
-                '<i class="fa-solid fa-circle-exclamation"></i>' +
-                'No pets found in the database.';
-            return;
-        }
+        loadPetsFromFirebase();
+    } else {
+        profileName.textContent = 'Account';
+        profileAvatar.innerHTML = '<i class="fa-solid fa-user"></i>';
+        dropdownUserName.textContent = 'Profile';
+        profileDropdownLoggedOut.style.display = 'block';
+        profileDropdownLoggedIn.style.display = 'none';
+        localStorage.removeItem('tailmates_user');
 
-        allPets.sort((a, b) => (a.pet_id || 0) - (b.pet_id || 0));
-        renderPets(getFilteredPets());
-    })
-    .catch(err => {
-        console.error("Firebase fetch failed:", err);
-        const statusEl = document.getElementById("status");
-        statusEl.style.display = 'block';
-        statusEl.className = 'status error';
-        statusEl.innerHTML =
-            '<i class="fa-solid fa-triangle-exclamation"></i>' +
-            'Could not load pets (' + escapeHtml(err.message) +
-            '). Please try again later.';
-    });
+        // Try loading once even while signed out in case the RTDB rules
+        // allow public reads. If rules require auth, a clear permission
+        // message is shown instead of the old HTTP 401 message.
+        loadPetsFromFirebase();
+    }
+});
 
 </script>
 </body>
