@@ -1104,7 +1104,6 @@
   }
   animateFollower();
 
-  // FIX: delegated hover — works for dynamically added messages / inbox items too
   const HOVER_SEL = 'a, button, .icon-btn, .approve-adoption-btn, .input-icon, .send-btn, .spot-card2, .time-btn, .confirm-btn2, .map-search-btn, .map-locate-btn, .map-send-btn, .map-result-item, .back-btn, .panel-close, .inbox-item, .image-bubble, .location-bubble';
   document.addEventListener('mouseover', (e) => {
     if (e.target.closest(HOVER_SEL)) { cursor.classList.add('hover'); cursorFollower.classList.add('hover'); }
@@ -1171,8 +1170,6 @@
   } catch (e) { console.error("Firebase init failed:", e); }
 
   // ===================== PET DATA =====================
-  // IMPORTANT: The URL only needs the pet key/id.
-  // Owner information is ALWAYS read from Realtime Database.
   const urlParams = new URLSearchParams(window.location.search);
   const rawPetId = (urlParams.get('pet') || '').trim();
   const urlOwnerId = (urlParams.get('lister') || urlParams.get('ownerId') || urlParams.get('owner_id') || '').trim();
@@ -1182,9 +1179,6 @@
   const urlPetImg = (urlParams.get('img') || '').trim();
   const matchScore = urlParams.get('match') || '88';
 
-  // Chat elements used by the messaging functions.
-  // They must be in the outer script scope because sendMessage(),
-  // location messages, and the Firestore listener all use them.
   const messageInput = document.getElementById('message-input');
   const chatMessages = document.getElementById('chat-messages');
 
@@ -1194,8 +1188,7 @@
   let adoptionApproved = false;
 
   async function loadPetFromDatabase() {
-    // The TailMates export can store pets either directly at the RTDB root
-    // ("1", "2", ...) or inside /pets. Try both layouts.
+ 
     petId = rawPetId;
     petName = urlPetName || 'Pet';
     petBreed = urlPetBreed;
@@ -1232,7 +1225,6 @@
         }
       }
 
-      // 4) Search nested /pets by pet_id.
       if (!snap && /^\d+$/.test(rawPetId)) {
         const nestedByPetId = await rtdb.ref('pets')
           .orderByChild('pet_id').equalTo(Number(rawPetId)).once('value');
@@ -1291,7 +1283,6 @@
     document.getElementById('input-area').style.display = 'flex';
     document.getElementById('chat-messages').style.display = 'flex';
 
-    // message.html with no pet parameter is the inbox.
     if (!rawPetId) {
       await loadMyConversations();
       return;
@@ -1300,8 +1291,6 @@
     const petLoaded = await loadPetFromDatabase();
     if (!petLoaded) return;
 
-    // An owner should normally open a conversation from the inbox.
-    // A direct pet link is for an adopter; don't create an owner-to-owner chat.
     if (otherUserId === currentUser.uid) {
       showChatError('This pet belongs to your account. Open an existing conversation from My Chats to message an adopter.');
       return;
@@ -1326,9 +1315,7 @@
     if (headerName) headerName.textContent = 'Select a chat';
     if (headerStatus) headerStatus.textContent = 'Your conversations';
     if (inputArea) inputArea.style.display = 'none';
-
-    // Inbox is the default view when message.html is opened without a pet.
-    // Keep the chat pane empty until a conversation is selected.
+    
     chatMessages.innerHTML = `
       <div class="chat-pane-empty">
         <div class="empty-icon"><i class="fa-solid fa-comments"></i></div>
@@ -1365,8 +1352,6 @@
       let name = conv.ownerName || conv.adopterName || 'User';
       let avatar = conv.petImage || 'https://ui-avatars.com/api/?name=User&background=random';
 
-      // For an owner viewing a conversation, the other person is the adopter.
-      // For an adopter, the other person is the owner.
       try {
         if (otherUid) {
           const userDoc = await db.collection('users').doc(otherUid).get();
@@ -1435,6 +1420,52 @@
       filterInbox();
     }
 
+    async function resolvePetOwnerFromRTDB(id) {
+      const result = { ownerId: '', ownerName: '', petImage: '' };
+      if (!rtdb || !id) return result;
+
+      let snap = null;
+      const key = String(id).trim();
+      try {
+        
+        const rootSnap = await rtdb.ref(key).once('value');
+        if (rootSnap.exists() && rootSnap.val() && typeof rootSnap.val() === 'object') snap = rootSnap;
+
+        if (!snap) {
+          const nestedSnap = await rtdb.ref('pets/' + key).once('value');
+          if (nestedSnap.exists()) snap = nestedSnap;
+        }
+
+        if (!snap && /^\d+$/.test(key)) {
+          const rootByPetId = await rtdb.ref('/')
+            .orderByChild('pet_id').equalTo(Number(key)).once('value');
+          if (rootByPetId.exists()) rootByPetId.forEach(child => { if (!snap) snap = child; });
+        }
+
+        if (!snap && /^\d+$/.test(key)) {
+          const nestedByPetId = await rtdb.ref('pets')
+            .orderByChild('pet_id').equalTo(Number(key)).once('value');
+          if (nestedByPetId.exists()) nestedByPetId.forEach(child => { if (!snap) snap = child; });
+        }
+      } catch (e) {
+        console.warn('RTDB owner lookup failed:', e);
+        return result;
+      }
+
+      if (snap && snap.exists()) {
+        const pet = snap.val() || {};
+        result.ownerId = String(
+          pet.owner_id || pet.ownerId || pet.owner_uid || pet.ownerUid ||
+          pet.userId || pet.listerId || ''
+        ).trim();
+        result.ownerName = String(
+          pet.owner_name || pet.ownerName || pet.owner || ''
+        ).trim();
+        result.petImage = String(pet.image_url || pet.imageUrl || '').trim();
+      }
+      return result;
+    }
+
     async function openConversationFromInbox(id, conv, person) {
       if (!currentUser) return;
 
@@ -1455,8 +1486,26 @@
       petImg = String(conv.petImage || '');
       petOwnerName = String(conv.ownerName || person.name || '');
 
-      // Do not run the RTDB pet lookup here. The conversation already contains
-      // everything needed to open an existing chat.
+      try {
+        const ownerInfo = await resolvePetOwnerFromRTDB(petId);
+        if (ownerInfo.ownerId) {
+          const ownerUid = String(ownerInfo.ownerId).trim();
+          // Only accept an owner who is actually a participant in this chat.
+          const participantList = Array.isArray(conv.participants) ? conv.participants.map(String) : [];
+          if (participantList.includes(ownerUid) || ownerUid === currentUser.uid || ownerUid === otherUid) {
+            conversationOwnerId = ownerUid;
+            if (ownerInfo.ownerName) petOwnerName = ownerInfo.ownerName;
+
+            await db.collection('conversations').doc(id).set({
+              ownerId: ownerUid,
+              ownerName: ownerInfo.ownerName || petOwnerName || 'Pet Parent'
+            }, { merge: true });
+          }
+        }
+      } catch (ownerErr) {
+        console.warn('Could not resolve pet owner from RTDB; using conversation ownerId:', ownerErr);
+      }
+
       const headerName = document.getElementById('header-name');
       const headerStatus = document.getElementById('header-status');
       if (headerName) headerName.textContent = person.name + (petName ? ` · ${petName}` : '');
@@ -1472,7 +1521,6 @@
 
       if (layout) layout.classList.add('chat-open');
 
-      // Clear unread count for this user in the conversation.
       try {
         await db.collection('conversations').doc(id).set({
           [`unread.${currentUser.uid}`]: 0
@@ -1499,8 +1547,6 @@
       searchInput.addEventListener('input', filterInbox);
     }
 
-    // IMPORTANT: query by participants because Firestore rules authorize access
-    // using request.auth.uid in resource.data.participants.
     unsubInboxParticipants = db.collection('conversations')
       .where('participants', 'array-contains', currentUser.uid)
       .onSnapshot(snapshot => {
@@ -1570,35 +1616,43 @@
 
     const participants = [currentUser.uid, otherUserId].sort();
     conversationId = 'pet_' + encodeURIComponent(petId) + '_' + participants.map(encodeURIComponent).join('_');
-    conversationOwnerId = otherUserId;
+    
+    const actualOwnerId = String(otherUserId || '').trim();
+    conversationOwnerId = actualOwnerId;
 
     const convRef = db.collection('conversations').doc(conversationId);
     const conversationData = {
-      participants, ownerId: otherUserId, adopterId: currentUser.uid,
+      participants, ownerId: actualOwnerId, adopterId: currentUser.uid,
       petId, petName, petImage: petImg, ownerName: petOwnerName || 'Pet Parent',
-      adoptionApproved: false, lastMessage: '', lastSender: '',
+      lastMessage: '', lastSender: '',
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
       unread: { [participants[0]]: 0, [participants[1]]: 0 }
     };
 
     try {
-      // Write first. This avoids a permission-denied read on a conversation
-      // that does not exist yet under rules that authorize reads by participants.
+      
       await convRef.set(conversationData, { merge: true });
 
       const existing = await convRef.get();
       if (existing.exists) {
         const data = existing.data() || {};
-        conversationOwnerId = data.ownerId || otherUserId;
+        conversationOwnerId = String(data.ownerId || actualOwnerId || '').trim();
         adoptionApproved = data.adoptionApproved === true;
-        await convRef.set({
+
+        const patch = {
           participants,
           ownerId: conversationOwnerId,
-          adopterId: data.adopterId || currentUser.uid,
+          adopterId: data.adopterId || (conversationOwnerId === currentUser.uid ? otherUserId : currentUser.uid),
           petId, petName, petImage: petImg,
           ownerName: petOwnerName || data.ownerName || 'Pet Parent'
-        }, { merge: true });
+        };
+
+        if (typeof data.adoptionApproved === 'undefined') {
+          patch.adoptionApproved = false;
+        }
+
+        await convRef.set(patch, { merge: true });
       }
 
       updateApprovalButton();
@@ -1614,8 +1668,6 @@
     const headerName = document.getElementById('header-name');
     const statusEl = document.getElementById('header-status');
 
-    // The pet record is the authoritative source for the owner name.
-    // Do not replace it with the adopter/test account's profile name.
     const ownerName = String(petOwnerName || '').trim();
     if (headerName) headerName.textContent = ownerName || 'Pet Parent';
     if (statusEl) statusEl.textContent = 'Online';
@@ -1624,8 +1676,8 @@
   function updateApprovalButton() {
     const btn = document.getElementById('approve-adoption-btn');
     if (!btn || !currentUser) return;
-
-    const isOwner = conversationOwnerId && currentUser.uid === conversationOwnerId;
+    
+    const isOwner = Boolean(conversationOwnerId) && currentUser.uid === String(conversationOwnerId);
     btn.style.display = isOwner ? 'inline-flex' : 'none';
 
     if (isOwner && adoptionApproved) {
