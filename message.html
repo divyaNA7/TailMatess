@@ -729,7 +729,8 @@
       box-shadow: -10px 0 40px rgba(0,0,0,0.5);
     }
     .map-panel.open { transform: translateX(0); }
-    .map-container { flex: 1; position: relative; min-height: 0; }
+    .map-container { flex: 1 1 auto; position: relative; min-height: 320px; height: 100%; width: 100%; overflow: hidden; }
+    .map-container .leaflet-container { width: 100%; height: 100%; min-height: 320px; }
     .map-search-bar {
       display: flex; gap: 0.5rem;
       padding: 0.75rem 1rem;
@@ -2061,7 +2062,14 @@
     const isOpen = panel.classList.contains('open');
     panel.classList.toggle('open', !isOpen);
     overlay.classList.toggle('open', !isOpen);
-    if (!isOpen) { setTimeout(() => initMap(), 100); }
+    if (!isOpen) {
+      // Leaflet must be initialized after the sliding panel has become visible.
+      // Recalculate its size during/after the CSS transition so tiles are not
+      // clipped into a small corner or rendered partially off-screen.
+      setTimeout(() => initMap(), 320);
+      setTimeout(() => { if (map) map.invalidateSize(true); }, 380);
+      setTimeout(() => { if (map) map.invalidateSize(true); }, 700);
+    }
     else {
       stopPanelLive();
       selectedLocation = null;
@@ -2278,7 +2286,8 @@
     L.tileLayer(DARK_TILES, { maxZoom: 19 }).addTo(m);
     const marker = L.marker([lat, lng], { icon: liveIcon() }).addTo(m);
     liveBubbleMaps[docId] = { map: m, marker };
-    setTimeout(() => m.invalidateSize(), 80);
+    setTimeout(() => m.invalidateSize(true), 80);
+    setTimeout(() => m.invalidateSize(true), 350);
   }
   window.addEventListener('beforeunload', () => { if (myLiveShare) stopLiveShare(); });
 
@@ -2307,7 +2316,7 @@
       setTimeout(() => initLiveBubbleMap(safeId, loc.lat, loc.lng), 60);
       return;
     }
-    const mapImg = `https://static-maps.openstreetmap.org/?center=${loc.lat},${loc.lng}&zoom=15&size=280x140&markers=${loc.lat},${loc.lng}`;
+    const mapImg = `https://staticmap.openstreetmap.de/staticmap.php?center=${loc.lat},${loc.lng}&zoom=15&size=500x240&maptype=mapnik&markers=${loc.lat},${loc.lng},red-pushpin`;
     row.innerHTML = `
       <div class="msg-bubble location-bubble" onclick="openInMaps(${loc.lat}, ${loc.lng})">
         <img class="loc-map-img" src="${mapImg}" alt="Map" onerror="this.style.display='none'">
