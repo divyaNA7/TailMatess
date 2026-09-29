@@ -1149,7 +1149,7 @@
     messagingSenderId: "445299543083",
     appId: "1:445299543083:web:e7be85a3eae32f8ba5ee6e",
     measurementId: "G-ZLQG062LVE",
-    databaseURL: "https://tailmatess-default-rtdb.firebaseio.com"
+    databaseURL: "https://tailmatess-default-rtdb.asia-southeast1.firebasedatabase.app"
   };
 
   let db, auth, rtdb, currentUser, conversationId, unsubMessages;
@@ -1174,14 +1174,11 @@
   // ===================== PET DATA =====================
   // IMPORTANT: The URL only needs the pet key/id.
   // Owner information is ALWAYS read from Realtime Database.
+  // Only the short pet key/id should be passed in the URL.
+  // Example: message.html?pet=12
+  // Do NOT put image URLs, owner names, breeds, or other large values in the URL.
   const urlParams = new URLSearchParams(window.location.search);
-  const rawPetId = (urlParams.get('pet') || '').trim();
-  const urlOwnerId = (urlParams.get('lister') || urlParams.get('ownerId') || urlParams.get('owner_id') || '').trim();
-  const urlOwnerName = (urlParams.get('owner') || urlParams.get('ownerName') || urlParams.get('owner_name') || '').trim();
-  const urlPetName = (urlParams.get('name') || '').trim();
-  const urlPetBreed = (urlParams.get('breed') || '').trim();
-  const urlPetImg = (urlParams.get('img') || '').trim();
-  const matchScore = urlParams.get('match') || '88';
+  const rawPetId = (urlParams.get('pet') || urlParams.get('petId') || urlParams.get('id') || '').trim();
 
   // Chat elements used by the messaging functions.
   // They must be in the outer script scope because sendMessage(),
@@ -1195,37 +1192,50 @@
   let adoptionApproved = false;
 
   async function loadPetFromDatabase() {
-    // The TailMates export can store pets either directly at the RTDB root
-    // ("1", "2", ...) or inside /pets. Try both layouts.
     petId = rawPetId;
-    petName = urlPetName || 'Pet';
-    petBreed = urlPetBreed;
-    petImg = urlPetImg || 'https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop';
-    otherUserId = urlOwnerId;
-    petOwnerName = urlOwnerName;
+    petName = 'Pet';
+    petBreed = '';
+    petImg = 'https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop';
+    otherUserId = '';
+    petOwnerName = '';
+    petData = null;
 
-    if (!rtdb) return !!otherUserId;
+    if (!rawPetId) {
+      showChatError('No pet was selected. Open the chat using the Message button on a pet listing.');
+      return false;
+    }
+
+    if (!rtdb) {
+      showChatError('Firebase Realtime Database is not available right now.');
+      return false;
+    }
 
     let snap = null;
+
+    // ------------------------------------------------------------
+    // 1. Realtime Database: support the two layouts used by TailMates
+    //    /{petKey}
+    //    /pets/{petKey}
+    // ------------------------------------------------------------
     try {
-      // 1) Root-level record: /1, /2, ...
-      if (rawPetId) {
-        const rootSnap = await rtdb.ref(rawPetId).once('value');
-        if (rootSnap.exists() && rootSnap.val() && typeof rootSnap.val() === 'object') {
-          snap = rootSnap;
+      const rootSnap = await rtdb.ref(rawPetId).once('value');
+      if (rootSnap.exists() && rootSnap.val() && typeof rootSnap.val() === 'object') {
+        snap = rootSnap;
+      }
+
+      if (!snap) {
+        const nestedSnap = await rtdb.ref('pets/' + rawPetId).once('value');
+        if (nestedSnap.exists() && nestedSnap.val() && typeof nestedSnap.val() === 'object') {
+          snap = nestedSnap;
         }
       }
 
-      // 2) Nested /pets/{id} record.
-      if (!snap && rawPetId) {
-        const nestedSnap = await rtdb.ref('pets/' + rawPetId).once('value');
-        if (nestedSnap.exists()) snap = nestedSnap;
-      }
-
-      // 3) Search root by pet_id if the key is not the same as pet_id.
+      // The database key and pet_id are not always guaranteed to be identical.
       if (!snap && /^\d+$/.test(rawPetId)) {
         const rootByPetId = await rtdb.ref('/')
-          .orderByChild('pet_id').equalTo(Number(rawPetId)).once('value');
+          .orderByChild('pet_id')
+          .equalTo(Number(rawPetId))
+          .once('value');
         if (rootByPetId.exists()) {
           rootByPetId.forEach(child => {
             if (!snap) snap = child;
@@ -1233,10 +1243,11 @@
         }
       }
 
-      // 4) Search nested /pets by pet_id.
       if (!snap && /^\d+$/.test(rawPetId)) {
         const nestedByPetId = await rtdb.ref('pets')
-          .orderByChild('pet_id').equalTo(Number(rawPetId)).once('value');
+          .orderByChild('pet_id')
+          .equalTo(Number(rawPetId))
+          .once('value');
         if (nestedByPetId.exists()) {
           nestedByPetId.forEach(child => {
             if (!snap) snap = child;
@@ -1244,42 +1255,115 @@
         }
       }
     } catch (e) {
-      console.warn('RTDB pet lookup failed; using Adopt URL data:', e);
+      console.warn('RTDB pet lookup failed:', e);
     }
 
     if (snap && snap.exists()) {
       petData = snap.val() || {};
       petId = String(petData.pet_id ?? snap.key ?? rawPetId);
-      petName = String(petData.name || urlPetName || 'Pet');
-      petBreed = String(petData.breed || petData.species || urlPetBreed || '');
-      petImg = String(petData.image_url || petData.imageUrl || urlPetImg || 'https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop');
+      petName = String(petData.name || 'Pet');
+      petBreed = String(petData.breed || petData.species || '');
+      petImg = String(
+        petData.image_url || petData.imageUrl ||
+        'https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop'
+      );
       otherUserId = String(
         petData.owner_id || petData.ownerId || petData.owner_uid ||
-        petData.ownerUid || petData.userId || petData.listerId || urlOwnerId || ''
+        petData.ownerUid || petData.userId || petData.listerId || ''
       ).trim();
       petOwnerName = String(
-        petData.owner_name || petData.ownerName || petData.owner || urlOwnerName || ''
+        petData.owner_name || petData.ownerName || petData.owner || ''
       ).trim();
     }
 
+    // ------------------------------------------------------------
+    // 2. Firestore fallback for pets created by an account that stores
+    //    ownership in /pets/{petId}. The user's rules allow authenticated
+    //    users to read /pets documents.
+    // ------------------------------------------------------------
+    if ((!otherUserId || !petOwnerName) && db) {
+      try {
+        let petDoc = await db.collection('pets').doc(String(rawPetId)).get();
+
+        // Also try pet_id when the Firestore document ID differs from the RTDB key.
+        if (!petDoc.exists && /^\d+$/.test(rawPetId)) {
+          const q = await db.collection('pets')
+            .where('pet_id', '==', Number(rawPetId))
+            .limit(1)
+            .get();
+          if (!q.empty) petDoc = q.docs[0];
+        }
+
+        if (petDoc && petDoc.exists) {
+          const data = petDoc.data() || {};
+          const firestoreOwnerId = String(
+            data.listerId || data.ownerId || data.owner_id || data.owner_uid ||
+            data.ownerUid || data.userId || ''
+          ).trim();
+          const firestoreOwnerName = String(
+            data.ownerName || data.owner_name || data.owner || ''
+          ).trim();
+
+          if (!otherUserId && firestoreOwnerId) otherUserId = firestoreOwnerId;
+          if (!petOwnerName && firestoreOwnerName) petOwnerName = firestoreOwnerName;
+
+          if (!petData || Object.keys(petData).length === 0) petData = data;
+          if (petName === 'Pet') petName = String(data.name || 'Pet');
+          if (!petBreed) petBreed = String(data.breed || data.species || '');
+          if (!petImg) petImg = String(data.image_url || data.imageUrl || petImg);
+        }
+      } catch (e) {
+        console.warn('Firestore pet fallback failed:', e);
+      }
+    }
+
+    // ------------------------------------------------------------
+    // 3. Resolve the owner's display name from the owner's account profile.
+    //    This keeps the adopter's/test account name out of the header.
+    // ------------------------------------------------------------
+    if (otherUserId && db) {
+      try {
+        const ownerDoc = await db.collection('users').doc(otherUserId).get();
+        if (ownerDoc.exists) {
+          const owner = ownerDoc.data() || {};
+          petOwnerName = String(
+            owner.name || owner.displayName || owner.fullName ||
+            owner.username || owner.email?.split('@')[0] || petOwnerName || 'Pet Parent'
+          ).trim();
+        }
+      } catch (e) {
+        console.warn('Owner profile lookup failed:', e);
+      }
+    }
+
     if (!otherUserId) {
-      showChatError(`The pet "${petName}" is not linked to an owner account. The Adopt page must pass the owner's Firebase Auth UID in the lister parameter.`);
+      showChatError(
+        `The pet "${petName}" is not linked to an owner account. ` +
+        `Add the listing account's Firebase Auth UID to owner_id, ownerId, owner_uid, ` +
+        `ownerUid, userId, or listerId in the pet record (RTDB or Firestore /pets).`
+      );
+      return false;
+    }
+
+    if (currentUser && otherUserId === currentUser.uid) {
+      showChatError('This pet belongs to your account. Open the conversation from My Chats to message the adopter.');
       return false;
     }
 
     document.title = `Chat - ${petName} | TailMates`;
     const header = document.getElementById('header-name');
     if (header) header.textContent = petOwnerName || 'Pet Parent';
+
     return true;
   }
 
   // ===================== AUTH =====================
-  if (!firebaseReady) {
+  if (!firebaseReady || !auth || !db || !rtdb) {
     console.error('Firebase failed to initialize. Chat is unavailable.');
     showNotLoggedIn();
   }
 
-  auth.onAuthStateChanged(async (user) => {
+  if (auth) auth.onAuthStateChanged(async (user) => {
     if (!user) {
       currentUser = null;
       if (unsubMessages) { unsubMessages(); unsubMessages = null; }
@@ -1451,6 +1535,17 @@
 
       const otherUid = person.otherUid;
       otherUserId = otherUid;
+
+      // Existing conversations may have been created before role fields were
+      // stored. Recover the correct owner/adopter relationship without using
+      // the current sender as the owner by default.
+      if (!conversationOwnerId) {
+        if (String(conv.adopterId || '') === String(currentUser.uid)) {
+          conversationOwnerId = String(otherUid);
+        } else if (String(conv.ownerId || '') === String(otherUid)) {
+          conversationOwnerId = String(otherUid);
+        }
+      }
       petId = String(conv.petId || '');
       petName = String(conv.petName || 'Pet');
       petBreed = String(conv.petBreed || '');
@@ -1497,47 +1592,79 @@
     }
 
     async function resolveConversationPetOwner(conv) {
-      // First use a valid ownerId already stored on the conversation.
-      if (conv && conv.ownerId) {
-        const stored = String(conv.ownerId).trim();
-        if (stored) return stored;
-      }
+      if (!conv) return '';
 
-      if (!rtdb || !conv) return '';
       const id = String(conv.petId || '').trim();
-      if (!id) return '';
 
-      let snap = null;
-      try {
-        // TailMates supports both root-level pet records and /pets/{id}.
-        const root = await rtdb.ref(id).once('value');
-        if (root.exists() && root.val() && typeof root.val() === 'object') snap = root;
+      // Prefer the actual pet record over an old conversation ownerId.
+      // This is important when a conversation was created before ownership
+      // information was stored correctly.
+      if (id && rtdb) {
+        let snap = null;
+        try {
+          const root = await rtdb.ref(id).once('value');
+          if (root.exists() && root.val() && typeof root.val() === 'object') snap = root;
 
-        if (!snap) {
-          const nested = await rtdb.ref('pets/' + id).once('value');
-          if (nested.exists()) snap = nested;
+          if (!snap) {
+            const nested = await rtdb.ref('pets/' + id).once('value');
+            if (nested.exists() && nested.val() && typeof nested.val() === 'object') snap = nested;
+          }
+
+          if (!snap && /^\d+$/.test(id)) {
+            const byId = await rtdb.ref('/')
+              .orderByChild('pet_id')
+              .equalTo(Number(id))
+              .once('value');
+            if (byId.exists()) byId.forEach(child => { if (!snap) snap = child; });
+          }
+
+          if (!snap && /^\d+$/.test(id)) {
+            const byNestedId = await rtdb.ref('pets')
+              .orderByChild('pet_id')
+              .equalTo(Number(id))
+              .once('value');
+            if (byNestedId.exists()) byNestedId.forEach(child => { if (!snap) snap = child; });
+          }
+        } catch (e) {
+          console.warn('RTDB owner lookup failed:', e);
         }
 
-        if (!snap && /^\d+$/.test(id)) {
-          const byId = await rtdb.ref('/').orderByChild('pet_id').equalTo(Number(id)).once('value');
-          if (byId.exists()) byId.forEach(child => { if (!snap) snap = child; });
+        if (snap && snap.exists()) {
+          const pet = snap.val() || {};
+          const owner = String(
+            pet.owner_id || pet.ownerId || pet.owner_uid || pet.ownerUid ||
+            pet.userId || pet.listerId || ''
+          ).trim();
+          if (owner) return owner;
         }
-
-        if (!snap && /^\d+$/.test(id)) {
-          const byNestedId = await rtdb.ref('pets').orderByChild('pet_id').equalTo(Number(id)).once('value');
-          if (byNestedId.exists()) byNestedId.forEach(child => { if (!snap) snap = child; });
-        }
-      } catch (e) {
-        console.warn('RTDB owner lookup failed:', e);
-        return '';
       }
 
-      if (!snap || !snap.exists()) return '';
-      const pet = snap.val() || {};
-      return String(
-        pet.owner_id || pet.ownerId || pet.owner_uid || pet.ownerUid ||
-        pet.userId || pet.listerId || ''
-      ).trim();
+      // Firestore fallback for pets whose listing account is stored as listerId.
+      if (id && db) {
+        try {
+          let petDoc = await db.collection('pets').doc(id).get();
+          if (!petDoc.exists && /^\d+$/.test(id)) {
+            const q = await db.collection('pets')
+              .where('pet_id', '==', Number(id))
+              .limit(1)
+              .get();
+            if (!q.empty) petDoc = q.docs[0];
+          }
+          if (petDoc.exists) {
+            const pet = petDoc.data() || {};
+            const owner = String(
+              pet.listerId || pet.ownerId || pet.owner_id || pet.owner_uid ||
+              pet.ownerUid || pet.userId || ''
+            ).trim();
+            if (owner) return owner;
+          }
+        } catch (e) {
+          console.warn('Firestore owner lookup failed:', e);
+        }
+      }
+
+      // Last fallback: whatever the existing conversation stored.
+      return String(conv.ownerId || '').trim();
     }
 
     window.openConversationFromInbox = openConversationFromInbox;
@@ -1622,39 +1749,67 @@
   }
 
   async function getOrCreateConversation() {
-    if (!currentUser || !otherUserId || otherUserId === currentUser.uid || !petId) return null;
+    if (!currentUser || !db || !otherUserId || otherUserId === currentUser.uid || !petId) {
+      return null;
+    }
 
     const participants = [currentUser.uid, otherUserId].sort();
-    conversationId = 'pet_' + encodeURIComponent(petId) + '_' + participants.map(encodeURIComponent).join('_');
-    conversationOwnerId = otherUserId;
+    conversationId = 'pet_' + encodeURIComponent(String(petId)) + '_' + participants.map(encodeURIComponent).join('_');
 
     const convRef = db.collection('conversations').doc(conversationId);
-    const conversationData = {
-      participants, ownerId: otherUserId, adopterId: currentUser.uid,
-      petId, petName, petImage: petImg, ownerName: petOwnerName || 'Pet Parent',
-      adoptionApproved: false, lastMessage: '', lastSender: '',
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
-      unread: { [participants[0]]: 0, [participants[1]]: 0 }
-    };
+    const existing = await convRef.get().catch(() => null);
+
+    // This direct-chat path is opened from a pet listing, so the other user is
+    // the pet owner and the signed-in user is the adopter.
+    const ownerId = String(otherUserId).trim();
+    const adopterId = String(currentUser.uid).trim();
+    conversationOwnerId = ownerId;
 
     try {
-      // Write first. This avoids a permission-denied read on a conversation
-      // that does not exist yet under rules that authorize reads by participants.
-      await convRef.set(conversationData, { merge: true });
-
-      const existing = await convRef.get();
-      if (existing.exists) {
+      if (existing && existing.exists) {
         const data = existing.data() || {};
-        conversationOwnerId = data.ownerId || otherUserId;
         adoptionApproved = data.adoptionApproved === true;
+
+        // Never overwrite a known role with the person who is currently typing.
+        // The pet owner remains ownerId and the adopter remains adopterId.
+        const existingOwnerId = String(data.ownerId || '').trim();
+        const existingAdopterId = String(data.adopterId || '').trim();
+
+        if (existingOwnerId && existingOwnerId !== ownerId) {
+          console.warn('Stored ownerId differs from the pet record. Keeping the pet record owner:', ownerId);
+        }
+
         await convRef.set({
           participants,
-          ownerId: conversationOwnerId,
-          adopterId: data.adopterId || currentUser.uid,
-          petId, petName, petImage: petImg,
-          ownerName: petOwnerName || data.ownerName || 'Pet Parent'
+          ownerId,
+          adopterId: existingAdopterId || adopterId,
+          petId: String(petId),
+          petName,
+          petBreed,
+          petImage: petImg,
+          ownerName: petOwnerName || data.ownerName || 'Pet Parent',
+          adopterName: data.adopterName || currentUser.displayName || currentUser.email || 'Adopter'
         }, { merge: true });
+      } else {
+        const conversationData = {
+          participants,
+          ownerId,
+          adopterId,
+          petId: String(petId),
+          petName,
+          petBreed,
+          petImage: petImg,
+          ownerName: petOwnerName || 'Pet Parent',
+          adopterName: currentUser.displayName || currentUser.email || 'Adopter',
+          adoptionApproved: false,
+          lastMessage: '',
+          lastSender: '',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+          unread: { [participants[0]]: 0, [participants[1]]: 0 }
+        };
+        await convRef.set(conversationData, { merge: true });
+        adoptionApproved = false;
       }
 
       updateApprovalButton();
@@ -1672,7 +1827,21 @@
 
     // The pet record is the authoritative source for the owner name.
     // Do not replace it with the adopter/test account's profile name.
-    const ownerName = String(petOwnerName || '').trim();
+    let ownerName = String(petOwnerName || '').trim();
+
+    if (!ownerName && otherUserId && db) {
+      try {
+        const userDoc = await db.collection('users').doc(String(otherUserId)).get();
+        if (userDoc.exists) {
+          const u = userDoc.data() || {};
+          ownerName = String(u.name || u.displayName || u.fullName || u.username || u.email?.split('@')[0] || '').trim();
+          if (ownerName) petOwnerName = ownerName;
+        }
+      } catch (e) {
+        console.warn('Could not load owner profile:', e);
+      }
+    }
+
     if (headerName) headerName.textContent = ownerName || 'Pet Parent';
     if (statusEl) statusEl.textContent = 'Online';
   }
@@ -1840,29 +2009,68 @@
     if (!db || !currentUser) throw new Error('Firebase user/session is not ready.');
     await ensureConversationReady();
 
-    const participants = [currentUser.uid, otherUserId].sort();
     const convRef = db.collection('conversations').doc(conversationId);
+    const currentConv = await convRef.get();
+    if (!currentConv.exists) {
+      throw new Error('The conversation no longer exists. Please reopen the pet chat.');
+    }
 
-    // Keep the parent conversation present and authorized first.
+    const conv = currentConv.data() || {};
+    const participants = Array.isArray(conv.participants)
+      ? conv.participants.map(String)
+      : [];
+
+    if (!participants.includes(String(currentUser.uid))) {
+      throw new Error('You are not a participant in this conversation.');
+    }
+
+    const ownerId = String(conv.ownerId || conversationOwnerId || '').trim();
+    const adopterId = String(
+      conv.adopterId ||
+      (ownerId === String(currentUser.uid) ? otherUserId : currentUser.uid)
+    ).trim();
+
+    if (!ownerId || !adopterId) {
+      throw new Error('The conversation is missing the pet owner or adopter account.');
+    }
+
+    conversationOwnerId = ownerId;
+    otherUserId = participants.find(uid => uid !== String(currentUser.uid)) || otherUserId;
+
+    // Preserve the original conversation roles. Sending a message must never
+    // turn an owner into an adopter or vice versa.
     await convRef.set({
-      participants, ownerId: otherUserId, adopterId: currentUser.uid,
-      petId, petName, petImage: petImg, ownerName: petOwnerName || 'Pet Parent'
+      participants: [String(ownerId), String(adopterId)].filter((v, i, a) => a.indexOf(v) === i).sort(),
+      ownerId,
+      adopterId,
+      petId: conv.petId || petId,
+      petName: conv.petName || petName,
+      petBreed: conv.petBreed || petBreed,
+      petImage: conv.petImage || petImg,
+      ownerName: conv.ownerName || petOwnerName || 'Pet Parent',
+      adopterName: conv.adopterName || (
+        adopterId === String(currentUser.uid)
+          ? (currentUser.displayName || currentUser.email || 'Adopter')
+          : 'Adopter'
+      )
     }, { merge: true });
 
     const msgRef = convRef.collection('messages').doc();
     await msgRef.set({
-      ...data, sender: currentUser.uid,
+      ...data,
+      sender: currentUser.uid,
       senderName: currentUser.displayName || currentUser.email || 'User',
       time: firebase.firestore.FieldValue.serverTimestamp()
     });
 
     const lastMessage = data.type === 'text' ? data.text :
       data.type === 'image' ? 'Photo' :
-      data.type === 'system' ? 'Meetup scheduled' :
+      data.type === 'system' ? (data.text || 'Meetup scheduled') :
       data.live ? 'Live location' : 'Location';
 
     await convRef.set({
-      lastMessage, lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+      lastMessage,
+      lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
       lastSender: currentUser.uid,
       [`unread.${otherUserId}`]: firebase.firestore.FieldValue.increment(1),
       [`unread.${currentUser.uid}`]: 0
