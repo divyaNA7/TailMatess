@@ -87,7 +87,7 @@ systemInstruction: {
                 }
 
                 return res.status(503).json({
-                    error: "Gemini is temporarily unavailable. Please try again."
+                error: data?.error?.message || "Gemini is temporarily unavailable."
                 });
             }
 
