@@ -976,7 +976,9 @@ async function loadPetsFromFirebase() {
                     );
 
                     if (!duplicate) {
-                        allPets.push({ ...entry, _id: key });
+                        // _id is the Firebase Realtime Database key.
+                        // This is the ONLY pet value passed to message.html.
+                        allPets.push({ ...entry, _id: String(key) });
                     }
                 }
             }
@@ -1273,24 +1275,19 @@ window.toggleFav = async function(btn, e) {
 // ===================== PET CHAT =====================
 
 function openPetChat(event, link, petId) {
-    event.preventDefault();
+    // The Message page only needs the Firebase pet key.
+    // Do NOT put pet image URLs, owner names, breed, or other data
+    // into the URL because some image URLs can be extremely long.
+    if (event) event.preventDefault();
 
-    const pet = allPets.find(
-        p => String(p._id) === String(petId)
-    );
+    const id = String(petId ?? '').trim();
 
-    if (!pet) {
-        alert("Could not find this pet.");
+    if (!id) {
+        alert("This pet does not have a valid Firebase ID.");
         return false;
     }
 
-    // Pass only the Firebase database key.
-    const params = new URLSearchParams({
-        pet: String(pet._id)
-    });
-
-    window.location.href = "message.html?" + params.toString();
-
+    window.location.href = "message.html?pet=" + encodeURIComponent(id);
     return false;
 }
 
@@ -1523,16 +1520,15 @@ async function renderPets(pets) {
 
                 <div class="pet-actions">
 
-                   
-<a href="message.html?pet=${encodeURIComponent(petId)}"
-   class="message-btn"
-   title="Message the pet owner"
-   onclick="return openPetChat(event, this, '${escapeHtml(petId)}')">
+                    <a
+                        href="message.html?pet=${encodeURIComponent(String(petId))}"
+                        class="message-btn"
+                        title="Message the pet owner"
+                    >
+                        <i class="fa-solid fa-message"></i>
+                        Message
+                    </a>
 
-    <i class="fa-solid fa-message"></i>
-    Message
-
-</a>
                 </div>
             </div>
         `;
