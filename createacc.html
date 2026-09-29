@@ -1,122 +1,563 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Create an Account</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TailMates - Create Account</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
   <style>
+    :root {
+      --primary: #00f5ff;
+      --primary-dim: rgba(0, 245, 255, 0.15);
+      --secondary: #ff6b6b;
+      --accent: #a855f7;
+      --bg: #0a0a0f;
+      --bg-light: #12121a;
+      --bg-card: rgba(255, 255, 255, 0.03);
+      --bg-glass: rgba(255, 255, 255, 0.05);
+      --text: #f0f0f5;
+      --text-dim: #8b8b9a;
+      --border: rgba(255, 255, 255, 0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      background-image: url('https://mk0amtml5m6i7bxry6.kinstacdn.com/wp-content/uploads/2019/11/mission-1.jpg');
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-      font-family: 'Segoe UI', sans-serif;
-      margin-top: 80px;
+      overflow-x: hidden;
     }
 
-    .glass-effect {
-      background: rgba(222, 201, 237, 0.85);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Space Grotesk', sans-serif;
     }
 
-    .purple-link {
-      color: #7E0CF5;
-    }
-
-    .purple-link:hover {
-      text-decoration: underline;
-    }
-
-    .purple-button {
-      background-color: #7E0CF5;
-    }
-
-    .purple-button:hover {
-      background-color: #690acc;
-    }
-
-    .navbar {
-      background: #7E0CF5;
-      padding: 20px 30px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      color: white;
-      font-size: 22px;
-      font-weight: bold;
+    /* Background Orbs */
+    .bg-orbs {
       position: fixed;
       top: 0;
       left: 0;
-      right: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.4;
+      animation: orbFloat 20s infinite ease-in-out;
+    }
+
+    .orb-1 {
+      width: 600px;
+      height: 600px;
+      background: var(--primary);
+      top: -200px;
+      left: -200px;
+      animation-delay: 0s;
+    }
+
+    .orb-2 {
+      width: 500px;
+      height: 500px;
+      background: var(--accent);
+      top: 50%;
+      right: -150px;
+      animation-delay: -5s;
+    }
+
+    .orb-3 {
+      width: 400px;
+      height: 400px;
+      background: var(--secondary);
+      bottom: -100px;
+      left: 30%;
+      animation-delay: -10s;
+    }
+
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(50px, -30px) scale(1.1); }
+      50% { transform: translate(-30px, 50px) scale(0.9); }
+      75% { transform: translate(20px, 20px) scale(1.05); }
+    }
+
+    /* Navbar - same design as login */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
       z-index: 1000;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 1rem 3rem;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 45px;
+      height: 45px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      color: var(--bg);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .logo:hover .logo-icon {
+      transform: rotate(15deg) scale(1.1);
+      box-shadow: 0 0 30px rgba(0, 245, 255, 0.5);
+    }
+
+    .logo-text h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .logo-text span {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+      text-transform: uppercase;
     }
 
     .nav-links {
       display: flex;
-      gap: 24px;
+      gap: 2.5rem;
+      list-style: none;
     }
 
     .nav-links a {
+      color: var(--text-dim);
       text-decoration: none;
-      color: white;
-      font-size: 17px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      position: relative;
+      transition: color 0.3s ease;
+      padding: 0.5rem 0;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width 0.3s ease;
+      box-shadow: 0 0 10px var(--primary);
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--text);
+    }
+
+    .nav-links a:hover::after,
+    .nav-links a.active::after {
+      width: 100%;
+    }
+
+    /* Create Account Card */
+    .signup-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8rem 2rem 4rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    .signup-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .signup-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+
+    .signup-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .signup-header .icon-wrap {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.2rem;
+      font-size: 1.8rem;
+      color: var(--bg);
+      box-shadow: 0 0 30px rgba(0, 245, 255, 0.3);
+    }
+
+    .signup-header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      background: linear-gradient(135deg, var(--text), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .signup-header p {
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 1.3rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-dim);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.9rem 1.1rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .form-group input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
+    }
+
+    .form-group input::placeholder {
+      color: #555;
+    }
+
+    .error-msg {
+      color: var(--secondary);
+      font-size: 0.8rem;
+      margin-top: 0.4rem;
+      display: none;
+    }
+
+    .error-msg.show {
+      display: block;
+    }
+
+    .password-hint {
+      color: var(--text-dim);
+      font-size: 0.75rem;
+      margin-top: 0.4rem;
+    }
+
+    .btn-signup {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border: none;
+      border-radius: 12px;
+      color: var(--bg);
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Space Grotesk', sans-serif;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-signup:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px rgba(0, 245, 255, 0.3);
+    }
+
+    .btn-signup:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .signup-footer {
+      text-align: center;
+      margin-top: 1.5rem;
+    }
+
+    .signup-footer p {
+      color: var(--text-dim);
+      font-size: 0.9rem;
+    }
+
+    .signup-footer a,
+    .donate-box a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
       transition: opacity 0.3s;
     }
 
-    .nav-links a:hover {
-      opacity: 0.85;
+    .signup-footer a:hover,
+    .donate-box a:hover {
+      opacity: 0.8;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 1.5rem 0;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .donate-box {
+      text-align: center;
+      padding: 1.2rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-top: 1.5rem;
+    }
+
+    .donate-box p {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .donate-box a {
+      font-size: 0.9rem;
+    }
+
+    .loading-spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(10, 10, 15, 0.3);
+      border-top-color: var(--bg);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .alert {
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      display: none;
+      line-height: 1.4;
+    }
+
+    .alert.error {
+      background: rgba(255, 107, 107, 0.1);
+      border: 1px solid rgba(255, 107, 107, 0.3);
+      color: var(--secondary);
+      display: block;
+    }
+
+    .alert.success {
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      color: #4ade80;
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .navbar { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .signup-card { padding: 1.8rem; }
+      .signup-wrapper { padding: 7rem 1rem 2rem; }
     }
   </style>
 </head>
+
 <body>
 
+  <!-- Background Effects -->
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
   <!-- Navbar -->
-  <div class="navbar">
-    <div>TailMates</div>
-    <div class="nav-links">
-      <a href="index">Home</a>
-      <a href="Adopt">Adopt</a>
-      <a href="register">Register</a>
-      <a href="services">Services</a>
-      <a href="shop">Shop</a>
-      <a href="login">Login</a>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="logo">
+        <div class="logo-icon"><i class="fa-solid fa-paw"></i></div>
+        <div class="logo-text">
+          <h2>TailMates</h2>
+          <span>Every Paw Deserves Home</span>
+        </div>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="Adopt.html">Adopt</a></li>
+        <li><a href="PawMate.html">PawMate AI</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="shop.html">Shop</a></li>
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="register.html">Register a Pet</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Create Account Card -->
+  <div class="signup-wrapper">
+    <div class="signup-card">
+
+      <div class="signup-header">
+        <div class="icon-wrap">
+          <i class="fa-solid fa-paw"></i>
+        </div>
+        <h1>Create Your Account</h1>
+        <p>Join TailMates and find your perfect pet companion</p>
+      </div>
+
+      <div class="alert" id="alertBox"></div>
+
+      <form id="createForm">
+
+        <div class="form-group">
+          <label for="fullname">Full Name</label>
+          <input
+            type="text"
+            id="fullname"
+            name="fullname"
+            placeholder="Enter your full name"
+            required
+            autocomplete="name">
+          <p class="error-msg" id="nameError">Please enter your full name</p>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="your.email@example.com"
+            required
+            autocomplete="email">
+          <p class="error-msg" id="emailError">Please enter a valid email address</p>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Create a password"
+            required
+            minlength="6"
+            autocomplete="new-password">
+          <p class="error-msg" id="passwordError">Password must be at least 6 characters</p>
+          <p class="password-hint">Use at least 6 characters.</p>
+        </div>
+
+        <button type="submit" class="btn-signup" id="signupBtn">
+          <span id="btnText">Create Account</span>
+          <div class="loading-spinner" id="btnSpinner"></div>
+        </button>
+
+      </form>
+
+      <div class="divider">or</div>
+
+      <div class="signup-footer">
+        <p>Already have an account? <a href="login.html">Sign in</a></p>
+      </div>
+
+      <div class="donate-box">
+        <p>Support our mission to rescue and rehabilitate pets</p>
+        <a href="donate.html">
+          <i class="fa-solid fa-heart" style="margin-right: 6px;"></i>Donate Now
+        </a>
+      </div>
+
     </div>
   </div>
 
-  <!-- Create Account Form -->
-  <form class="w-full max-w-md glass-effect rounded-lg shadow-lg p-8" id="createForm">
-    <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Create an Account</h2>
-
-    <input type="text" name="fullname" placeholder="Full Name" required
-      class="w-full mb-4 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7E0CF5]">
-    
-    <input type="email" name="email" placeholder="Email Address" required
-      class="w-full mb-4 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7E0CF5]">
-    
-    <input type="password" name="password" placeholder="Password" required
-      class="w-full mb-6 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7E0CF5]">
-    
-    <button type="submit"
-      class="w-full purple-button text-white py-2 px-4 rounded-md hover:bg-[#690acc] focus:outline-none focus:ring-2 focus:ring-[#7E0CF5]">
-      Sign Up
-    </button>
-
-    <p class="text-center text-sm text-gray-600 mt-4">
-      Already have an account? <a href="login.html" class="purple-link">Login here</a>
-    </p>
-  </form>
-
   <!-- Firebase Account Creation Script -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -161,6 +602,44 @@ const firebaseConfig = {
         console.error(error);
       }
     });
+  </script>
+
+  <script>
+    // UI handling is kept separate from Firebase so the existing
+    // account-creation logic remains intact.
+    const form = document.getElementById('createForm');
+    const alertBox = document.getElementById('alertBox');
+    const signupBtn = document.getElementById('signupBtn');
+    const btnText = document.getElementById('btnText');
+    const btnSpinner = document.getElementById('btnSpinner');
+
+    function showAlert(message, type) {
+      alertBox.className = 'alert ' + type;
+      alertBox.textContent = message;
+    }
+
+    function setLoading(loading) {
+      signupBtn.disabled = loading;
+      btnText.style.display = loading ? 'none' : 'block';
+      btnSpinner.style.display = loading ? 'block' : 'none';
+    }
+
+    // Expose helpers for the module script.
+    window.__signupUI = { showAlert, setLoading };
+
+    // Prevent duplicate handling if the original module already attached
+    // the Firebase submit listener.
+    form.addEventListener('submit', function() {
+      const name = document.getElementById('fullname').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      document.getElementById('nameError').classList.toggle('show', name.length < 2);
+      document.getElementById('emailError').classList.toggle('show',
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+      document.getElementById('passwordError').classList.toggle('show',
+        password.length < 6);
+    }, true);
   </script>
 
 </body>
