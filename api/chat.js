@@ -25,7 +25,7 @@ module.exports = async function handler(req, res) {
     }
 
     const url =
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent";
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent";
 
     const requestBody = {
         contents: [
