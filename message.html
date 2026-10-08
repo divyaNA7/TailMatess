@@ -1406,19 +1406,16 @@
     const inputArea = document.getElementById('input-area');
     const inboxList = document.getElementById('inbox-list');
     const layout = document.getElementById('messenger-layout');
-    const chatPane = document.getElementById('chat-pane');
 
     if (headerName) headerName.textContent = 'Select a chat';
     if (headerStatus) headerStatus.textContent = 'Your conversations';
     if (inputArea) inputArea.style.display = 'none';
 
-    // Inbox is the default view when message.html is opened without a pet.
-    // Keep the chat pane empty until a conversation is selected.
     chatMessages.innerHTML = `
       <div class="chat-pane-empty">
         <div class="empty-icon"><i class="fa-solid fa-comments"></i></div>
         <h3>Your messages</h3>
-        <p>Select a conversation from the left to continue chatting. New conversations from the Adopt page will appear here automatically.</p>
+        <p>Select a conversation from the left to continue chatting. Only people you have actually chatted with will appear here.</p>
       </div>`;
     chatMessages.style.display = 'flex';
 
@@ -1446,18 +1443,20 @@
     }
 
     async function getConversationPerson(conv) {
-      const otherUid = (conv.participants || []).find(id => id !== currentUser.uid) || '';
+      const participants = Array.isArray(conv.participants)
+        ? conv.participants.map(String).filter(Boolean)
+        : [];
+      const otherUid = participants.find(id => id !== String(currentUser.uid)) || '';
+
       let name = conv.ownerName || conv.adopterName || 'User';
       let avatar = conv.petImage || 'https://ui-avatars.com/api/?name=User&background=random';
 
-      // For an owner viewing a conversation, the other person is the adopter.
-      // For an adopter, the other person is the owner.
       try {
         if (otherUid) {
           const userDoc = await db.collection('users').doc(otherUid).get();
           if (userDoc.exists) {
             const u = userDoc.data() || {};
-            name = u.name || u.displayName || name;
+            name = u.name || u.displayName || u.fullName || u.username || name;
             avatar = u.avatar || u.photoURL || avatar;
           }
         }
@@ -1466,26 +1465,102 @@
       return { otherUid, name, avatar };
     }
 
+    // IMPORTANT:
+    // A conversation document can exist before the first message is sent.
+    // My Chats must NOT show those empty conversations.
+    // We therefore verify the conversation structure AND verify that a real
+    // message was written by the logged-in user or the other participant.
+    async function hasRealChatMessage(docId, otherUid) {
+      if (!docId || !otherUid || !currentUser) return false;
+
+      try {
+        const messagesRef = db.collection('conversations')
+          .doc(docId)
+          .collection('messages');
+
+        // A real chat must contain at least one message from YOU
+        // and at least one message from the OTHER participant.
+        // This prevents old/automatically-created conversation records
+        // from appearing in My Chats.
+        const mine = await messagesRef
+          .where('sender', '==', String(currentUser.uid))
+          .limit(1)
+          .get();
+
+        if (mine.empty) return false;
+
+        const theirs = await messagesRef
+          .where('sender', '==', String(otherUid))
+          .limit(1)
+          .get();
+
+        return !theirs.empty;
+      } catch (e) {
+        console.warn('Could not verify messages for conversation:', docId, e);
+        return false;
+      }
+    }
+
+    async function isValidMyChat(doc) {
+      const conv = doc.data() || {};
+      const participants = Array.isArray(conv.participants)
+        ? conv.participants.map(String).filter(Boolean)
+        : [];
+
+      const uid = String(currentUser.uid);
+
+      // A valid private TailMates chat must contain exactly two users,
+      // including the currently logged-in user.
+      if (participants.length !== 2 || !participants.includes(uid)) return false;
+
+      const otherUid = participants.find(id => id !== uid);
+      if (!otherUid || otherUid === uid) return false;
+
+      // If role fields exist, they must describe these same two participants.
+      const ownerId = String(conv.ownerId || '').trim();
+      const adopterId = String(conv.adopterId || '').trim();
+      if (ownerId && adopterId) {
+        const roleUsers = [ownerId, adopterId].filter(Boolean).sort();
+        const participantUsers = [uid, otherUid].sort();
+        if (roleUsers.length !== 2 || roleUsers[0] !== participantUsers[0] || roleUsers[1] !== participantUsers[1]) {
+          return false;
+        }
+      }
+
+      // Do not display conversation records that have never had a message.
+      // This removes chats created merely by opening a pet's Message button.
+      const hasMessageMetadata = !!String(conv.lastMessage || '').trim();
+      if (!hasMessageMetadata) return false;
+
+      return await hasRealChatMessage(doc.id, otherUid);
+    }
+
     async function renderInbox() {
-      const docs = Array.from(conversationMap.values()).sort((a, b) => {
+      const allDocs = Array.from(conversationMap.values()).sort((a, b) => {
         const ta = a.data().lastMessageTime?.toMillis ? a.data().lastMessageTime.toMillis() : 0;
         const tb = b.data().lastMessageTime?.toMillis ? b.data().lastMessageTime.toMillis() : 0;
         return tb - ta;
       });
 
       inboxList.innerHTML = '';
+      const validDocs = [];
 
-      if (!docs.length) {
+      // Verify each conversation before putting it into My Chats.
+      for (const doc of allDocs) {
+        if (await isValidMyChat(doc)) validDocs.push(doc);
+      }
+
+      if (!validDocs.length) {
         inboxList.innerHTML = `
           <div class="inbox-empty">
             <i class="fa-regular fa-comment-dots"></i>
             <div style="color:var(--text);font-weight:600;margin-bottom:.35rem;">No chats yet</div>
-            <div style="font-size:.72rem;">Start a conversation from the Adopt page and it will appear here.</div>
+            <div style="font-size:.72rem;">People you actually message will appear here.</div>
           </div>`;
         return;
       }
 
-      for (const doc of docs) {
+      for (const doc of validDocs) {
         const conv = doc.data() || {};
         const person = await getConversationPerson(conv);
         if (!person.otherUid) continue;
@@ -1523,22 +1598,24 @@
     async function openConversationFromInbox(id, conv, person) {
       if (!currentUser) return;
 
+      // Never allow a malformed/empty conversation to be opened from My Chats.
+      if (!(await isValidMyChat({ id, data: () => conv }))) {
+        console.warn('Blocked invalid/empty conversation from My Chats:', id);
+        return;
+      }
+
       if (unsubMessages) {
         unsubMessages();
         unsubMessages = null;
       }
 
       conversationId = id;
-      // Use the conversation value immediately so the chat opens without waiting.
       conversationOwnerId = String(conv.ownerId || '').trim();
       adoptionApproved = conv.adoptionApproved === true;
 
       const otherUid = person.otherUid;
       otherUserId = otherUid;
 
-      // Existing conversations may have been created before role fields were
-      // stored. Recover the correct owner/adopter relationship without using
-      // the current sender as the owner by default.
       if (!conversationOwnerId) {
         if (String(conv.adopterId || '') === String(currentUser.uid)) {
           conversationOwnerId = String(otherUid);
@@ -1546,14 +1623,13 @@
           conversationOwnerId = String(otherUid);
         }
       }
+
       petId = String(conv.petId || '');
       petName = String(conv.petName || 'Pet');
       petBreed = String(conv.petBreed || '');
       petImg = String(conv.petImage || '');
       petOwnerName = String(conv.ownerName || person.name || '');
 
-      // Do not run the RTDB pet lookup here. The conversation already contains
-      // everything needed to open an existing chat.
       const headerName = document.getElementById('header-name');
       const headerStatus = document.getElementById('header-status');
       if (headerName) headerName.textContent = person.name + (petName ? ` · ${petName}` : '');
@@ -1563,13 +1639,10 @@
 
       updateApprovalButton();
 
-      // Verify the owner from the actual pet record after the chat is already open.
-      // This fixes older conversations whose stored ownerId is stale or missing.
       resolveConversationPetOwner(conv).then(ownerId => {
         if (conversationId !== id || !ownerId) return;
         conversationOwnerId = ownerId;
         updateApprovalButton();
-        // Keep the conversation document consistent for future opens.
         db.collection('conversations').doc(id).set({ ownerId }, { merge: true }).catch(() => {});
       }).catch(err => console.warn('Could not verify pet owner for approval button:', err));
 
@@ -1579,7 +1652,6 @@
 
       if (layout) layout.classList.add('chat-open');
 
-      // Clear unread count for this user in the conversation.
       try {
         await db.collection('conversations').doc(id).set({
           [`unread.${currentUser.uid}`]: 0
@@ -1589,82 +1661,6 @@
       }
 
       loadMessagesFromFirebase();
-    }
-
-    async function resolveConversationPetOwner(conv) {
-      if (!conv) return '';
-
-      const id = String(conv.petId || '').trim();
-
-      // Prefer the actual pet record over an old conversation ownerId.
-      // This is important when a conversation was created before ownership
-      // information was stored correctly.
-      if (id && rtdb) {
-        let snap = null;
-        try {
-          const root = await rtdb.ref(id).once('value');
-          if (root.exists() && root.val() && typeof root.val() === 'object') snap = root;
-
-          if (!snap) {
-            const nested = await rtdb.ref('pets/' + id).once('value');
-            if (nested.exists() && nested.val() && typeof nested.val() === 'object') snap = nested;
-          }
-
-          if (!snap && /^\d+$/.test(id)) {
-            const byId = await rtdb.ref('/')
-              .orderByChild('pet_id')
-              .equalTo(Number(id))
-              .once('value');
-            if (byId.exists()) byId.forEach(child => { if (!snap) snap = child; });
-          }
-
-          if (!snap && /^\d+$/.test(id)) {
-            const byNestedId = await rtdb.ref('pets')
-              .orderByChild('pet_id')
-              .equalTo(Number(id))
-              .once('value');
-            if (byNestedId.exists()) byNestedId.forEach(child => { if (!snap) snap = child; });
-          }
-        } catch (e) {
-          console.warn('RTDB owner lookup failed:', e);
-        }
-
-        if (snap && snap.exists()) {
-          const pet = snap.val() || {};
-          const owner = String(
-            pet.owner_id || pet.ownerId || pet.owner_uid || pet.ownerUid ||
-            pet.userId || pet.listerId || ''
-          ).trim();
-          if (owner) return owner;
-        }
-      }
-
-      // Firestore fallback for pets whose listing account is stored as listerId.
-      if (id && db) {
-        try {
-          let petDoc = await db.collection('pets').doc(id).get();
-          if (!petDoc.exists && /^\d+$/.test(id)) {
-            const q = await db.collection('pets')
-              .where('pet_id', '==', Number(id))
-              .limit(1)
-              .get();
-            if (!q.empty) petDoc = q.docs[0];
-          }
-          if (petDoc.exists) {
-            const pet = petDoc.data() || {};
-            const owner = String(
-              pet.listerId || pet.ownerId || pet.owner_id || pet.owner_uid ||
-              pet.ownerUid || pet.userId || ''
-            ).trim();
-            if (owner) return owner;
-          }
-        } catch (e) {
-          console.warn('Firestore owner lookup failed:', e);
-        }
-      }
-
-      // Last fallback: whatever the existing conversation stored.
-      return String(conv.ownerId || '').trim();
     }
 
     window.openConversationFromInbox = openConversationFromInbox;
@@ -1682,8 +1678,9 @@
       searchInput.addEventListener('input', filterInbox);
     }
 
-    // IMPORTANT: query by participants because Firestore rules authorize access
-    // using request.auth.uid in resource.data.participants.
+    // IMPORTANT: Firestore is queried by participants so the current user
+    // can only receive conversations in which they are a participant.
+    // renderInbox() then applies the stronger real-message validation above.
     unsubInboxParticipants = db.collection('conversations')
       .where('participants', 'array-contains', currentUser.uid)
       .onSnapshot(snapshot => {
@@ -1700,7 +1697,6 @@
           </div>`;
       });
   }
-
 
   function closeInboxChat() {
     const layout = document.getElementById('messenger-layout');
@@ -1874,6 +1870,26 @@
     }
   }
 
+  function showOwnerApprovalNotice() {
+    if (!currentUser || String(currentUser.uid) !== String(conversationOwnerId)) return;
+    if (!adoptionApproved) return;
+
+    const existing = document.getElementById('owner-approval-notice');
+    if (existing) return;
+
+    if (!chatMessages) return;
+
+    chatMessages.insertAdjacentHTML('beforeend', `
+      <div id="owner-approval-notice" class="system-message" style="margin:1rem auto;text-align:center;max-width:90%;">
+        <div style="display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1rem;border-radius:999px;background:rgba(0,245,255,.08);border:1px solid rgba(0,245,255,.22);color:var(--text-dim);font-size:.78rem;">
+          <i class="fa-solid fa-circle-check" style="color:var(--primary);"></i>
+          <span>Adoption Approved</span>
+        </div>
+      </div>`);
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
   async function approveAdoption() {
     if (!currentUser || !conversationId || !conversationOwnerId) return;
     if (currentUser.uid !== conversationOwnerId) {
@@ -1892,30 +1908,17 @@
     try {
       adoptionApproved = true;
 
+      // Approval belongs to the pet owner only. Do NOT write it as a normal
+      // chat message and do NOT increment the adopter's unread count.
+      // Otherwise the adopter would see an "Adoption Approved" message.
       await db.collection('conversations').doc(conversationId).update({
         adoptionApproved: true,
         adoptionApprovedBy: currentUser.uid,
-        adoptionApprovedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        lastMessage: 'Adoption approved',
-        lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
-        lastSender: currentUser.uid,
-        [`unread.${otherUserId}`]: firebase.firestore.FieldValue.increment(1)
+        adoptionApprovedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
 
-      await db.collection('conversations')
-        .doc(conversationId)
-        .collection('messages')
-        .add({
-          type: 'system',
-          text: 'Adoption Approved',
-          subtext: `${petName} has been approved for adoption by the pet owner.`,
-          sender: currentUser.uid,
-          senderName: currentUser.displayName || 'Pet Owner',
-          read: false,
-          time: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
       updateApprovalButton();
+      showOwnerApprovalNotice();
     } catch (e) {
       adoptionApproved = false;
       console.error('Adoption approval error:', e);
@@ -1944,6 +1947,12 @@
           conversationOwnerId = data.ownerId || conversationOwnerId;
           adoptionApproved = data.adoptionApproved === true;
           updateApprovalButton();
+
+          // Only the pet owner gets the approval notice. The adopter never
+          // sees an approval message in the chat.
+          if (String(currentUser.uid) === String(conversationOwnerId) && adoptionApproved) {
+            showOwnerApprovalNotice();
+          }
         }
       }).catch(() => {});
 
@@ -1982,7 +1991,13 @@
         } else if (m.type === 'image') {
           addImageMessageToUI(type, m.imageUrl, time);
         } else if (m.type === 'system') {
-          addSystemMessageToUI(m.text, m.subtext);
+          // Legacy approval messages may already exist in Firestore from an
+          // older version. Never show an approval system message to the adopter.
+          const isApprovalMessage = String(m.text || '').toLowerCase() === 'adoption approved';
+          const isCurrentUserOwner = String(currentUser.uid) === String(conversationOwnerId);
+          if (!isApprovalMessage || isCurrentUserOwner) {
+            addSystemMessageToUI(m.text, m.subtext);
+          }
         } else {
           addMessageToUI(type, m.text, time, m.read || false);
         }
