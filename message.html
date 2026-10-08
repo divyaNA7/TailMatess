@@ -1470,70 +1470,105 @@
     // My Chats must NOT show those empty conversations.
     // We therefore verify the conversation structure AND verify that a real
     // message was written by the logged-in user or the other participant.
-    async function hasRealChatMessage(docId, otherUid) {
-      if (!docId || !otherUid || !currentUser) return false;
-
-      try {
-        const messagesRef = db.collection('conversations')
-          .doc(docId)
-          .collection('messages');
-
-        // A real chat must contain at least one message from YOU
-        // and at least one message from the OTHER participant.
-        // This prevents old/automatically-created conversation records
-        // from appearing in My Chats.
-        const mine = await messagesRef
-          .where('sender', '==', String(currentUser.uid))
-          .limit(1)
-          .get();
-
-        if (mine.empty) return false;
-
-        const theirs = await messagesRef
-          .where('sender', '==', String(otherUid))
-          .limit(1)
-          .get();
-
-        return !theirs.empty;
-      } catch (e) {
-        console.warn('Could not verify messages for conversation:', docId, e);
-        return false;
-      }
-    }
-
-    async function isValidMyChat(doc) {
-      const conv = doc.data() || {};
-      const participants = Array.isArray(conv.participants)
-        ? conv.participants.map(String).filter(Boolean)
-        : [];
-
-      const uid = String(currentUser.uid);
-
-      // A valid private TailMates chat must contain exactly two users,
-      // including the currently logged-in user.
-      if (participants.length !== 2 || !participants.includes(uid)) return false;
-
-      const otherUid = participants.find(id => id !== uid);
-      if (!otherUid || otherUid === uid) return false;
-
-      // If role fields exist, they must describe these same two participants.
-      const ownerId = String(conv.ownerId || '').trim();
-      const adopterId = String(conv.adopterId || '').trim();
-      if (ownerId && adopterId) {
-        const roleUsers = [ownerId, adopterId].filter(Boolean).sort();
-        const participantUsers = [uid, otherUid].sort();
-        if (roleUsers.length !== 2 || roleUsers[0] !== participantUsers[0] || roleUsers[1] !== participantUsers[1]) {
-          return false;
+async function hasRealChatMessage(conversationId) {
+    try {
+        if (!currentUser || !conversationId) {
+            return false;
         }
-      }
 
-      // Do not display conversation records that have never had a message.
-      // This removes chats created merely by opening a pet's Message button.
-      const hasMessageMetadata = !!String(conv.lastMessage || '').trim();
-      if (!hasMessageMetadata) return false;
+        const messagesRef = db
+            .collection('conversations')
+            .doc(conversationId)
+            .collection('messages');
 
-      return await hasRealChatMessage(doc.id, otherUid);
+        // Check if there is ANY actual message
+        const messagesSnapshot = await messagesRef
+            .limit(1)
+            .get();
+
+        return !messagesSnapshot.empty;
+
+    } catch (error) {
+        console.error(
+            'Error checking messages:',
+            conversationId,
+            error
+        );
+
+        return false;
     }
+}
+
+async function isValidMyChat(doc) {
+    try {
+        if (!currentUser || !doc || !doc.exists) {
+            return false;
+        }
+
+        const conv = doc.data() || {};
+
+        // Must have participants
+        if (!Array.isArray(conv.participants)) {
+            return false;
+        }
+
+        // Private chat should contain exactly 2 people
+        if (conv.participants.length !== 2) {
+            return false;
+        }
+
+        // Current user must be a participant
+        if (!conv.participants.includes(currentUser.uid)) {
+            return false;
+        }
+
+        // Find the other person
+        const otherUid = conv.participants.find(
+            uid => uid !== currentUser.uid
+        );
+
+        if (!otherUid) {
+            return false;
+        }
+
+        // If owner/adopter IDs exist, make sure they match
+        // the two participants.
+        if (conv.ownerId && conv.adopterId) {
+
+            if (
+                !conv.participants.includes(conv.ownerId) ||
+                !conv.participants.includes(conv.adopterId)
+            ) {
+                return false;
+            }
+
+            if (conv.ownerId === conv.adopterId) {
+                return false;
+            }
+        }
+
+        // IMPORTANT:
+        // Do NOT require messages from both people.
+        // A previous chat is valid if it contains
+        // at least ONE actual message.
+        const hasMessages =
+            await hasRealChatMessage(doc.id);
+
+        if (!hasMessages) {
+            return false;
+        }
+
+        return true;
+
+    } catch (error) {
+        console.error(
+            'Conversation validation error:',
+            error
+        );
+
+        return false;
+    }
+}
 
     async function renderInbox() {
       const allDocs = Array.from(conversationMap.values()).sort((a, b) => {
