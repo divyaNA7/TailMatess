@@ -1178,6 +1178,7 @@
   // Example: message.html?pet=12
   // Do NOT put image URLs, owner names, breeds, or other large values in the URL.
   const urlParams = new URLSearchParams(window.location.search);
+  const rawConversationId = (urlParams.get('conversationId') || urlParams.get('conversation') || '').trim();
   const rawPetId = (urlParams.get('pet') || urlParams.get('petId') || urlParams.get('id') || '').trim();
 
   // Chat elements used by the messaging functions.
@@ -1376,6 +1377,16 @@
     document.getElementById('input-area').style.display = 'flex';
     document.getElementById('chat-messages').style.display = 'flex';
 
+    // A conversationId always means: open this EXISTING chat directly.
+    // Do this before the pet-link/inbox logic so old chats never try to
+    // recreate a conversation from pet metadata.
+    if (rawConversationId) {
+      await initExistingConversation(rawConversationId);
+      const layout = document.getElementById('messenger-layout');
+      if (layout) layout.classList.add('chat-open');
+      return;
+    }
+
     // message.html with no pet parameter is the inbox.
     if (!rawPetId) {
       await loadMyConversations();
@@ -1470,105 +1481,62 @@
     // My Chats must NOT show those empty conversations.
     // We therefore verify the conversation structure AND verify that a real
     // message was written by the logged-in user or the other participant.
-async function hasRealChatMessage(conversationId) {
-    try {
-        if (!currentUser || !conversationId) {
-            return false;
-        }
+    async function hasRealChatMessage(conversationIdToCheck) {
+      try {
+        if (!currentUser || !conversationIdToCheck) return false;
 
-        const messagesRef = db
-            .collection('conversations')
-            .doc(conversationId)
-            .collection('messages');
+        const messagesRef = db.collection('conversations')
+          .doc(conversationIdToCheck)
+          .collection('messages');
 
-        // Check if there is ANY actual message
-        const messagesSnapshot = await messagesRef
-            .limit(1)
-            .get();
-
+        // A single real message is enough for a conversation to appear.
+        // Do NOT require both participants to have sent a message.
+        const messagesSnapshot = await messagesRef.limit(1).get();
         return !messagesSnapshot.empty;
-
-    } catch (error) {
-        console.error(
-            'Error checking messages:',
-            conversationId,
-            error
-        );
-
+      } catch (e) {
+        console.warn('Could not verify messages for conversation:', conversationIdToCheck, e);
         return false;
+      }
     }
-}
 
-async function isValidMyChat(doc) {
-    try {
-        if (!currentUser || !doc || !doc.exists) {
-            return false;
+    async function isValidMyChat(doc) {
+      if (!currentUser || !doc || !doc.exists) return false;
+
+      const conv = doc.data() || {};
+      const participants = Array.isArray(conv.participants)
+        ? conv.participants.map(String).filter(Boolean)
+        : [];
+
+      const uid = String(currentUser.uid);
+
+      // A private TailMates chat must contain exactly two users,
+      // including the currently logged-in user.
+      if (participants.length !== 2 || !participants.includes(uid)) return false;
+
+      const otherUid = participants.find(id => id !== uid);
+      if (!otherUid || otherUid === uid) return false;
+
+      // If role fields exist, they must refer to the same two participants.
+      const ownerId = String(conv.ownerId || '').trim();
+      const adopterId = String(conv.adopterId || '').trim();
+
+      if (ownerId && adopterId) {
+        const roleUsers = [ownerId, adopterId].sort();
+        const participantUsers = [uid, otherUid].sort();
+
+        if (
+          roleUsers.length !== 2 ||
+          roleUsers[0] !== participantUsers[0] ||
+          roleUsers[1] !== participantUsers[1]
+        ) {
+          return false;
         }
+      }
 
-        const conv = doc.data() || {};
-
-        // Must have participants
-        if (!Array.isArray(conv.participants)) {
-            return false;
-        }
-
-        // Private chat should contain exactly 2 people
-        if (conv.participants.length !== 2) {
-            return false;
-        }
-
-        // Current user must be a participant
-        if (!conv.participants.includes(currentUser.uid)) {
-            return false;
-        }
-
-        // Find the other person
-        const otherUid = conv.participants.find(
-            uid => uid !== currentUser.uid
-        );
-
-        if (!otherUid) {
-            return false;
-        }
-
-        // If owner/adopter IDs exist, make sure they match
-        // the two participants.
-        if (conv.ownerId && conv.adopterId) {
-
-            if (
-                !conv.participants.includes(conv.ownerId) ||
-                !conv.participants.includes(conv.adopterId)
-            ) {
-                return false;
-            }
-
-            if (conv.ownerId === conv.adopterId) {
-                return false;
-            }
-        }
-
-        // IMPORTANT:
-        // Do NOT require messages from both people.
-        // A previous chat is valid if it contains
-        // at least ONE actual message.
-        const hasMessages =
-            await hasRealChatMessage(doc.id);
-
-        if (!hasMessages) {
-            return false;
-        }
-
-        return true;
-
-    } catch (error) {
-        console.error(
-            'Conversation validation error:',
-            error
-        );
-
-        return false;
+      // Empty conversation documents are hidden, but one-sided real chats
+      // are still valid and must remain visible.
+      return await hasRealChatMessage(doc.id);
     }
-}
 
     async function renderInbox() {
       const allDocs = Array.from(conversationMap.values()).sort((a, b) => {
@@ -1631,12 +1599,25 @@ async function isValidMyChat(doc) {
     }
 
     async function openConversationFromInbox(id, conv, person) {
-      if (!currentUser) return;
+      if (!currentUser || !id) return;
 
-      // Never allow a malformed/empty conversation to be opened from My Chats.
-      if (!(await isValidMyChat({ id, data: () => conv }))) {
-        console.warn('Blocked invalid/empty conversation from My Chats:', id);
-        return;
+      // The inbox renderer has already verified that this is a real chat.
+      // Open the EXISTING Firestore conversation directly by its document ID.
+      // This is important for older chats whose pet/user metadata may differ
+      // from the data currently used to create a new pet conversation.
+      if (!conv) {
+        try {
+          const snap = await db.collection('conversations').doc(id).get();
+          if (!snap.exists) {
+            console.warn('Conversation no longer exists:', id);
+            return;
+          }
+          conv = snap.data() || {};
+        } catch (e) {
+          console.error('Could not load conversation:', id, e);
+          showChatError('Could not open this conversation. Please try again.');
+          return;
+        }
       }
 
       if (unsubMessages) {
@@ -1644,18 +1625,26 @@ async function isValidMyChat(doc) {
         unsubMessages = null;
       }
 
-      conversationId = id;
+      conversationId = String(id);
       conversationOwnerId = String(conv.ownerId || '').trim();
       adoptionApproved = conv.adoptionApproved === true;
 
-      const otherUid = person.otherUid;
-      otherUserId = otherUid;
+      const participants = Array.isArray(conv.participants)
+        ? conv.participants.map(String).filter(Boolean)
+        : [];
 
+      const otherUid = participants.find(uid => uid !== String(currentUser.uid)) || person?.otherUid || '';
+      otherUserId = String(otherUid || '').trim();
+
+      // Preserve the stored owner/adopter roles for old conversations.
+      // Only fall back to the other participant when ownerId is missing.
       if (!conversationOwnerId) {
-        if (String(conv.adopterId || '') === String(currentUser.uid)) {
-          conversationOwnerId = String(otherUid);
-        } else if (String(conv.ownerId || '') === String(otherUid)) {
-          conversationOwnerId = String(otherUid);
+        const storedAdopterId = String(conv.adopterId || '').trim();
+
+        if (storedAdopterId === String(currentUser.uid)) {
+          conversationOwnerId = otherUserId;
+        } else if (String(conv.ownerId || '').trim()) {
+          conversationOwnerId = String(conv.ownerId).trim();
         }
       }
 
@@ -1663,26 +1652,59 @@ async function isValidMyChat(doc) {
       petName = String(conv.petName || 'Pet');
       petBreed = String(conv.petBreed || '');
       petImg = String(conv.petImage || '');
-      petOwnerName = String(conv.ownerName || person.name || '');
+
+      // For an existing conversation, use the participant profile name first.
+      // The stored owner/adopter name remains a fallback for older records.
+      petOwnerName = String(
+        conv.ownerName ||
+        conv.adopterName ||
+        person?.name ||
+        'Pet Parent'
+      );
 
       const headerName = document.getElementById('header-name');
       const headerStatus = document.getElementById('header-status');
-      if (headerName) headerName.textContent = person.name + (petName ? ` · ${petName}` : '');
+
+      const displayName = String(
+        person?.name ||
+        (String(currentUser.uid) === String(conv.ownerId || '')
+          ? conv.adopterName
+          : conv.ownerName) ||
+        'User'
+      );
+
+      if (headerName) {
+        headerName.textContent =
+          displayName + (petName && petName !== 'Pet' ? ` · ${petName}` : '');
+      }
+
       if (headerStatus) headerStatus.textContent = 'Online';
       if (inputArea) inputArea.style.display = 'flex';
-      document.title = `Chat - ${person.name} | TailMates`;
+
+      document.title = `Chat - ${displayName} | TailMates`;
 
       updateApprovalButton();
 
-      resolveConversationPetOwner(conv).then(ownerId => {
-        if (conversationId !== id || !ownerId) return;
-        conversationOwnerId = ownerId;
-        updateApprovalButton();
-        db.collection('conversations').doc(id).set({ ownerId }, { merge: true }).catch(() => {});
-      }).catch(err => console.warn('Could not verify pet owner for approval button:', err));
+      // Verify the pet owner only when we have enough information to do so.
+      // This must never block opening an older conversation.
+      if (conv.petId) {
+        resolveConversationPetOwner(conv).then(ownerId => {
+          if (conversationId !== String(id) || !ownerId) return;
+
+          conversationOwnerId = String(ownerId);
+          updateApprovalButton();
+
+          db.collection('conversations').doc(id).set(
+            { ownerId: conversationOwnerId },
+            { merge: true }
+          ).catch(() => {});
+        }).catch(err => {
+          console.warn('Could not verify pet owner for approval button:', err);
+        });
+      }
 
       document.querySelectorAll('.inbox-chat').forEach(el => {
-        el.classList.toggle('active', el.dataset.conversationId === id);
+        el.classList.toggle('active', el.dataset.conversationId === String(id));
       });
 
       if (layout) layout.classList.add('chat-open');
@@ -1690,7 +1712,7 @@ async function isValidMyChat(doc) {
       try {
         await db.collection('conversations').doc(id).set({
           [`unread.${currentUser.uid}`]: 0
-        }, {merge:true});
+        }, { merge: true });
       } catch (e) {
         console.warn('Could not clear conversation unread count:', e);
       }
@@ -1744,6 +1766,89 @@ async function isValidMyChat(doc) {
     document.getElementById('input-area').style.display = 'none';
     document.getElementById('header-name').textContent = 'My Chats';
     document.getElementById('header-status').textContent = 'Your conversations';
+  }
+
+  async function initExistingConversation(conversationIdToOpen) {
+    if (!currentUser || !db || !conversationIdToOpen) return false;
+
+    try {
+      const convRef = db.collection('conversations').doc(conversationIdToOpen);
+      const snap = await convRef.get();
+
+      if (!snap.exists) {
+        showChatError('This conversation could not be found.');
+        return false;
+      }
+
+      const conv = snap.data() || {};
+      const participants = Array.isArray(conv.participants)
+        ? conv.participants.map(String).filter(Boolean)
+        : [];
+
+      if (
+        participants.length !== 2 ||
+        !participants.includes(String(currentUser.uid))
+      ) {
+        showChatError('You do not have access to this conversation.');
+        return false;
+      }
+
+      const otherUid =
+        participants.find(uid => uid !== String(currentUser.uid)) || '';
+
+      if (!otherUid) {
+        showChatError('This conversation does not have another participant.');
+        return false;
+      }
+
+      const person = await (async () => {
+        let name =
+          String(
+            String(currentUser.uid) === String(conv.ownerId || '')
+              ? conv.adopterName || 'User'
+              : conv.ownerName || conv.adopterName || 'User'
+          );
+
+        let avatar =
+          conv.petImage ||
+          'https://ui-avatars.com/api/?name=User&background=random';
+
+        try {
+          const userDoc = await db.collection('users').doc(otherUid).get();
+
+          if (userDoc.exists) {
+            const u = userDoc.data() || {};
+            name =
+              u.name ||
+              u.displayName ||
+              u.fullName ||
+              u.username ||
+              name;
+
+            avatar = u.avatar || u.photoURL || avatar;
+          }
+        } catch (e) {
+          console.warn('Could not load conversation participant profile:', e);
+        }
+
+        return { otherUid, name, avatar };
+      })();
+
+      await openConversationFromInbox(
+        conversationIdToOpen,
+        conv,
+        person
+      );
+
+      return true;
+    } catch (e) {
+      console.error('Could not open existing conversation:', e);
+      showChatError(
+        'Could not open this conversation. ' +
+        (e.message || 'Please try again.')
+      );
+      return false;
+    }
   }
 
   async function initSingleChat() {
