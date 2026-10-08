@@ -2074,23 +2074,28 @@
     if (!conversationId || !currentUser) return;
     if (unsubMessages) unsubMessages();
 
+    // Do NOT use orderBy('time') here.
+    // Older TailMates messages may have been saved without the newer
+    // `time` field. Firestore's orderBy would silently exclude those
+    // older documents from the result.
     const msgsRef = db.collection('conversations')
       .doc(conversationId)
-      .collection('messages')
-      .orderBy('time', 'asc');
+      .collection('messages');
 
     unsubMessages = msgsRef.onSnapshot(snapshot => {
-    
+
       db.collection('conversations').doc(conversationId).get().then(conv => {
         if (conv.exists) {
-          const data = conv.data();
+          const data = conv.data() || {};
           conversationOwnerId = data.ownerId || conversationOwnerId;
           adoptionApproved = data.adoptionApproved === true;
           updateApprovalButton();
 
-          // Only the pet owner gets the approval notice. The adopter never
-          // sees an approval message in the chat.
-          if (String(currentUser.uid) === String(conversationOwnerId) && adoptionApproved) {
+          // Only the pet owner gets the approval notice.
+          if (
+            String(currentUser.uid) === String(conversationOwnerId) &&
+            adoptionApproved
+          ) {
             showOwnerApprovalNotice();
           }
         }
@@ -2098,60 +2103,253 @@
 
       const prevHeight = chatMessages.scrollHeight;
       const prevTop = chatMessages.scrollTop;
-      const nearBottom = (prevHeight - prevTop - chatMessages.clientHeight) < 80;
+      const nearBottom =
+        (prevHeight - prevTop - chatMessages.clientHeight) < 80;
 
       chatMessages.innerHTML = '';
+
       let lastDateKey = '';
       const readBatch = db.batch();
       let hasUnreadIncoming = false;
 
-      snapshot.forEach(doc => {
-        const m = doc.data();
-        const isMe = m.sender === currentUser.uid;
+      // Support both the current message format and older messages.
+      const messageDocs = Array.from(snapshot.docs).sort((a, b) => {
+        const ma = a.data() || {};
+        const mb = b.data() || {};
+
+        const getMillis = m => {
+          const value =
+            m.time ||
+            m.timestamp ||
+            m.createdAt ||
+            m.sentAt ||
+            null;
+
+          if (!value) return 0;
+
+          if (typeof value.toMillis === 'function') {
+            return value.toMillis();
+          }
+
+          if (typeof value.toDate === 'function') {
+            return value.toDate().getTime();
+          }
+
+          if (value instanceof Date) {
+            return value.getTime();
+          }
+
+          if (typeof value === 'number') {
+            return value;
+          }
+
+          if (typeof value === 'string') {
+            const parsed = Date.parse(value);
+            return Number.isNaN(parsed) ? 0 : parsed;
+          }
+
+          return 0;
+        };
+
+        return getMillis(ma) - getMillis(mb);
+      });
+
+      messageDocs.forEach(doc => {
+        const m = doc.data() || {};
+
+        // Current format: sender
+        // Older formats: senderId / userId / uid
+        const senderId = String(
+          m.sender ||
+          m.senderId ||
+          m.userId ||
+          m.uid ||
+          ''
+        );
+
+        const isMe = senderId === String(currentUser.uid);
         const type = isMe ? 'sent' : 'received';
-        const messageDate = m.time && typeof m.time.toDate === 'function' ? m.time.toDate() : null;
+
+        // Current format: time
+        // Older formats: timestamp / createdAt / sentAt
+        const rawTime =
+          m.time ||
+          m.timestamp ||
+          m.createdAt ||
+          m.sentAt ||
+          null;
+
+        let messageDate = null;
+
+        if (rawTime) {
+          if (typeof rawTime.toDate === 'function') {
+            messageDate = rawTime.toDate();
+          } else if (rawTime instanceof Date) {
+            messageDate = rawTime;
+          } else if (typeof rawTime === 'number') {
+            messageDate = new Date(rawTime);
+          } else if (typeof rawTime === 'string') {
+            const parsed = new Date(rawTime);
+            if (!Number.isNaN(parsed.getTime())) {
+              messageDate = parsed;
+            }
+          }
+        }
+
         const time = messageDate
-          ? messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          : (isMe ? 'Sending…' : '');
+          ? messageDate.toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit'
+            })
+          : '';
+
         if (messageDate) {
           const dateKey = messageDate.toLocaleDateString('en-CA');
+
           if (dateKey !== lastDateKey) {
             const now = new Date();
-            const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const startMessage = new Date(messageDate.getFullYear(), messageDate.getMonth(), messageDate.getDate());
-            const daysAgo = Math.round((startToday - startMessage) / 86400000);
-            const label = daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : messageDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: messageDate.getFullYear() === now.getFullYear() ? undefined : 'numeric' });
-            chatMessages.insertAdjacentHTML('beforeend', `<div class="date-separator"><span>${escapeHtml(label)}</span></div>`);
+            const startToday = new Date(
+              now.getFullYear(),
+              now.getMonth(),
+              now.getDate()
+            );
+
+            const startMessage = new Date(
+              messageDate.getFullYear(),
+              messageDate.getMonth(),
+              messageDate.getDate()
+            );
+
+            const daysAgo = Math.round(
+              (startToday - startMessage) / 86400000
+            );
+
+            const label =
+              daysAgo === 0
+                ? 'Today'
+                : daysAgo === 1
+                  ? 'Yesterday'
+                  : messageDate.toLocaleDateString(
+                      'en-IN',
+                      {
+                        day: 'numeric',
+                        month: 'short',
+                        year:
+                          messageDate.getFullYear() === now.getFullYear()
+                            ? undefined
+                            : 'numeric'
+                      }
+                    );
+
+            chatMessages.insertAdjacentHTML(
+              'beforeend',
+              `<div class="date-separator"><span>${escapeHtml(label)}</span></div>`
+            );
+
             lastDateKey = dateKey;
           }
         }
 
-        if (m.type === 'location') {
-          addLocationMessageToUI(type, { lat: m.lat, lng: m.lng, name: m.name, address: m.address }, time, !!m.live, doc.id);
-        } else if (m.type === 'image') {
-          addImageMessageToUI(type, m.imageUrl, time);
-        } else if (m.type === 'system') {
-          // Legacy approval messages may already exist in Firestore from an
-          // older version. Never show an approval system message to the adopter.
-          const isApprovalMessage = String(m.text || '').toLowerCase() === 'adoption approved';
-          const isCurrentUserOwner = String(currentUser.uid) === String(conversationOwnerId);
+        // Support both current and legacy message type fields.
+        const messageType = String(
+          m.type ||
+          m.messageType ||
+          'text'
+        ).toLowerCase();
+
+        if (messageType === 'location') {
+          addLocationMessageToUI(
+            type,
+            {
+              lat: m.lat,
+              lng: m.lng,
+              name: m.name,
+              address: m.address
+            },
+            time,
+            !!m.live,
+            doc.id
+          );
+
+        } else if (messageType === 'image') {
+          addImageMessageToUI(
+            type,
+            m.imageUrl || m.image || m.url || '',
+            time
+          );
+
+        } else if (messageType === 'system') {
+          const systemText =
+            m.text ||
+            m.message ||
+            m.content ||
+            '';
+
+          const isApprovalMessage =
+            String(systemText).toLowerCase() === 'adoption approved';
+
+          const isCurrentUserOwner =
+            String(currentUser.uid) ===
+            String(conversationOwnerId);
+
+          // Approval is owner-only.
           if (!isApprovalMessage || isCurrentUserOwner) {
-            addSystemMessageToUI(m.text, m.subtext);
+            addSystemMessageToUI(
+              systemText,
+              m.subtext || ''
+            );
           }
+
         } else {
-          addMessageToUI(type, m.text, time, m.read || false);
+          // Current format uses text.
+          // Older messages may use message/content/body.
+          const messageText =
+            m.text ??
+            m.message ??
+            m.content ??
+            m.body ??
+            '';
+
+          addMessageToUI(
+            type,
+            messageText,
+            time,
+            !!m.read
+          );
         }
-        if (!isMe && !m.read) { readBatch.update(doc.ref, { read: true }); hasUnreadIncoming = true; }
+
+        // Mark incoming messages as read.
+        if (
+          !isMe &&
+          !m.read &&
+          doc.ref
+        ) {
+          readBatch.update(doc.ref, { read: true });
+          hasUnreadIncoming = true;
+        }
       });
 
-      if (nearBottom || prevHeight === 0) scrollToBottom();
-      else chatMessages.scrollTop = chatMessages.scrollHeight - prevHeight + prevTop;
-
-      if (hasUnreadIncoming && !snapshot.metadata.hasPendingWrites) {
-        readBatch.commit().catch(e => console.error('Mark-read error:', e));
+      if (nearBottom || prevHeight === 0) {
+        scrollToBottom();
+      } else {
+        chatMessages.scrollTop =
+          chatMessages.scrollHeight -
+          prevHeight +
+          prevTop;
       }
+
+      if (
+        hasUnreadIncoming &&
+        !snapshot.metadata.hasPendingWrites
+      ) {
+        readBatch.commit().catch(e =>
+          console.error('Mark-read error:', e)
+        );
+      }
+
     }, err => {
       console.error("Messages error:", err);
+
       chatMessages.innerHTML = `
         <div class="firebase-debug">
           <strong>Could not load messages.</strong><br>
