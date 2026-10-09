@@ -1548,12 +1548,27 @@
       inboxList.innerHTML = '';
       const validDocs = [];
 
-      // Verify each conversation before putting it into My Chats.
+      // Verify conversations, then collapse duplicate inbox entries for the
+      // same pet + same two participants. Keep the most recently active doc;
+      // this only changes the inbox display and never deletes Firestore data.
       for (const doc of allDocs) {
         if (await isValidMyChat(doc)) validDocs.push(doc);
       }
+      const uniqueDocs = [];
+      const seenConversationKeys = new Set();
+      for (const doc of validDocs) {
+        const data = doc.data() || {};
+        const members = Array.isArray(data.participants)
+          ? data.participants.map(String).filter(Boolean).sort()
+          : [];
+        const petKey = String(data.petId || data.petName || doc.id);
+        const key = `${petKey}::${members.join('::')}`;
+        if (seenConversationKeys.has(key)) continue;
+        seenConversationKeys.add(key);
+        uniqueDocs.push(doc);
+      }
 
-      if (!validDocs.length) {
+      if (!uniqueDocs.length) {
         inboxList.innerHTML = `
           <div class="inbox-empty">
             <i class="fa-regular fa-comment-dots"></i>
@@ -1563,7 +1578,7 @@
         return;
       }
 
-      for (const doc of validDocs) {
+      for (const doc of uniqueDocs) {
         const conv = doc.data() || {};
         const person = await getConversationPerson(conv);
         if (!person.otherUid) continue;
@@ -1747,6 +1762,10 @@
       });
 
       if (layout) layout.classList.add('chat-open');
+
+      // Clear stale empty/loading content immediately; the Firestore listener
+      // replaces this with the conversation history as soon as it responds.
+      chatMessages.innerHTML = '<div class="chat-loading" style="margin:auto;text-align:center;color:var(--text-dim);padding:1.5rem;"><i class="fa-solid fa-paw fa-bounce" style="color:var(--primary);font-size:1.4rem;"></i><div style="margin-top:.7rem;font-size:.8rem;">Loading messages…</div></div>';
 
       // Clear the current user's unread count as soon as this conversation is
       // opened. This is separate from marking individual incoming messages read.
@@ -2209,8 +2228,25 @@
       });
 
       try {
+      // Some earlier versions could write the same message more than once.
+      // Suppress exact duplicates with the same sender, content/type and
+      // timestamp in this display only; no Firestore documents are deleted.
+      const seenRenderedMessages = new Set();
       messageDocs.forEach(doc => {
         const m = doc.data() || {};
+        const rawStamp = m.time || m.timestamp || m.createdAt || m.sentAt || null;
+        let stampKey = '';
+        if (rawStamp && typeof rawStamp.toMillis === 'function') stampKey = String(rawStamp.toMillis());
+        else if (rawStamp && typeof rawStamp.toDate === 'function') stampKey = String(rawStamp.toDate().getTime());
+        else if (rawStamp instanceof Date) stampKey = String(rawStamp.getTime());
+        else if (typeof rawStamp === 'number') stampKey = String(rawStamp);
+        else if (typeof rawStamp === 'string') stampKey = String(Date.parse(rawStamp) || rawStamp);
+        const senderKey = String(m.sender || m.senderId || m.userId || m.uid || '');
+        const kindKey = String(m.type || m.messageType || 'text').toLowerCase();
+        const contentKey = String(m.text ?? m.message ?? m.content ?? m.body ?? m.subtext ?? '');
+        const duplicateKey = `${senderKey}|${kindKey}|${contentKey}|${stampKey}`;
+        if (stampKey && seenRenderedMessages.has(duplicateKey)) return;
+        if (stampKey) seenRenderedMessages.add(duplicateKey);
 
         // Current format: sender
         // Older formats: senderId / userId / uid
@@ -2438,72 +2474,75 @@
     if (!db || !currentUser) throw new Error('Firebase user/session is not ready.');
     await ensureConversationReady();
 
-    const convRef = db.collection('conversations').doc(conversationId);
+    const convRef = db.collection('conversations').doc(String(conversationId));
     const currentConv = await convRef.get();
     if (!currentConv.exists) {
-      throw new Error('The conversation no longer exists. Please reopen the pet chat.');
+      throw new Error('This conversation was not found. Reopen the pet profile and start the chat again.');
     }
 
     const conv = currentConv.data() || {};
+    const uid = String(currentUser.uid);
     const participants = Array.isArray(conv.participants)
-      ? conv.participants.map(String)
+      ? conv.participants.map(value => String(value).trim()).filter(Boolean)
       : [];
 
-    if (!participants.includes(String(currentUser.uid))) {
-      throw new Error('You are not a participant in this conversation.');
+    // Fail clearly rather than silently changing the membership of an existing
+    // private conversation. The participant array is the source of truth.
+    if (participants.length !== 2 || !participants.includes(uid)) {
+      throw new Error('This account is not listed as a participant in this chat. Please open the chat from the pet listing again.');
     }
+
+    const recipientId = participants.find(value => value !== uid);
+    if (!recipientId) throw new Error('The other participant account could not be identified.');
 
     const ownerId = String(conv.ownerId || conversationOwnerId || '').trim();
-    const adopterId = String(
-      conv.adopterId ||
-      (ownerId === String(currentUser.uid) ? otherUserId : currentUser.uid)
-    ).trim();
+    const adopterId = String(conv.adopterId || '').trim();
 
-    if (!ownerId || !adopterId) {
-      throw new Error('The conversation is missing the pet owner or adopter account.');
+    // If legacy documents do not contain role metadata, infer it only when we
+    // have a reliable owner ID. Do not rewrite participants or role fields here.
+    if (ownerId && ownerId !== uid && ownerId !== recipientId) {
+      throw new Error('The saved pet owner does not match this conversation. Please contact support before sending.');
     }
 
-    conversationOwnerId = ownerId;
-    otherUserId = participants.find(uid => uid !== String(currentUser.uid)) || otherUserId;
+    conversationOwnerId = ownerId || conversationOwnerId;
+    otherUserId = recipientId;
 
-    // Preserve the original conversation roles. Sending a message must never
-    // turn an owner into an adopter or vice versa.
-    await convRef.set({
-      participants: [String(ownerId), String(adopterId)].filter((v, i, a) => a.indexOf(v) === i).sort(),
-      ownerId,
-      adopterId,
-      petId: conv.petId || petId,
-      petName: conv.petName || petName,
-      petBreed: conv.petBreed || petBreed,
-      petImage: conv.petImage || petImg,
-      ownerName: conv.ownerName || petOwnerName || 'Pet Parent',
-      adopterName: conv.adopterName || (
-        adopterId === String(currentUser.uid)
-          ? (currentUser.displayName || currentUser.email || 'Adopter')
-          : 'Adopter'
-      )
-    }, { merge: true });
-
-    const msgRef = convRef.collection('messages').doc();
-    await msgRef.set({
+    const messagePayload = {
       ...data,
-      sender: currentUser.uid,
+      sender: uid,
+      senderId: uid,
       senderName: currentUser.displayName || currentUser.email || 'User',
-      time: firebase.firestore.FieldValue.serverTimestamp()
-    });
+      read: false,
+      time: firebase.firestore.FieldValue.serverTimestamp(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
 
-    const lastMessage = data.type === 'text' ? data.text :
+    // Write the message first. Avoid a broad conversation metadata rewrite
+    // before sending: it can fail security rules and make a valid send appear
+    // to have failed, especially for newly registered accounts.
+    const msgRef = convRef.collection('messages').doc();
+    await msgRef.set(messagePayload);
+
+    const lastMessage = data.type === 'text' ? String(data.text || '') :
       data.type === 'image' ? 'Photo' :
-      data.type === 'system' ? (data.text || 'Meetup scheduled') :
+      data.type === 'system' ? String(data.text || 'System message') :
       data.live ? 'Live location' : 'Location';
 
-    await convRef.set({
-      lastMessage,
-      lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
-      lastSender: currentUser.uid,
-      [`unread.${otherUserId}`]: firebase.firestore.FieldValue.increment(1),
-      [`unread.${currentUser.uid}`]: 0
-    }, { merge: true });
+    // Conversation preview and unread counts are secondary metadata. Keep them
+    // separate from the message write so the saved message is not lost if a
+    // summary update is rejected by older rules or malformed legacy fields.
+    try {
+      const update = {
+        lastMessage,
+        lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+        lastSender: uid,
+        [`unread.${recipientId}`]: firebase.firestore.FieldValue.increment(1),
+        [`unread.${uid}`]: 0
+      };
+      await convRef.update(update);
+    } catch (metadataError) {
+      console.warn('Message saved, but conversation preview/unread metadata could not be updated:', metadataError);
+    }
 
     return msgRef;
   }
@@ -2550,7 +2589,7 @@
   async function ensureConversationReady() {
     if (conversationId) return conversationId;
     if (!petId || !otherUserId) {
-      throw new Error('This pet is not linked to an owner. Check owner_id in Realtime Database.');
+      throw new Error('This pet is not linked to a registered owner account. Ensure the pet record stores the listing account Firebase Auth UID in ownerId, owner_id, ownerUid, owner_uid, userId, or listerId, then reopen the chat.');
     }
     const id = await getOrCreateConversation();
     if (!id) throw new Error('The conversation could not be created.');
