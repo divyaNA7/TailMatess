@@ -1153,11 +1153,6 @@
   };
 
   let db, auth, rtdb, currentUser, conversationId, unsubMessages;
-  // Legacy history cache: older versions of TailMates may have stored messages
-  // outside conversations/{id}/messages. Read those locations without moving
-  // or deleting any existing records.
-  const legacyMessageCache = new Map();
-  const legacyMessageLookupStarted = new Set();
   let firebaseReady = false;
   let petId = '';
   let petName = '';
@@ -2075,98 +2070,9 @@
     }
   }
 
-  async function loadLegacyMessagesForConversation(id) {
-    const key = String(id || '');
-    if (!key || !db) return [];
-    if (legacyMessageCache.has(key)) return legacyMessageCache.get(key);
-    if (legacyMessageLookupStarted.has(key)) return [];
-    legacyMessageLookupStarted.add(key);
-
-    const found = new Map();
-    const addFirestoreQuery = async (collectionName, fieldName) => {
-      try {
-        const snap = await db.collection(collectionName).where(fieldName, '==', key).limit(500).get();
-        snap.docs.forEach(doc => {
-          // Wrap the snapshot so old records are read-only here; the app must not
-          // rewrite legacy message documents or mark them read automatically.
-          found.set(collectionName + ':' + doc.id, {
-            id: doc.id,
-            data: () => doc.data() || {},
-            ref: null,
-            _legacy: true
-          });
-        });
-      } catch (e) {
-        // A collection/field may not exist or be denied by the current rules.
-        console.debug('Legacy message lookup skipped:', collectionName, fieldName, e?.code || e?.message || e);
-      }
-    };
-
-    // Earlier builds used a top-level messages collection with different field names.
-    for (const field of ['conversationId', 'chatId', 'conversation_id', 'chat_id', 'conversationID']) {
-      await addFirestoreQuery('messages', field);
-    }
-
-    // Some earlier builds stored messages under chats/{chatId}/messages.
-    for (const collectionPath of [
-      'chats/' + key + '/messages',
-      'chatMessages/' + key + '/messages'
-    ]) {
-      try {
-        const snap = await db.collection(collectionPath).limit(500).get();
-        snap.docs.forEach(doc => found.set(collectionPath + ':' + doc.id, {
-          id: doc.id,
-          data: () => doc.data() || {},
-          ref: null,
-          _legacy: true
-        }));
-      } catch (e) {
-        console.debug('Legacy message path skipped:', collectionPath, e?.code || e?.message || e);
-      }
-    }
-
-    // Also check common Realtime Database paths used by older chat prototypes.
-    if (rtdb) {
-      for (const path of ['messages/' + key, 'conversations/' + key + '/messages', 'chats/' + key + '/messages']) {
-        try {
-          const snap = await rtdb.ref(path).once('value');
-          const value = snap.val();
-          if (value && typeof value === 'object') {
-            Object.entries(value).forEach(([msgId, raw]) => {
-              if (!raw || typeof raw !== 'object') return;
-              found.set('rtdb:' + path + ':' + msgId, {
-                id: msgId,
-                data: () => raw,
-                ref: null,
-                _legacy: true
-              });
-            });
-          }
-        } catch (e) {
-          console.debug('Legacy RTDB message path skipped:', path, e?.code || e?.message || e);
-        }
-      }
-    }
-
-    const results = Array.from(found.values());
-    legacyMessageCache.set(key, results);
-    return results;
-  }
-
   function loadMessagesFromFirebase() {
     if (!conversationId || !currentUser) return;
-    const openingConversationId = String(conversationId);
     if (unsubMessages) unsubMessages();
-
-    // Load possible legacy message locations once. If old records are found,
-    // restart the listener so the normal renderer shows old + new messages.
-    if (!legacyMessageLookupStarted.has(openingConversationId)) {
-      loadLegacyMessagesForConversation(openingConversationId).then(oldDocs => {
-        if (oldDocs.length && String(conversationId) === openingConversationId) {
-          loadMessagesFromFirebase();
-        }
-      }).catch(e => console.warn('Legacy history lookup failed:', e));
-    }
 
     // Do NOT use orderBy('time') here.
     // Older TailMates messages may have been saved without the newer
@@ -2177,6 +2083,13 @@
       .collection('messages');
 
     unsubMessages = msgsRef.onSnapshot(snapshot => {
+      // Keep a clear distinction between an actually empty subcollection and
+      // a render/read failure. This helps avoid a silently blank chat pane.
+      console.info('[TailMates] Message snapshot received', {
+        conversationId,
+        messageCount: snapshot.size,
+        currentUser: currentUser && currentUser.uid
+      });
 
       db.collection('conversations').doc(conversationId).get().then(conv => {
         if (conv.exists) {
@@ -2207,11 +2120,7 @@
       let hasUnreadIncoming = false;
 
       // Support both the current message format and older messages.
-      const legacyDocs = legacyMessageCache.get(openingConversationId) || [];
-      const mergedDocs = new Map();
-      legacyDocs.forEach(doc => mergedDocs.set('legacy:' + doc.id + ':' + JSON.stringify(doc.data()), doc));
-      snapshot.docs.forEach(doc => mergedDocs.set('current:' + doc.id, doc));
-      const messageDocs = Array.from(mergedDocs.values()).sort((a, b) => {
+      const messageDocs = Array.from(snapshot.docs).sort((a, b) => {
         const ma = a.data() || {};
         const mb = b.data() || {};
 
@@ -2252,6 +2161,7 @@
         return getMillis(ma) - getMillis(mb);
       });
 
+      try {
       messageDocs.forEach(doc => {
         const m = doc.data() || {};
 
@@ -2417,11 +2327,35 @@
         }
 
         // Mark incoming messages as read.
-        if (!isMe && m.read === false && doc.ref) {
+        if (
+          !isMe &&
+          !m.read &&
+          doc.ref
+        ) {
           readBatch.update(doc.ref, { read: true });
           hasUnreadIncoming = true;
         }
       });
+
+      } catch (renderError) {
+        console.error('[TailMates] Could not render a saved message:', renderError);
+        chatMessages.innerHTML = `
+          <div class="firebase-debug">
+            <strong>Messages were loaded, but could not be displayed.</strong><br>
+            ${escapeHtml(formatFirebaseError(renderError))}
+          </div>`;
+        return;
+      }
+
+      if (snapshot.empty) {
+        chatMessages.innerHTML = `
+          <div class="firebase-debug">
+            <strong>No message documents were returned for this chat.</strong><br>
+            Conversation: ${escapeHtml(conversationId)}<br>
+            Check that the messages shown in Firebase belong to this exact conversation document.
+          </div>`;
+        return;
+      }
 
       if (nearBottom || prevHeight === 0) {
         scrollToBottom();
@@ -2447,8 +2381,8 @@
       chatMessages.innerHTML = `
         <div class="firebase-debug">
           <strong>Could not load messages.</strong><br>
+          Conversation: ${escapeHtml(conversationId || '(none)')}<br>
           ${escapeHtml(formatFirebaseError(err))}
-          <br><small>Conversation: ${escapeHtml(String(conversationId || 'unknown'))}</small>
         </div>`;
     });
   }
@@ -2457,64 +2391,72 @@
     if (!db || !currentUser) throw new Error('Firebase user/session is not ready.');
     await ensureConversationReady();
 
-    const convRef = db.collection('conversations').doc(String(conversationId));
+    const convRef = db.collection('conversations').doc(conversationId);
     const currentConv = await convRef.get();
     if (!currentConv.exists) {
-      throw new Error('The conversation no longer exists. Please reopen it from My Chats.');
+      throw new Error('The conversation no longer exists. Please reopen the pet chat.');
     }
 
     const conv = currentConv.data() || {};
-    const uid = String(currentUser.uid);
     const participants = Array.isArray(conv.participants)
-      ? conv.participants.map(String).filter(Boolean)
+      ? conv.participants.map(String)
       : [];
-    const ownerId = String(conv.ownerId || conversationOwnerId || '').trim();
-    const adopterId = String(conv.adopterId || '').trim();
-    const otherUid = participants.find(id => id !== uid) ||
-      (ownerId && ownerId !== uid ? ownerId : '') ||
-      (adopterId && adopterId !== uid ? adopterId : '') || String(otherUserId || '');
 
-    // Do not rewrite participants/owner/adopter metadata when sending. Older
-    // conversations can have valid legacy metadata, and rewriting it can make
-    // Firestore security rules reject the send operation.
-    if (!participants.includes(uid) && ownerId !== uid && adopterId !== uid) {
-      throw new Error('Your account is not listed as a participant in this conversation.');
+    if (!participants.includes(String(currentUser.uid))) {
+      throw new Error('You are not a participant in this conversation.');
     }
-    if (!otherUid) throw new Error('The conversation is missing the other participant UID.');
 
-    otherUserId = otherUid;
-    if (ownerId) conversationOwnerId = ownerId;
+    const ownerId = String(conv.ownerId || conversationOwnerId || '').trim();
+    const adopterId = String(
+      conv.adopterId ||
+      (ownerId === String(currentUser.uid) ? otherUserId : currentUser.uid)
+    ).trim();
 
-    // The message write is the essential operation. Keep legacy conversation
-    // documents intact and use the same nested messages collection as history.
+    if (!ownerId || !adopterId) {
+      throw new Error('The conversation is missing the pet owner or adopter account.');
+    }
+
+    conversationOwnerId = ownerId;
+    otherUserId = participants.find(uid => uid !== String(currentUser.uid)) || otherUserId;
+
+    // Preserve the original conversation roles. Sending a message must never
+    // turn an owner into an adopter or vice versa.
+    await convRef.set({
+      participants: [String(ownerId), String(adopterId)].filter((v, i, a) => a.indexOf(v) === i).sort(),
+      ownerId,
+      adopterId,
+      petId: conv.petId || petId,
+      petName: conv.petName || petName,
+      petBreed: conv.petBreed || petBreed,
+      petImage: conv.petImage || petImg,
+      ownerName: conv.ownerName || petOwnerName || 'Pet Parent',
+      adopterName: conv.adopterName || (
+        adopterId === String(currentUser.uid)
+          ? (currentUser.displayName || currentUser.email || 'Adopter')
+          : 'Adopter'
+      )
+    }, { merge: true });
+
     const msgRef = convRef.collection('messages').doc();
     await msgRef.set({
       ...data,
-      sender: uid,
-      senderId: uid,
+      sender: currentUser.uid,
       senderName: currentUser.displayName || currentUser.email || 'User',
-      time: firebase.firestore.FieldValue.serverTimestamp(),
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      time: firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    // Update the inbox preview separately. If this optional metadata update is
-    // denied by older Firestore rules, the actual message is still saved.
     const lastMessage = data.type === 'text' ? data.text :
       data.type === 'image' ? 'Photo' :
       data.type === 'system' ? (data.text || 'Meetup scheduled') :
       data.live ? 'Live location' : 'Location';
-    try {
-      const update = {
-        lastMessage,
-        lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
-        lastSender: uid
-      };
-      update['unread.' + otherUid] = firebase.firestore.FieldValue.increment(1);
-      update['unread.' + uid] = 0;
-      await convRef.update(update);
-    } catch (metadataError) {
-      console.warn('Message saved, but inbox preview/unread metadata could not be updated:', metadataError);
-    }
+
+    await convRef.set({
+      lastMessage,
+      lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+      lastSender: currentUser.uid,
+      [`unread.${otherUserId}`]: firebase.firestore.FieldValue.increment(1),
+      [`unread.${currentUser.uid}`]: 0
+    }, { merge: true });
 
     return msgRef;
   }
