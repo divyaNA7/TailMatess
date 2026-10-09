@@ -1153,6 +1153,11 @@
   };
 
   let db, auth, rtdb, currentUser, conversationId, unsubMessages;
+  // Legacy history cache: older versions of TailMates may have stored messages
+  // outside conversations/{id}/messages. Read those locations without moving
+  // or deleting any existing records.
+  const legacyMessageCache = new Map();
+  const legacyMessageLookupStarted = new Set();
   let firebaseReady = false;
   let petId = '';
   let petName = '';
@@ -2070,9 +2075,98 @@
     }
   }
 
+  async function loadLegacyMessagesForConversation(id) {
+    const key = String(id || '');
+    if (!key || !db) return [];
+    if (legacyMessageCache.has(key)) return legacyMessageCache.get(key);
+    if (legacyMessageLookupStarted.has(key)) return [];
+    legacyMessageLookupStarted.add(key);
+
+    const found = new Map();
+    const addFirestoreQuery = async (collectionName, fieldName) => {
+      try {
+        const snap = await db.collection(collectionName).where(fieldName, '==', key).limit(500).get();
+        snap.docs.forEach(doc => {
+          // Wrap the snapshot so old records are read-only here; the app must not
+          // rewrite legacy message documents or mark them read automatically.
+          found.set(collectionName + ':' + doc.id, {
+            id: doc.id,
+            data: () => doc.data() || {},
+            ref: null,
+            _legacy: true
+          });
+        });
+      } catch (e) {
+        // A collection/field may not exist or be denied by the current rules.
+        console.debug('Legacy message lookup skipped:', collectionName, fieldName, e?.code || e?.message || e);
+      }
+    };
+
+    // Earlier builds used a top-level messages collection with different field names.
+    for (const field of ['conversationId', 'chatId', 'conversation_id', 'chat_id', 'conversationID']) {
+      await addFirestoreQuery('messages', field);
+    }
+
+    // Some earlier builds stored messages under chats/{chatId}/messages.
+    for (const collectionPath of [
+      'chats/' + key + '/messages',
+      'chatMessages/' + key + '/messages'
+    ]) {
+      try {
+        const snap = await db.collection(collectionPath).limit(500).get();
+        snap.docs.forEach(doc => found.set(collectionPath + ':' + doc.id, {
+          id: doc.id,
+          data: () => doc.data() || {},
+          ref: null,
+          _legacy: true
+        }));
+      } catch (e) {
+        console.debug('Legacy message path skipped:', collectionPath, e?.code || e?.message || e);
+      }
+    }
+
+    // Also check common Realtime Database paths used by older chat prototypes.
+    if (rtdb) {
+      for (const path of ['messages/' + key, 'conversations/' + key + '/messages', 'chats/' + key + '/messages']) {
+        try {
+          const snap = await rtdb.ref(path).once('value');
+          const value = snap.val();
+          if (value && typeof value === 'object') {
+            Object.entries(value).forEach(([msgId, raw]) => {
+              if (!raw || typeof raw !== 'object') return;
+              found.set('rtdb:' + path + ':' + msgId, {
+                id: msgId,
+                data: () => raw,
+                ref: null,
+                _legacy: true
+              });
+            });
+          }
+        } catch (e) {
+          console.debug('Legacy RTDB message path skipped:', path, e?.code || e?.message || e);
+        }
+      }
+    }
+
+    const results = Array.from(found.values());
+    legacyMessageCache.set(key, results);
+    return results;
+  }
+
   function loadMessagesFromFirebase() {
     if (!conversationId || !currentUser) return;
+    const openingConversationId = String(conversationId);
     if (unsubMessages) unsubMessages();
+
+    // Load possible legacy message locations once. If old records are found,
+    // restart the listener so the normal renderer shows old + new messages.
+    if (!legacyMessageLookupStarted.has(openingConversationId)) {
+      loadLegacyMessagesForConversation(openingConversationId).then(oldDocs => {
+        if (oldDocs.length && String(conversationId) === openingConversationId) {
+          loadMessagesFromFirebase();
+        }
+      }).catch(e => console.warn('Legacy history lookup failed:', e));
+    }
 
     // Do NOT use orderBy('time') here.
     // Older TailMates messages may have been saved without the newer
@@ -2113,7 +2207,11 @@
       let hasUnreadIncoming = false;
 
       // Support both the current message format and older messages.
-      const messageDocs = Array.from(snapshot.docs).sort((a, b) => {
+      const legacyDocs = legacyMessageCache.get(openingConversationId) || [];
+      const mergedDocs = new Map();
+      legacyDocs.forEach(doc => mergedDocs.set('legacy:' + doc.id + ':' + JSON.stringify(doc.data()), doc));
+      snapshot.docs.forEach(doc => mergedDocs.set('current:' + doc.id, doc));
+      const messageDocs = Array.from(mergedDocs.values()).sort((a, b) => {
         const ma = a.data() || {};
         const mb = b.data() || {};
 
