@@ -1598,6 +1598,34 @@
       filterInbox();
     }
 
+    // Resolve the actual pet owner for legacy conversations. Older conversation
+    // documents may not contain ownerId, so use the linked pet record as a
+    // fallback. This lookup is optional and must never block opening the chat.
+    async function resolveConversationPetOwner(conv) {
+      if (!conv || !conv.petId) return '';
+
+      // Prefer a valid owner already stored on the conversation.
+      const storedOwnerId = String(conv.ownerId || '').trim();
+      if (storedOwnerId) return storedOwnerId;
+
+      try {
+        const petSnap = await db.collection('pets').doc(String(conv.petId)).get();
+        if (!petSnap.exists) return '';
+
+        const pet = petSnap.data() || {};
+        return String(
+          pet.listerId ||
+          pet.ownerId ||
+          pet.owner_id ||
+          pet.userId ||
+          ''
+        ).trim();
+      } catch (error) {
+        console.warn('Could not resolve pet owner from pet record:', error);
+        return '';
+      }
+    }
+
     async function openConversationFromInbox(id, conv, person) {
       if (!currentUser || !id) return;
 
