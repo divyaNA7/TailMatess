@@ -1568,7 +1568,11 @@
         const person = await getConversationPerson(conv);
         if (!person.otherUid) continue;
 
-        const unread = Number((conv.unread && conv.unread[currentUser.uid]) || 0);
+        // An open conversation is considered read in this browser immediately,
+        // even while the Firestore unread-count update is still in flight.
+        const unread = String(conversationId || '') === String(doc.id)
+          ? 0
+          : Number((conv.unread && conv.unread[currentUser.uid]) || 0);
         const time = formatInboxTime(conv.lastMessageTime);
         const preview = conv.lastMessage || 'Start chatting';
         const petLabel = conv.petName ? ` · ${conv.petName}` : '';
@@ -1732,15 +1736,30 @@
       }
 
       document.querySelectorAll('.inbox-chat').forEach(el => {
-        el.classList.toggle('active', el.dataset.conversationId === String(id));
+        const isActive = el.dataset.conversationId === String(id);
+        el.classList.toggle('active', isActive);
+        // Remove the badge immediately; don't wait for the Firestore listener
+        // to return a refreshed conversation snapshot.
+        if (isActive) {
+          const badge = el.querySelector('.inbox-unread');
+          if (badge) badge.remove();
+        }
       });
 
       if (layout) layout.classList.add('chat-open');
 
+      // Clear the current user's unread count as soon as this conversation is
+      // opened. This is separate from marking individual incoming messages read.
       try {
-        await db.collection('conversations').doc(id).set({
+        await db.collection('conversations').doc(id).update({
           [`unread.${currentUser.uid}`]: 0
-        }, { merge: true });
+        });
+        const cached = conversationMap.get(String(id));
+        if (cached && typeof cached.data === 'function') {
+          // Keep the in-memory snapshot's data from repainting a stale badge.
+          const cachedData = cached.data();
+          if (cachedData && cachedData.unread) cachedData.unread[currentUser.uid] = 0;
+        }
       } catch (e) {
         console.warn('Could not clear conversation unread count:', e);
       }
