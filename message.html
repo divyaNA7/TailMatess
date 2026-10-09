@@ -2547,27 +2547,29 @@
     return msgRef;
   }
 
+  let messageSendInProgress = false;
+
   async function sendMessage(event) {
     if (event) event.preventDefault();
     const text = messageInput ? messageInput.value.trim() : '';
     if (!currentUser) { alert('Please sign in first.'); return; }
-    if (!text) return;
+    if (!text || messageSendInProgress) return;
 
+    messageSendInProgress = true;
     const btn = document.getElementById('send-btn');
     try {
       if (btn) btn.disabled = true;
 
       await ensureConversationReady();
 
-      // Save first, then immediately show the sent bubble.
-      // Firestore remains the source of truth through the snapshot listener.
+      // Save the message and let the Firestore snapshot listener render it.
+      // Do not append an optimistic bubble here: the listener redraws the full
+      // history, so appending locally as well can make a sent message appear twice.
       const msgRef = await saveMessage({
         text,
         type: 'text',
         read: false
       });
-
-      addMessageToUI('sent', text, formatTime(new Date()), false);
 
       if (messageInput) {
         messageInput.value = '';
@@ -2582,6 +2584,7 @@
       console.error('Firebase send failure details:', errorText);
       alert('Message could not be sent.\n\n' + errorText);
     } finally {
+      messageSendInProgress = false;
       if (btn) btn.disabled = false;
     }
   }
