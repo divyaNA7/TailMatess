@@ -2319,11 +2319,7 @@
         }
 
         // Mark incoming messages as read.
-        if (
-          !isMe &&
-          !m.read &&
-          doc.ref
-        ) {
+        if (!isMe && m.read === false && doc.ref) {
           readBatch.update(doc.ref, { read: true });
           hasUnreadIncoming = true;
         }
@@ -2354,6 +2350,7 @@
         <div class="firebase-debug">
           <strong>Could not load messages.</strong><br>
           ${escapeHtml(formatFirebaseError(err))}
+          <br><small>Conversation: ${escapeHtml(String(conversationId || 'unknown'))}</small>
         </div>`;
     });
   }
@@ -2362,72 +2359,64 @@
     if (!db || !currentUser) throw new Error('Firebase user/session is not ready.');
     await ensureConversationReady();
 
-    const convRef = db.collection('conversations').doc(conversationId);
+    const convRef = db.collection('conversations').doc(String(conversationId));
     const currentConv = await convRef.get();
     if (!currentConv.exists) {
-      throw new Error('The conversation no longer exists. Please reopen the pet chat.');
+      throw new Error('The conversation no longer exists. Please reopen it from My Chats.');
     }
 
     const conv = currentConv.data() || {};
+    const uid = String(currentUser.uid);
     const participants = Array.isArray(conv.participants)
-      ? conv.participants.map(String)
+      ? conv.participants.map(String).filter(Boolean)
       : [];
-
-    if (!participants.includes(String(currentUser.uid))) {
-      throw new Error('You are not a participant in this conversation.');
-    }
-
     const ownerId = String(conv.ownerId || conversationOwnerId || '').trim();
-    const adopterId = String(
-      conv.adopterId ||
-      (ownerId === String(currentUser.uid) ? otherUserId : currentUser.uid)
-    ).trim();
+    const adopterId = String(conv.adopterId || '').trim();
+    const otherUid = participants.find(id => id !== uid) ||
+      (ownerId && ownerId !== uid ? ownerId : '') ||
+      (adopterId && adopterId !== uid ? adopterId : '') || String(otherUserId || '');
 
-    if (!ownerId || !adopterId) {
-      throw new Error('The conversation is missing the pet owner or adopter account.');
+    // Do not rewrite participants/owner/adopter metadata when sending. Older
+    // conversations can have valid legacy metadata, and rewriting it can make
+    // Firestore security rules reject the send operation.
+    if (!participants.includes(uid) && ownerId !== uid && adopterId !== uid) {
+      throw new Error('Your account is not listed as a participant in this conversation.');
     }
+    if (!otherUid) throw new Error('The conversation is missing the other participant UID.');
 
-    conversationOwnerId = ownerId;
-    otherUserId = participants.find(uid => uid !== String(currentUser.uid)) || otherUserId;
+    otherUserId = otherUid;
+    if (ownerId) conversationOwnerId = ownerId;
 
-    // Preserve the original conversation roles. Sending a message must never
-    // turn an owner into an adopter or vice versa.
-    await convRef.set({
-      participants: [String(ownerId), String(adopterId)].filter((v, i, a) => a.indexOf(v) === i).sort(),
-      ownerId,
-      adopterId,
-      petId: conv.petId || petId,
-      petName: conv.petName || petName,
-      petBreed: conv.petBreed || petBreed,
-      petImage: conv.petImage || petImg,
-      ownerName: conv.ownerName || petOwnerName || 'Pet Parent',
-      adopterName: conv.adopterName || (
-        adopterId === String(currentUser.uid)
-          ? (currentUser.displayName || currentUser.email || 'Adopter')
-          : 'Adopter'
-      )
-    }, { merge: true });
-
+    // The message write is the essential operation. Keep legacy conversation
+    // documents intact and use the same nested messages collection as history.
     const msgRef = convRef.collection('messages').doc();
     await msgRef.set({
       ...data,
-      sender: currentUser.uid,
+      sender: uid,
+      senderId: uid,
       senderName: currentUser.displayName || currentUser.email || 'User',
-      time: firebase.firestore.FieldValue.serverTimestamp()
+      time: firebase.firestore.FieldValue.serverTimestamp(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
+    // Update the inbox preview separately. If this optional metadata update is
+    // denied by older Firestore rules, the actual message is still saved.
     const lastMessage = data.type === 'text' ? data.text :
       data.type === 'image' ? 'Photo' :
       data.type === 'system' ? (data.text || 'Meetup scheduled') :
       data.live ? 'Live location' : 'Location';
-
-    await convRef.set({
-      lastMessage,
-      lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
-      lastSender: currentUser.uid,
-      [`unread.${otherUserId}`]: firebase.firestore.FieldValue.increment(1),
-      [`unread.${currentUser.uid}`]: 0
-    }, { merge: true });
+    try {
+      const update = {
+        lastMessage,
+        lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+        lastSender: uid
+      };
+      update['unread.' + otherUid] = firebase.firestore.FieldValue.increment(1);
+      update['unread.' + uid] = 0;
+      await convRef.update(update);
+    } catch (metadataError) {
+      console.warn('Message saved, but inbox preview/unread metadata could not be updated:', metadataError);
+    }
 
     return msgRef;
   }
