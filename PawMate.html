@@ -1181,16 +1181,17 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     { id: 'gr', t: 'How much time for grooming?', type: 's',
       opts: [
         { v: 'L', l: 'Minimal grooming', d: 'Occasional brushing' },
-        { v: 'M', l: 'Weekly grooming', d: 'Regular brushing, basic maintenance' },
-        { v: 'H', l: 'Daily grooming routine' }
+        { v: 'M', l: 'Weekly grooming', d: 'Weekly brushing' },
+        { v: 'H', l: 'Daily grooming', d: 'Regular brushing' }
       ]
     },
     { id: 'sz', t: 'What size pet do you prefer?', type: 's',
       opts: [
-        { v: 'tiny', l: 'Tiny (under 1 kg)', d: 'Hamsters, small reptiles' },
-        { v: 'small', l: 'Small (1-10 kg)', d: 'Cats, small dogs, rabbits' },
-        { v: 'medium', l: 'Medium (10-30 kg)', d: 'Medium dog breeds' },
-        { v: 'large', l: 'Large (30+ kg)', d: 'Big dogs, giant breeds' }
+        { v: 'tiny', l: 'Tiny (under 1 kg)', d: 'Hamsters and very small pets' },
+        { v: 'small', l: 'Small (1-10 kg)', d: 'Small-sized pets' },
+        { v: 'medium', l: 'Medium (10-30 kg)', d: 'Medium-sized pets' },
+        { v: 'large', l: 'Large (30+ kg)', d: 'Large-sized pets' },
+        { v: 'no-preference', l: 'No preference', d: 'Open to different sizes' }
       ]
     },
     { id: 'tp', t: 'Which personality traits appeal to you?', type: 'm',
@@ -1368,7 +1369,43 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
   function renderQ() {
     const C=$('C');
     if (!C) return;
-    const q=Q[cur];
+    const baseQ=Q[cur];
+    let q=baseQ;
+    // Question 8 adapts to the species selected in Question 1.
+    if (baseQ.id === 'sz') {
+      const species = ans.sp || 'any';
+      if (species === 'Chameleon') {
+        q = { ...baseQ, t: 'What weight range do you prefer for your chameleon?', opts: [
+          { v: 'cham-under-50g', l: 'Under 50 g', d: 'Very lightweight chameleons' },
+          { v: 'cham-50-100g', l: '50–100 g', d: 'Lightweight chameleons' },
+          { v: 'cham-101-200g', l: '101–200 g', d: 'Medium-weight chameleons' },
+          { v: 'cham-over-200g', l: 'Over 200 g', d: 'Heavier chameleons' },
+          { v: 'no-preference', l: 'No preference', d: 'Any suitable weight' }
+        ] };
+      } else if (species === 'Dog') {
+        q = { ...baseQ, t: 'What size dog do you prefer?', opts: [
+          { v: 'small', l: 'Small', d: 'Compact dogs' },
+          { v: 'medium', l: 'Medium', d: 'Medium-sized dogs' },
+          { v: 'large', l: 'Large / Giant', d: 'Large and giant breeds' },
+          { v: 'no-preference', l: 'No preference', d: 'Open to any dog size' }
+        ] };
+      } else if (species === 'Cat') {
+        q = { ...baseQ, t: 'What size cat do you prefer?', opts: [
+          { v: 'small', l: 'Small', d: 'Smaller-sized cats' },
+          { v: 'medium', l: 'Medium', d: 'Average-sized cats' },
+          { v: 'large', l: 'Large', d: 'Larger-sized cats' },
+          { v: 'no-preference', l: 'No preference', d: 'Open to any cat size' }
+        ] };
+      } else {
+        q = { ...baseQ, t: 'What size pet are you comfortable with?', opts: [
+          { v: 'tiny', l: 'Tiny', d: 'Very small pets' },
+          { v: 'small', l: 'Small', d: 'Small-sized pets' },
+          { v: 'medium', l: 'Medium', d: 'Medium-sized pets' },
+          { v: 'large', l: 'Large', d: 'Large-sized pets' },
+          { v: 'no-preference', l: 'No preference', d: 'Open to different sizes' }
+        ] };
+      }
+    }
     const sel=q.type==='m' ? (Array.isArray(ans[q.id])?ans[q.id]:[]) : ans[q.id];
 
     let out=`<div class="card"><div class="qn">Question ${cur+1} of ${Q.length}</div>
@@ -1496,11 +1533,22 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     }
     if(ans.ex) { const d=lvDist(p[8],ans.ex); s+=d===0?10:d===1?5:0; }
     if(ans.gr) { const d=lvDist(p[9],ans.gr); s+=d===0?10:d===1?5:0; }
-    if(ans.sz) {
-      const sc=szCat(p[4]);
-      if(sc===ans.sz) s+=10;
-      else if((sc==='small'&&ans.sz==='tiny')||(sc==='medium'&&ans.sz==='small')||(sc==='large'&&ans.sz==='medium')) s+=5;
-    }
+    if(ans.sz && ans.sz !== 'no-preference') {
+      const weightKg = Number(p[4]) || 0;
+      if (String(ans.sz).startsWith('cham-')) {
+        // Firebase pet weights are expected in kilograms; convert to grams for chameleon ranges.
+        const grams = weightKg * 1000;
+        const fits = ans.sz === 'cham-under-50g' ? grams < 50
+          : ans.sz === 'cham-50-100g' ? grams >= 50 && grams <= 100
+          : ans.sz === 'cham-101-200g' ? grams > 100 && grams <= 200
+          : grams > 200;
+        if (fits) s += 10;
+      } else {
+        const sc=szCat(weightKg);
+        if(sc===ans.sz) s+=10;
+        else if((sc==='small'&&ans.sz==='tiny')||(sc==='medium'&&ans.sz==='small')||(sc==='large'&&ans.sz==='medium')) s+=5;
+      }
+    } else if (ans.sz === 'no-preference') s += 10;
     if(Array.isArray(ans.tp)) {
       const pt=cleanString(p[12]).toLowerCase();
       ans.tp.forEach(t=>{if(pt.includes(cleanString(t).toLowerCase())) s+=4;});
@@ -1542,7 +1590,8 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     if (ans.bu && Number(p[7]) <= Number(ans.bu)) reasons.push('Budget fit');
     if (ans.ex && lvDist(p[8], ans.ex) === 0) reasons.push('Activity fit');
     if (ans.gr && lvDist(p[9], ans.gr) === 0) reasons.push('Easy grooming');
-    if (ans.sz && szCat(p[4]) === ans.sz) reasons.push('Preferred size');
+    if (ans.sz === 'no-preference' || (ans.sz && !String(ans.sz).startsWith('cham-') && szCat(p[4]) === ans.sz)) reasons.push('Preferred size');
+    if (ans.sz && String(ans.sz).startsWith('cham-')) { const g=(Number(p[4])||0)*1000; const fits=ans.sz==='cham-under-50g'?g<50:ans.sz==='cham-50-100g'?g>=50&&g<=100:ans.sz==='cham-101-200g'?g>100&&g<=200:g>200; if(fits) reasons.push('Preferred weight'); }
     if (Array.isArray(ans.tp)) {
       const pt = cleanString(p[12]).toLowerCase();
       ans.tp.forEach(t => { if (pt.includes(cleanString(t).toLowerCase()) && reasons.length < 5) reasons.push(cleanString(t)); });
