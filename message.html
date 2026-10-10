@@ -2228,25 +2228,28 @@
       });
 
       try {
-      // Some earlier versions could write the same message more than once.
-      // Suppress exact duplicates with the same sender, content/type and
-      // timestamp in this display only; no Firestore documents are deleted.
-      const seenRenderedMessages = new Set();
+      // Suppress duplicate writes produced by older client versions. Those
+      // writes can have slightly different server timestamps, so exact timestamp
+      // comparison alone does not catch them. Only collapse identical content
+      // from the same sender/type within a short 2.5-second window. Firestore
+      // documents remain untouched; messages sent later remain visible.
+      const recentRenderedMessages = new Map();
       messageDocs.forEach(doc => {
         const m = doc.data() || {};
         const rawStamp = m.time || m.timestamp || m.createdAt || m.sentAt || null;
-        let stampKey = '';
-        if (rawStamp && typeof rawStamp.toMillis === 'function') stampKey = String(rawStamp.toMillis());
-        else if (rawStamp && typeof rawStamp.toDate === 'function') stampKey = String(rawStamp.toDate().getTime());
-        else if (rawStamp instanceof Date) stampKey = String(rawStamp.getTime());
-        else if (typeof rawStamp === 'number') stampKey = String(rawStamp);
-        else if (typeof rawStamp === 'string') stampKey = String(Date.parse(rawStamp) || rawStamp);
+        let stampMillis = 0;
+        if (rawStamp && typeof rawStamp.toMillis === 'function') stampMillis = rawStamp.toMillis();
+        else if (rawStamp && typeof rawStamp.toDate === 'function') stampMillis = rawStamp.toDate().getTime();
+        else if (rawStamp instanceof Date) stampMillis = rawStamp.getTime();
+        else if (typeof rawStamp === 'number') stampMillis = rawStamp;
+        else if (typeof rawStamp === 'string') stampMillis = Date.parse(rawStamp) || 0;
         const senderKey = String(m.sender || m.senderId || m.userId || m.uid || '');
         const kindKey = String(m.type || m.messageType || 'text').toLowerCase();
         const contentKey = String(m.text ?? m.message ?? m.content ?? m.body ?? m.subtext ?? '');
-        const duplicateKey = `${senderKey}|${kindKey}|${contentKey}|${stampKey}`;
-        if (stampKey && seenRenderedMessages.has(duplicateKey)) return;
-        if (stampKey) seenRenderedMessages.add(duplicateKey);
+        const duplicateKey = `${senderKey}|${kindKey}|${contentKey}`;
+        const previousStamp = recentRenderedMessages.get(duplicateKey);
+        if (stampMillis && previousStamp && Math.abs(stampMillis - previousStamp) <= 2500) return;
+        if (stampMillis) recentRenderedMessages.set(duplicateKey, stampMillis);
 
         // Current format: sender
         // Older formats: senderId / userId / uid
@@ -2548,12 +2551,15 @@
   }
 
   let messageSendInProgress = false;
+  let lastSuccessfulTextSend = { text: '', at: 0 };
 
   async function sendMessage(event) {
     if (event) event.preventDefault();
     const text = messageInput ? messageInput.value.trim() : '';
     if (!currentUser) { alert('Please sign in first.'); return; }
     if (!text || messageSendInProgress) return;
+    const now = Date.now();
+    if (lastSuccessfulTextSend.text === text && now - lastSuccessfulTextSend.at < 1200) return;
 
     messageSendInProgress = true;
     const btn = document.getElementById('send-btn');
@@ -2577,7 +2583,10 @@
         messageInput.focus();
       }
 
-      if (msgRef) console.log('Message saved successfully:', msgRef.id);
+      if (msgRef) {
+        lastSuccessfulTextSend = { text, at: Date.now() };
+        console.log('Message saved successfully:', msgRef.id);
+      }
     } catch (e) {
       console.error('SEND MESSAGE ERROR:', e);
       const errorText = formatFirebaseError(e);
