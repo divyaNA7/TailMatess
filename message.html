@@ -1561,8 +1561,18 @@
         const members = Array.isArray(data.participants)
           ? data.participants.map(String).filter(Boolean).sort()
           : [];
-        const petKey = String(data.petId || data.petName || doc.id);
-        const key = `${petKey}::${members.join('::')}`;
+        // Legacy versions may create separate conversation documents for the
+        // same participants and pet using different ID formats (e.g. "1" and
+        // "pet_1"). Prefer normalized pet name, falling back to normalized ID.
+        const normalizeChatKey = value => String(value || '')
+          .trim()
+          .toLowerCase()
+          .replace(/^pet[_-]+/, '')
+          .replace(/[^a-z0-9]+/g, '');
+        const normalizedPetName = normalizeChatKey(data.petName);
+        const normalizedPetId = normalizeChatKey(data.petId || doc.id);
+        const petKey = normalizedPetName ? `name:${normalizedPetName}` : `id:${normalizedPetId}`;
+        const key = `${members.join('::')}::${petKey}`;
         if (seenConversationKeys.has(key)) continue;
         seenConversationKeys.add(key);
         uniqueDocs.push(doc);
@@ -2228,28 +2238,25 @@
       });
 
       try {
-      // Suppress duplicate writes produced by older client versions. Those
-      // writes can have slightly different server timestamps, so exact timestamp
-      // comparison alone does not catch them. Only collapse identical content
-      // from the same sender/type within a short 2.5-second window. Firestore
-      // documents remain untouched; messages sent later remain visible.
-      const recentRenderedMessages = new Map();
+      // Some earlier versions could write the same message more than once.
+      // Suppress exact duplicates with the same sender, content/type and
+      // timestamp in this display only; no Firestore documents are deleted.
+      const seenRenderedMessages = new Set();
       messageDocs.forEach(doc => {
         const m = doc.data() || {};
         const rawStamp = m.time || m.timestamp || m.createdAt || m.sentAt || null;
-        let stampMillis = 0;
-        if (rawStamp && typeof rawStamp.toMillis === 'function') stampMillis = rawStamp.toMillis();
-        else if (rawStamp && typeof rawStamp.toDate === 'function') stampMillis = rawStamp.toDate().getTime();
-        else if (rawStamp instanceof Date) stampMillis = rawStamp.getTime();
-        else if (typeof rawStamp === 'number') stampMillis = rawStamp;
-        else if (typeof rawStamp === 'string') stampMillis = Date.parse(rawStamp) || 0;
+        let stampKey = '';
+        if (rawStamp && typeof rawStamp.toMillis === 'function') stampKey = String(rawStamp.toMillis());
+        else if (rawStamp && typeof rawStamp.toDate === 'function') stampKey = String(rawStamp.toDate().getTime());
+        else if (rawStamp instanceof Date) stampKey = String(rawStamp.getTime());
+        else if (typeof rawStamp === 'number') stampKey = String(rawStamp);
+        else if (typeof rawStamp === 'string') stampKey = String(Date.parse(rawStamp) || rawStamp);
         const senderKey = String(m.sender || m.senderId || m.userId || m.uid || '');
         const kindKey = String(m.type || m.messageType || 'text').toLowerCase();
         const contentKey = String(m.text ?? m.message ?? m.content ?? m.body ?? m.subtext ?? '');
-        const duplicateKey = `${senderKey}|${kindKey}|${contentKey}`;
-        const previousStamp = recentRenderedMessages.get(duplicateKey);
-        if (stampMillis && previousStamp && Math.abs(stampMillis - previousStamp) <= 2500) return;
-        if (stampMillis) recentRenderedMessages.set(duplicateKey, stampMillis);
+        const duplicateKey = `${senderKey}|${kindKey}|${contentKey}|${stampKey}`;
+        if (stampKey && seenRenderedMessages.has(duplicateKey)) return;
+        if (stampKey) seenRenderedMessages.add(duplicateKey);
 
         // Current format: sender
         // Older formats: senderId / userId / uid
@@ -2551,15 +2558,12 @@
   }
 
   let messageSendInProgress = false;
-  let lastSuccessfulTextSend = { text: '', at: 0 };
 
   async function sendMessage(event) {
     if (event) event.preventDefault();
     const text = messageInput ? messageInput.value.trim() : '';
     if (!currentUser) { alert('Please sign in first.'); return; }
     if (!text || messageSendInProgress) return;
-    const now = Date.now();
-    if (lastSuccessfulTextSend.text === text && now - lastSuccessfulTextSend.at < 1200) return;
 
     messageSendInProgress = true;
     const btn = document.getElementById('send-btn');
@@ -2583,10 +2587,7 @@
         messageInput.focus();
       }
 
-      if (msgRef) {
-        lastSuccessfulTextSend = { text, at: Date.now() };
-        console.log('Message saved successfully:', msgRef.id);
-      }
+      if (msgRef) console.log('Message saved successfully:', msgRef.id);
     } catch (e) {
       console.error('SEND MESSAGE ERROR:', e);
       const errorText = formatFirebaseError(e);
