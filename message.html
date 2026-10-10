@@ -1564,21 +1564,28 @@
       return await hasRealChatMessage(doc.id);
     }
 
+    // Prevent overlapping async renders from appending the same chat rows more than once.
+    // Firestore can emit several snapshots while a message is sent (message write,
+    // lastMessage update, unread update). Only the newest render is allowed to paint.
+    let inboxRenderGeneration = 0;
+
     async function renderInbox() {
+      const renderGeneration = ++inboxRenderGeneration;
       const allDocs = Array.from(conversationMap.values()).sort((a, b) => {
         const ta = a.data().lastMessageTime?.toMillis ? a.data().lastMessageTime.toMillis() : 0;
         const tb = b.data().lastMessageTime?.toMillis ? b.data().lastMessageTime.toMillis() : 0;
         return tb - ta;
       });
 
-      inboxList.innerHTML = '';
       const validDocs = [];
 
       // Verify conversations, then collapse duplicate inbox entries for the
       // same pet + same two participants. Keep the most recently active doc;
       // this only changes the inbox display and never deletes Firestore data.
       for (const doc of allDocs) {
-        if (await isValidMyChat(doc)) validDocs.push(doc);
+        const valid = await isValidMyChat(doc);
+        if (renderGeneration !== inboxRenderGeneration) return;
+        if (valid) validDocs.push(doc);
       }
       const uniqueDocs = [];
       const seenConversationKeys = new Set();
@@ -1604,6 +1611,8 @@
         uniqueDocs.push(doc);
       }
 
+      if (renderGeneration !== inboxRenderGeneration) return;
+
       if (!uniqueDocs.length) {
         inboxList.innerHTML = `
           <div class="inbox-empty">
@@ -1614,9 +1623,13 @@
         return;
       }
 
+      // Build rows off-DOM, then replace the list once. This prevents rows from
+      // an older, slower render mixing with rows from a newer Firestore snapshot.
+      const fragment = document.createDocumentFragment();
       for (const doc of uniqueDocs) {
         const conv = doc.data() || {};
         const person = await getConversationPerson(conv);
+        if (renderGeneration !== inboxRenderGeneration) return;
         if (!person.otherUid) continue;
 
         // An open conversation is considered read in this browser immediately,
@@ -1647,9 +1660,11 @@
           </div>`;
 
         item.onclick = () => openConversationFromInbox(doc.id, conv, person);
-        inboxList.appendChild(item);
+        fragment.appendChild(item);
       }
 
+      if (renderGeneration !== inboxRenderGeneration) return;
+      inboxList.replaceChildren(fragment);
       filterInbox();
     }
 
