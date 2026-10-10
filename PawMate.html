@@ -469,6 +469,19 @@
     .why-chips { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:20px; }
     .why-chip { display:inline-flex; align-items:center; gap:5px; padding:6px 9px; border-radius:9px; background:rgba(0,245,255,.07); border:1px solid rgba(0,245,255,.13); color:var(--text); font-size:.69rem; }
     .why-chip i { color:var(--primary); font-size:.62rem; }
+    .featured-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin:0 0 16px; }
+    .featured-stats .mini-stat { min-width:0; padding:9px 5px; border-radius:10px; text-align:center; background:rgba(255,255,255,.035); border:1px solid var(--border); }
+    .featured-stats .mini-stat strong { display:block; font-size:.78rem; overflow-wrap:anywhere; }
+    .featured-stats .mini-stat span { display:block; color:var(--text-dim); font-size:.62rem; margin-top:3px; }
+    .assessment { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin:0 0 16px; }
+    .assessment-box { border:1px solid var(--border); background:rgba(0,0,0,.13); border-radius:11px; padding:10px; }
+    .assessment-box h5 { font-size:.69rem; margin:0 0 6px; }
+    .assessment-box ul { list-style:none; padding:0; margin:0; display:grid; gap:5px; }
+    .assessment-box li { color:var(--text-dim); font-size:.68rem; line-height:1.35; }
+    .assessment-box.good h5,.assessment-box.good li::before { color:var(--primary); }
+    .assessment-box.lacking h5,.assessment-box.lacking li::before { color:#ffb86b; }
+    .assessment-box li::before { content:'• '; font-weight:900; }
+    @media(max-width:600px){.assessment{grid-template-columns:1fr}.featured-stats .mini-stat strong{font-size:.7rem}}
     .featured-actions { display:flex; gap:9px; flex-wrap:wrap; }
     .featured-actions .message-btn { padding:10px 17px; }
     .matches-label { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:24px 0 12px; }
@@ -1629,6 +1642,40 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     return [...new Set(reasons)].slice(0,5);
   }
 
+  function getTopAssessment(p) {
+    const meta = petMeta.get(String(p[0])) || {};
+    const raw = meta.raw || {};
+    const has = (...keys) => keys.some(k => Object.prototype.hasOwnProperty.call(raw,k) && raw[k] !== null && raw[k] !== '');
+    const good = [], lacking = [];
+    const addFit = (condition, fitText, missText, known=true) => {
+      if (!known) lacking.push(missText + ' (not listed in profile)');
+      else if (condition) good.push(fitText); else lacking.push(missText);
+    };
+    if (ans.sp === 'any') good.push('Species was open to any choice');
+    else addFit(cleanString(p[2]).toLowerCase() === cleanString(ans.sp).toLowerCase(), 'Matches your preferred species', 'Species preference differs');
+    if (ans.ki === 'yes') addFit(!!p[10], 'Suitable for a home with children', 'Child compatibility needs checking', has('good_with_kids','goodWithKids'));
+    if (ans.op === 'yes') addFit(!!p[11], 'Compatible with other pets', 'Other-pet compatibility needs checking', has('good_with_other_pets','goodWithOtherPets'));
+    if (ans.cl) addFit(lvDist(p[6],ans.cl)===0, 'Care needs match your available time', 'Care needs differ from your preference', has('care_level'));
+    if (ans.bu) addFit(Number(p[7])<=Number(ans.bu), 'Monthly cost is within your budget', 'Monthly cost is above your budget', has('avg_monthly_cost_inr','monthly_cost','cost'));
+    if (ans.ex) addFit(lvDist(p[8],ans.ex)===0, 'Activity needs fit your preference', 'Activity needs may differ', has('exercise_needs'));
+    if (ans.gr) addFit(lvDist(p[9],ans.gr)===0, 'Grooming needs fit your preference', 'Grooming needs may differ', has('grooming_needs'));
+    if (ans.sz && ans.sz !== 'no-preference') {
+      let fit=false;
+      if(String(ans.sz).startsWith('cham-')) { const g=(Number(p[4])||0)*1000; fit=ans.sz==='cham-under-50g'?g<50:ans.sz==='cham-50-100g'?g>=50&&g<=100:ans.sz==='cham-101-200g'?g>100&&g<=200:g>200; }
+      else fit=szCat(p[4])===ans.sz;
+      addFit(fit,'Size/weight fits your preference','Size/weight differs from your preference',has('weight_kg','weight'));
+    }
+    if(Array.isArray(ans.tp)&&ans.tp.length) {
+      const temperament=cleanString(p[12]).toLowerCase();
+      const matched=ans.tp.filter(t=>temperament.includes(cleanString(t).toLowerCase()));
+      addFit(matched.length>0,'Has at least one preferred personality trait','Preferred personality traits are not all reflected',has('temperament'));
+    }
+    if(ans.lf) addFit(lfCat(p[5])===ans.lf,'Lifespan aligns with your commitment preference','Lifespan differs from your preference',has('lifespan_years','lifespan'));
+    if(!good.length) good.push('Highest overall score among the pets available');
+    if(!lacking.length) lacking.push('No major mismatch found in the profile fields checked');
+    return {good:good.slice(0,4), lacking:lacking.slice(0,4)};
+  }
+
   function levelText(v) { return v === 'L' ? 'Low' : v === 'M' ? 'Medium' : 'High'; }
 
   function showRes() {
@@ -1657,6 +1704,10 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
       const messageUrl = buildMessageUrl(p, top.sc);
       const reasons = getMatchReasons(p);
       const topReasons = reasons.length ? reasons : ['Overall preference score', 'Review the pet profile'];
+      const assessment = getTopAssessment(p);
+      const topKg = Number(p[4]) < 1 ? `${(Number(p[4])*1000).toFixed(0)} g` : `${Number(p[4]).toFixed(1)} kg`;
+      const topLife = Number(p[5]) ? `${Number(p[5])} yrs` : 'Not listed';
+      const topCost = Number(p[7]) ? `Rs.${Number(p[7]).toLocaleString('en-IN')}` : 'Not listed';
 
       out += `<section class="featured-match">
         <div class="featured-photo">
@@ -1671,8 +1722,17 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
             <div class="score-ring" style="--score:${top.sc}"><span>${top.sc}%</span></div>
             <div class="score-copy"><strong>${top.sc >= 80 ? 'Strong compatibility' : top.sc >= 60 ? 'Good potential match' : 'Review compatibility carefully'}</strong><span>Based on your PawMate answers</span></div>
           </div>
+          <div class="featured-stats">
+            <div class="mini-stat"><strong>${escapeHtml(topKg)}</strong><span>Weight</span></div>
+            <div class="mini-stat"><strong>${escapeHtml(topLife)}</strong><span>Lifespan</span></div>
+            <div class="mini-stat"><strong>${escapeHtml(topCost)}</strong><span>/ month</span></div>
+          </div>
           <div class="why-title">Why this match?</div>
           <div class="why-chips">${topReasons.map(x=>`<span class="why-chip"><i class="fa-solid fa-check"></i>${escapeHtml(x)}</span>`).join('')}</div>
+          <div class="assessment">
+            <div class="assessment-box good"><h5>What fits</h5><ul>${assessment.good.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul></div>
+            <div class="assessment-box lacking"><h5>What may be lacking</h5><ul>${assessment.lacking.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul></div>
+          </div>
           <div class="featured-actions">
             ${ownerId ? `<a class="message-btn" href="${escapeHtml(messageUrl)}"><i class="fa-solid fa-message"></i> Message Owner</a>` : `<span class="message-btn disabled"><i class="fa-solid fa-user-slash"></i> Owner unavailable</span>`}
           </div>
