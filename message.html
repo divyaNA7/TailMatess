@@ -1499,42 +1499,68 @@
       }
     }
 
+    const petOwnerLookupCache = new Map();
+
+    async function getCanonicalPetOwnerId(conv) {
+      const petIdValue = String(conv?.petId || '').trim();
+      if (!petIdValue) return '';
+      if (petOwnerLookupCache.has(petIdValue)) return petOwnerLookupCache.get(petIdValue);
+
+      let ownerId = '';
+      try {
+        const petSnap = await db.collection('pets').doc(petIdValue).get();
+        if (petSnap.exists) {
+          const pet = petSnap.data() || {};
+          ownerId = String(
+            pet.listerId || pet.ownerId || pet.owner_id || pet.ownerUid ||
+            pet.owner_uid || pet.userId || pet.user_id || ''
+          ).trim();
+        }
+      } catch (e) {
+        // Some older listings may be stored outside Firestore's pets collection.
+        // In that case, fall back to the conversation's saved role fields.
+        console.warn('Could not resolve canonical pet owner for inbox validation:', petIdValue, e);
+      }
+      petOwnerLookupCache.set(petIdValue, ownerId);
+      return ownerId;
+    }
+
     async function isValidMyChat(doc) {
       if (!currentUser || !doc || !doc.exists) return false;
 
       const conv = doc.data() || {};
       const participants = Array.isArray(conv.participants)
-        ? conv.participants.map(String).filter(Boolean)
+        ? [...new Set(conv.participants.map(value => String(value).trim()).filter(Boolean))]
         : [];
-
       const uid = String(currentUser.uid);
 
-      // A private TailMates chat must contain exactly two users,
-      // including the currently logged-in user.
+      // A private TailMates chat must have exactly two distinct participants,
+      // and the signed-in account must be one of them.
       if (participants.length !== 2 || !participants.includes(uid)) return false;
 
       const otherUid = participants.find(id => id !== uid);
       if (!otherUid || otherUid === uid) return false;
 
-      // If role fields exist, they must refer to the same two participants.
-      const ownerId = String(conv.ownerId || '').trim();
-      const adopterId = String(conv.adopterId || '').trim();
+      const ownerId = String(conv.ownerId || conv.owner_id || '').trim();
+      const adopterId = String(conv.adopterId || conv.adopter_id || '').trim();
 
+      // When both role fields exist, they must match the actual participant pair.
       if (ownerId && adopterId) {
         const roleUsers = [ownerId, adopterId].sort();
         const participantUsers = [uid, otherUid].sort();
-
-        if (
-          roleUsers.length !== 2 ||
-          roleUsers[0] !== participantUsers[0] ||
-          roleUsers[1] !== participantUsers[1]
-        ) {
-          return false;
-        }
+        if (roleUsers[0] !== participantUsers[0] || roleUsers[1] !== participantUsers[1]) return false;
       }
 
-      // Empty conversation documents are hidden, but one-sided real chats
-      // are still valid and must remain visible.
+      // Important legacy-data guard: if the current pet record identifies its
+      // owner, only show a conversation that includes that owner. This prevents
+      // stale conversations for the same pet but an old/incorrect owner UID
+      // from appearing as extra chats. We do not merge or delete their history.
+      const canonicalOwnerId = await getCanonicalPetOwnerId(conv);
+      if (canonicalOwnerId && canonicalOwnerId !== uid && !participants.includes(canonicalOwnerId)) {
+        return false;
+      }
+
+      // Keep real conversations only; a single message is sufficient.
       return await hasRealChatMessage(doc.id);
     }
 
