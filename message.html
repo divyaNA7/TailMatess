@@ -1506,21 +1506,67 @@
       if (!petIdValue) return '';
       if (petOwnerLookupCache.has(petIdValue)) return petOwnerLookupCache.get(petIdValue);
 
+      const extractOwnerId = value => {
+        if (!value || typeof value !== 'object') return '';
+        return String(
+          value.listerId || value.lister_id || value.ownerId || value.owner_id ||
+          value.ownerUid || value.owner_uid || value.userId || value.user_id || ''
+        ).trim();
+      };
+
       let ownerId = '';
+
+      // First check Firestore. Newer accounts may store a pet at /pets/{petId}.
       try {
-        const petSnap = await db.collection('pets').doc(petIdValue).get();
-        if (petSnap.exists) {
-          const pet = petSnap.data() || {};
-          ownerId = String(
-            pet.listerId || pet.ownerId || pet.owner_id || pet.ownerUid ||
-            pet.owner_uid || pet.userId || pet.user_id || ''
-          ).trim();
+        let petSnap = await db.collection('pets').doc(petIdValue).get();
+        if (!petSnap.exists && /^\d+$/.test(petIdValue)) {
+          const byPetId = await db.collection('pets')
+            .where('pet_id', '==', Number(petIdValue)).limit(1).get();
+          if (!byPetId.empty) petSnap = byPetId.docs[0];
         }
+        if (petSnap && petSnap.exists) ownerId = extractOwnerId(petSnap.data() || {});
       } catch (e) {
-        // Some older listings may be stored outside Firestore's pets collection.
-        // In that case, fall back to the conversation's saved role fields.
-        console.warn('Could not resolve canonical pet owner for inbox validation:', petIdValue, e);
+        console.warn('Firestore pet owner lookup failed for inbox validation:', petIdValue, e);
       }
+
+      // TailMates' existing pet-registration flow primarily stores listings in
+      // Realtime Database. Resolve legacy records there too; otherwise the
+      // inbox cannot tell the real owner from an old conversation with a stale UID.
+      if (!ownerId && rtdb) {
+        try {
+          const direct = await rtdb.ref(petIdValue).once('value');
+          if (direct.exists()) ownerId = extractOwnerId(direct.val());
+        } catch (e) {
+          console.warn('RTDB root pet owner lookup failed:', petIdValue, e);
+        }
+
+        if (!ownerId) {
+          try {
+            const nested = await rtdb.ref('pets/' + petIdValue).once('value');
+            if (nested.exists()) ownerId = extractOwnerId(nested.val());
+          } catch (e) {
+            console.warn('RTDB nested pet owner lookup failed:', petIdValue, e);
+          }
+        }
+
+        if (!ownerId && /^\d+$/.test(petIdValue)) {
+          for (const ref of [rtdb.ref('/'), rtdb.ref('pets')]) {
+            try {
+              const byPetId = await ref.orderByChild('pet_id')
+                .equalTo(Number(petIdValue)).limitToFirst(1).once('value');
+              if (byPetId.exists()) {
+                byPetId.forEach(child => {
+                  if (!ownerId) ownerId = extractOwnerId(child.val());
+                });
+              }
+            } catch (e) {
+              console.warn('RTDB pet_id owner lookup failed:', petIdValue, e);
+            }
+            if (ownerId) break;
+          }
+        }
+      }
+
       petOwnerLookupCache.set(petIdValue, ownerId);
       return ownerId;
     }
@@ -1594,17 +1640,19 @@
         const members = Array.isArray(data.participants)
           ? data.participants.map(String).filter(Boolean).sort()
           : [];
-        // Legacy versions may create separate conversation documents for the
-        // same participants and pet using different ID formats (e.g. "1" and
-        // "pet_1"). Prefer normalized pet name, falling back to normalized ID.
+        // Collapse true duplicate documents only: same two UIDs and same pet ID.
+        // Do not use pet name as the primary key because different pets can share
+        // a name. Normalize legacy IDs such as "2" and "pet_2" to the same key.
         const normalizeChatKey = value => String(value || '')
           .trim()
           .toLowerCase()
           .replace(/^pet[_-]+/, '')
           .replace(/[^a-z0-9]+/g, '');
+        const normalizedPetId = normalizeChatKey(data.petId);
         const normalizedPetName = normalizeChatKey(data.petName);
-        const normalizedPetId = normalizeChatKey(data.petId || doc.id);
-        const petKey = normalizedPetName ? `name:${normalizedPetName}` : `id:${normalizedPetId}`;
+        const petKey = normalizedPetId
+          ? `id:${normalizedPetId}`
+          : (normalizedPetName ? `name:${normalizedPetName}` : `doc:${doc.id}`);
         const key = `${members.join('::')}::${petKey}`;
         if (seenConversationKeys.has(key)) continue;
         seenConversationKeys.add(key);
