@@ -1396,8 +1396,16 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
           { v: 'large', l: 'Large', d: 'Larger-sized cats' },
           { v: 'no-preference', l: 'No preference', d: 'Open to any cat size' }
         ] };
+      } else if (species === 'any') {
+        q = { ...baseQ, t: 'What size or weight range do you prefer?', opts: [
+          { v: 'tiny', l: 'Tiny', d: 'Very small companions' },
+          { v: 'small', l: 'Small', d: 'Small-sized companions' },
+          { v: 'medium', l: 'Medium', d: 'Medium-sized companions' },
+          { v: 'large', l: 'Large', d: 'Large-sized companions' },
+          { v: 'no-preference', l: 'No preference', d: 'Let PawMate decide' }
+        ] };
       } else {
-        q = { ...baseQ, t: 'What size pet are you comfortable with?', opts: [
+        q = { ...baseQ, t: `What size ${species.toLowerCase()} are you comfortable with?`, opts: [
           { v: 'tiny', l: 'Tiny', d: 'Very small pets' },
           { v: 'small', l: 'Small', d: 'Small-sized pets' },
           { v: 'medium', l: 'Medium', d: 'Medium-sized pets' },
@@ -1454,6 +1462,8 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
           // Q5 and Q9 glitches are avoided by keeping all values as strings
           // and using the question's option index instead of inline onclick code.
           ans[qid]=value;
+          // A changed species can make a previously selected Q8 size/weight invalid.
+          if (qid === 'sp') delete ans.sz;
 
           // Update the radio selection in place. Re-rendering the entire card
           // here caused the question to visibly glitch/animate after every click.
@@ -1506,59 +1516,77 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
   }
 
   function score(p) {
-    let s=0;
-    const max=107; // 15+10+10+10+10+10+10+10+12+10 = 107
+    const meta = petMeta.get(String(p[0])) || {};
+    const raw = meta.raw || {};
+    const normalizeSpecies = value => cleanString(value).trim().toLowerCase();
+    const chosenSpecies = normalizeSpecies(ans.sp);
+    const petSpecies = normalizeSpecies(p[2]);
 
-    // "Surprise Me" keeps every species eligible and treats species as neutral,
-    // while preserving the species factor's weight in the compatibility score.
-    if(ans.sp === 'any') s += 15;
-    else if(ans.sp && p[2]===ans.sp) s+=15;
+    // A chosen species is a core requirement. Only Surprise Me can rank across species.
+    if (chosenSpecies && chosenSpecies !== 'any' && chosenSpecies !== petSpecies) return 0;
 
-    // Do NOT eliminate pets here. Every Firebase pet must be scored.
-    // Kid/pet friendliness is treated as a compatibility factor instead of
-    // a hard filter, so one answer cannot remove most of the database.
-    if(ans.ki==='yes') {
-      if(p[10]) s+=10;
-      else s+=2;
+    let earned = 0;
+    let available = 0;
+    const factor = (points, value, possible=true) => {
+      if (!possible) return;
+      available += points;
+      earned += points * Math.max(0, Math.min(1, value));
+    };
+    const hasField = (...keys) => keys.some(k => Object.prototype.hasOwnProperty.call(raw, k) && raw[k] !== null && raw[k] !== '');
+
+    // Species: the requested species receives full credit; Surprise Me is neutral.
+    factor(25, chosenSpecies === 'any' ? 1 : (chosenSpecies === petSpecies ? 1 : 0));
+
+    // Safety compatibility: a known incompatibility lowers ranking substantially.
+    const hasKidsInfo = hasField('good_with_kids','goodWithKids');
+    if (ans.ki === 'yes' && hasKidsInfo) factor(10, p[10] ? 1 : 0.15);
+    else if (ans.ki === 'no') factor(10, 1);
+
+    const hasOtherPetsInfo = hasField('good_with_other_pets','goodWithOtherPets');
+    if (ans.op === 'yes' && hasOtherPetsInfo) factor(10, p[11] ? 1 : 0.15);
+    else if (ans.op === 'no') factor(10, 1);
+
+    // Daily care, activity and grooming each use the same L/M/H scale.
+    if (ans.cl) factor(10, hasField('care_level') ? (lvDist(p[6], ans.cl) === 0 ? 1 : lvDist(p[6], ans.cl) === 1 ? 0.55 : 0.1) : 0.5);
+    if (ans.bu) {
+      const budget = Number(ans.bu), cost = Number(p[7]);
+      factor(10, !hasField('avg_monthly_cost_inr','monthly_cost','cost') ? 0.5 : cost <= budget ? 1 : cost <= budget * 1.2 ? 0.5 : 0.05);
     }
-    if(ans.op==='yes') {
-      if(p[11]) s+=10;
-      else s+=2;
-    }
-    if(ans.cl) { const d=lvDist(p[6],ans.cl); s+=d===0?10:d===1?5:0; }
-    if(ans.bu) {
-      const b=Number(ans.bu);
-      if(Number(p[7])<=b) s+=10;
-      else if(Number(p[7])<=b+1500) s+=5;
-    }
-    if(ans.ex) { const d=lvDist(p[8],ans.ex); s+=d===0?10:d===1?5:0; }
-    if(ans.gr) { const d=lvDist(p[9],ans.gr); s+=d===0?10:d===1?5:0; }
-    if(ans.sz && ans.sz !== 'no-preference') {
-      const weightKg = Number(p[4]) || 0;
+    if (ans.ex) factor(8, hasField('exercise_needs') ? (lvDist(p[8], ans.ex) === 0 ? 1 : lvDist(p[8], ans.ex) === 1 ? 0.55 : 0.1) : 0.5);
+    if (ans.gr) factor(8, hasField('grooming_needs') ? (lvDist(p[9], ans.gr) === 0 ? 1 : lvDist(p[9], ans.gr) === 1 ? 0.55 : 0.1) : 0.5);
+
+    // Question 8: chameleons are compared in grams; other species use weight categories.
+    if (ans.sz && ans.sz !== 'no-preference') {
+      let fits = false;
       if (String(ans.sz).startsWith('cham-')) {
-        // Firebase pet weights are expected in kilograms; convert to grams for chameleon ranges.
-        const grams = weightKg * 1000;
-        const fits = ans.sz === 'cham-under-50g' ? grams < 50
+        const grams = (Number(p[4]) || 0) * 1000;
+        fits = ans.sz === 'cham-under-50g' ? grams < 50
           : ans.sz === 'cham-50-100g' ? grams >= 50 && grams <= 100
           : ans.sz === 'cham-101-200g' ? grams > 100 && grams <= 200
           : grams > 200;
-        if (fits) s += 10;
       } else {
-        const sc=szCat(weightKg);
-        if(sc===ans.sz) s+=10;
-        else if((sc==='small'&&ans.sz==='tiny')||(sc==='medium'&&ans.sz==='small')||(sc==='large'&&ans.sz==='medium')) s+=5;
+        const category = szCat(p[4]);
+        fits = category === ans.sz ||
+          (ans.sp === 'Dog' && ans.sz === 'large' && category === 'large') ||
+          (ans.sp === 'Cat' && ans.sz === 'large' && category === 'large');
       }
-    } else if (ans.sz === 'no-preference') s += 10;
-    if(Array.isArray(ans.tp)) {
-      const pt=cleanString(p[12]).toLowerCase();
-      ans.tp.forEach(t=>{if(pt.includes(cleanString(t).toLowerCase())) s+=4;});
+      factor(7, hasField('weight_kg','weight') ? (fits ? 1 : 0.15) : 0.5);
+    } else if (ans.sz === 'no-preference') factor(7, 1);
+
+    if (Array.isArray(ans.tp) && ans.tp.length) {
+      const temperament = cleanString(p[12]).toLowerCase();
+      const matched = ans.tp.filter(t => temperament.includes(cleanString(t).toLowerCase())).length;
+      factor(7, hasField('temperament') ? matched / ans.tp.length : 0.5);
     }
-    if(ans.lf) {
-      const lc=lfCat(p[5]);
-      if(lc===ans.lf) s+=10;
-      else if((lc==='short'&&ans.lf==='medium')||(lc==='medium'&&ans.lf==='long')) s+=5;
+
+    if (ans.lf) {
+      const lifeCategory = lfCat(p[5]);
+      const fit = lifeCategory === ans.lf ? 1 :
+        ((lifeCategory === 'short' && ans.lf === 'medium') || (lifeCategory === 'medium' && ans.lf === 'long') || (lifeCategory === 'medium' && ans.lf === 'short') || (lifeCategory === 'long' && ans.lf === 'medium')) ? 0.5 : 0.1;
+      factor(5, hasField('lifespan_years','lifespan') ? fit : 0.5);
     }
-    return Math.max(0,Math.min(100,Math.round(s/max*100)));
+
+    return available ? Math.round((earned / available) * 100) : 0;
   }
 
   function getPetImage(p) {
@@ -1583,9 +1611,10 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
 
   function getMatchReasons(p) {
     const reasons = [];
-    if (ans.sp && p[2] === ans.sp) reasons.push(`${p[2]} lover`);
-    if (ans.ki === 'yes' && p[10]) reasons.push('Kid friendly');
-    if (ans.op === 'yes' && p[11]) reasons.push('Pet friendly');
+    if (ans.sp === 'any') reasons.push('Surprise Me pick');
+    else if (ans.sp && p[2] === ans.sp) reasons.push(`${p[2]} match`);
+    if (ans.ki === 'yes') reasons.push(p[10] ? 'Kid friendly' : 'Check child compatibility');
+    if (ans.op === 'yes') reasons.push(p[11] ? 'Pet friendly' : 'Check pet compatibility');
     if (ans.cl && lvDist(p[6], ans.cl) === 0) reasons.push('Care fits');
     if (ans.bu && Number(p[7]) <= Number(ans.bu)) reasons.push('Budget fit');
     if (ans.ex && lvDist(p[8], ans.ex) === 0) reasons.push('Activity fit');
@@ -1608,13 +1637,13 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     // The UI shows the best 5 so the page stays manageable, but the
     // matching engine evaluates the complete database first.
     const rankedAll = source.map(p => ({p, sc:score(p)}))
-      .sort((a,b) => b.sc - a.sc);
+      .sort((a,b) => b.sc - a.sc || cleanString(a.p[1]).localeCompare(cleanString(b.p[1])));
     const ranked = rankedAll.slice(0,5);
 
     let out = `<div class="res">
       <div class="result-title">
         <h3><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:8px"></i>Your Matches</h3>
-        <p>Meet the pets that best fit your lifestyle and preferences.</p>
+        <p>Ranked using your preferences and the pet details available in Firebase.</p>
       </div>`;
 
     if (!ranked.length) {
@@ -1627,7 +1656,7 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
       const ownerId = meta.ownerId || '';
       const messageUrl = buildMessageUrl(p, top.sc);
       const reasons = getMatchReasons(p);
-      const topReasons = reasons.length ? reasons : ['Lifestyle compatibility', 'Great overall fit', 'Recommended for you'];
+      const topReasons = reasons.length ? reasons : ['Overall preference score', 'Review the pet profile'];
 
       out += `<section class="featured-match">
         <div class="featured-photo">
@@ -1640,7 +1669,7 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
           <div class="featured-breed">${escapeHtml(p[3])} · ${escapeHtml(p[2])}</div>
           <div class="score-row">
             <div class="score-ring" style="--score:${top.sc}"><span>${top.sc}%</span></div>
-            <div class="score-copy"><strong>Excellent compatibility</strong><span>Based on your PawMate answers</span></div>
+            <div class="score-copy"><strong>${top.sc >= 80 ? 'Strong compatibility' : top.sc >= 60 ? 'Good potential match' : 'Review compatibility carefully'}</strong><span>Based on your PawMate answers</span></div>
           </div>
           <div class="why-title">Why this match?</div>
           <div class="why-chips">${topReasons.map(x=>`<span class="why-chip"><i class="fa-solid fa-check"></i>${escapeHtml(x)}</span>`).join('')}</div>
