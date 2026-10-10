@@ -473,15 +473,14 @@
     .featured-stats .mini-stat { min-width:0; padding:9px 5px; border-radius:10px; text-align:center; background:rgba(255,255,255,.035); border:1px solid var(--border); }
     .featured-stats .mini-stat strong { display:block; font-size:.78rem; overflow-wrap:anywhere; }
     .featured-stats .mini-stat span { display:block; color:var(--text-dim); font-size:.62rem; margin-top:3px; }
-    .assessment { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin:0 0 16px; }
+    .assessment { display:grid; grid-template-columns:1fr; gap:9px; margin:0 0 16px; }
     .assessment-box { border:1px solid var(--border); background:rgba(0,0,0,.13); border-radius:11px; padding:10px; }
     .assessment-box h5 { font-size:.69rem; margin:0 0 6px; }
     .assessment-box ul { list-style:none; padding:0; margin:0; display:grid; gap:5px; }
     .assessment-box li { color:var(--text-dim); font-size:.68rem; line-height:1.35; }
-    .assessment-box.good h5,.assessment-box.good li::before { color:var(--primary); }
-    .assessment-box.lacking h5,.assessment-box.lacking li::before { color:#ffb86b; }
+    .assessment-box.gap h5,.assessment-box.gap li::before { color:#ffb86b; }
     .assessment-box li::before { content:'• '; font-weight:900; }
-    @media(max-width:600px){.assessment{grid-template-columns:1fr}.featured-stats .mini-stat strong{font-size:.7rem}}
+    @media(max-width:600px){.featured-stats .mini-stat strong{font-size:.7rem}}
     .featured-actions { display:flex; gap:9px; flex-wrap:wrap; }
     .featured-actions .message-btn { padding:10px 17px; }
     .matches-label { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:24px 0 12px; }
@@ -1624,8 +1623,8 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
 
   function getMatchReasons(p) {
     const reasons = [];
-    if (ans.sp === 'any') reasons.push('Surprise Me pick');
-    else if (ans.sp && p[2] === ans.sp) reasons.push(`${p[2]} match`);
+    // Show only concrete preference matches; never show a selected-answer label as a reason.
+    if (ans.sp && ans.sp !== 'any' && p[2] === ans.sp) reasons.push('Preferred species');
     if (ans.ki === 'yes') reasons.push(p[10] ? 'Kid friendly' : 'Check child compatibility');
     if (ans.op === 'yes') reasons.push(p[11] ? 'Pet friendly' : 'Check pet compatibility');
     if (ans.cl && lvDist(p[6], ans.cl) === 0) reasons.push('Care fits');
@@ -1703,7 +1702,7 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
       const ownerId = meta.ownerId || '';
       const messageUrl = buildMessageUrl(p, top.sc);
       const reasons = getMatchReasons(p);
-      const topReasons = reasons.length ? reasons : ['Overall preference score', 'Review the pet profile'];
+      const topReasons = reasons.filter(x => !/surprise me|match$/i.test(x)).slice(0,5);
       const assessment = getTopAssessment(p);
       const topKg = Number(p[4]) < 1 ? `${(Number(p[4])*1000).toFixed(0)} g` : `${Number(p[4]).toFixed(1)} kg`;
       const topLife = Number(p[5]) ? `${Number(p[5])} yrs` : 'Not listed';
@@ -1729,10 +1728,9 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
           </div>
           <div class="why-title">Why this match?</div>
           <div class="why-chips">${topReasons.map(x=>`<span class="why-chip"><i class="fa-solid fa-check"></i>${escapeHtml(x)}</span>`).join('')}</div>
-          <div class="assessment">
-            <div class="assessment-box good"><h5>What fits</h5><ul>${assessment.good.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul></div>
-            <div class="assessment-box lacking"><h5>What may be lacking</h5><ul>${assessment.lacking.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul></div>
-          </div>
+          ${top.sc < 100 ? `<div class="assessment">
+            <div class="assessment-box gap"><h5>Why not 100%?</h5><ul>${assessment.lacking.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul></div>
+          </div>` : ''}
           <div class="featured-actions">
             ${ownerId ? `<a class="message-btn" href="${escapeHtml(messageUrl)}"><i class="fa-solid fa-message"></i> Message Owner</a>` : `<span class="message-btn disabled"><i class="fa-solid fa-user-slash"></i> Owner unavailable</span>`}
           </div>
