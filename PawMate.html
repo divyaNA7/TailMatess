@@ -369,6 +369,14 @@
       margin-top: 2px;
       display: block;
     }
+    .opt.surprise-option {
+      border-color: rgba(0, 245, 255, 0.24);
+      background: linear-gradient(110deg, rgba(0, 245, 255, 0.045), rgba(168, 85, 247, 0.07));
+    }
+    .opt.surprise-option .surprise-icon {
+      color: var(--primary);
+      margin-right: 7px;
+    }
 
     .btns {
       display: flex;
@@ -1131,7 +1139,8 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
         { v: 'Hamster', l: 'Hamster', d: 'Small, low-maintenance pets' },
         { v: 'Rabbit', l: 'Rabbit', d: 'Gentle, social fluffballs' },
         { v: 'Hedgehog', l: 'Hedgehog', d: 'Unique, quiet nocturnal friends' },
-        { v: 'Chameleon', l: 'Chameleon', d: 'Fascinating, observational pets' }
+        { v: 'Chameleon', l: 'Chameleon', d: 'Fascinating, observational pets' },
+        { v: 'any', l: 'Surprise Me', d: 'Discover your perfect companion across all pet types' }
       ]
     },
     { id: 'ki', t: 'Do you have children at home?', type: 's',
@@ -1369,7 +1378,8 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     q.opts.forEach((o,index)=>{
       const value=cleanString(o.v);
       const selected=q.type==='m' ? sel.includes(value) : cleanString(sel)===value;
-      out+=`<button type="button" class="opt ${selected?'sel':''}" data-index="${index}" data-qid="${escapeHtml(q.id)}">
+      const surpriseOption = q.id === 'sp' && value === 'any';
+      out+=`<button type="button" class="opt ${selected?'sel':''} ${surpriseOption?'surprise-option':''}" data-index="${index}" data-qid="${escapeHtml(q.id)}">
         <div class="${q.type==='m'?'cb':'rd'}"></div><div>
         <span class="opt-label">${escapeHtml(o.l)}</span>
         ${o.d?`<span class="opt-desc">${escapeHtml(o.d)}</span>`:''}
@@ -1462,7 +1472,10 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     let s=0;
     const max=107; // 15+10+10+10+10+10+10+10+12+10 = 107
 
-    if(ans.sp && p[2]===ans.sp) s+=15;
+    // "Surprise Me" keeps every species eligible and treats species as neutral,
+    // while preserving the species factor's weight in the compatibility score.
+    if(ans.sp === 'any') s += 15;
+    else if(ans.sp && p[2]===ans.sp) s+=15;
 
     // Do NOT eliminate pets here. Every Firebase pet must be scored.
     // Kid/pet friendliness is treated as a compatibility factor instead of
