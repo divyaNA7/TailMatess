@@ -1226,6 +1226,10 @@
   };
 
   let db, auth, rtdb, currentUser, conversationId, unsubMessages;
+  // Every tab has its own active conversation; generation counters stop stale
+  // async work from one selected chat repainting or mutating another chat.
+  let messagesListenerGeneration = 0;
+  let activeChatGeneration = 0;
   let firebaseReady = false;
   let petId = '';
   let petName = '';
@@ -1545,6 +1549,8 @@
     // Do this before the pet-link/inbox logic so old chats never try to
     // recreate a conversation from pet metadata.
     if (rawConversationId) {
+      // Initialise the inbox listener too, but preserve the requested chat pane.
+      await loadMyConversations({ preserveCurrentChat: true });
       await initExistingConversation(rawConversationId);
       const layout = document.getElementById('messenger-layout');
       if (layout) layout.classList.add('chat-open');
@@ -1568,33 +1574,38 @@
     }
 
     await initSingleChat();
+    // A pet-link opens one thread but should still load the user's other chats
+    // in the left inbox. Do not reset the active messages pane.
+    await loadMyConversations({ preserveCurrentChat: true });
     const layout = document.getElementById('messenger-layout');
     if (layout) layout.classList.add('chat-open');
   });
 
   let unsubInboxParticipants = null;
 
-  async function loadMyConversations() {
-    document.title = 'My Chats | TailMates';
+  async function loadMyConversations(options = {}) {
+    const preserveCurrentChat = options.preserveCurrentChat === true;
+    if (!preserveCurrentChat) document.title = 'My Chats | TailMates';
     const headerName = document.getElementById('header-name');
     const headerStatus = document.getElementById('header-status');
     const inputArea = document.getElementById('input-area');
     const inboxList = document.getElementById('inbox-list');
     const layout = document.getElementById('messenger-layout');
 
-    if (headerName) headerName.textContent = 'Select a chat';
-    if (headerStatus) headerStatus.textContent = 'Your conversations';
-    if (inputArea) inputArea.style.display = 'none';
+    if (!preserveCurrentChat) {
+      if (headerName) headerName.textContent = 'Select a chat';
+      if (headerStatus) headerStatus.textContent = 'Your conversations';
+      if (inputArea) inputArea.style.display = 'none';
 
-    chatMessages.innerHTML = `
-      <div class="chat-pane-empty">
-        <div class="empty-icon"><i class="fa-solid fa-comments"></i></div>
-        <h3>Your messages</h3>
-        <p>Select a conversation from the left to continue chatting. Only people you have actually chatted with will appear here.</p>
-      </div>`;
-    chatMessages.style.display = 'flex';
-
-    if (layout) layout.classList.remove('chat-open');
+      chatMessages.innerHTML = `
+        <div class="chat-pane-empty">
+          <div class="empty-icon"><i class="fa-solid fa-comments"></i></div>
+          <h3>Your messages</h3>
+          <p>Select a conversation from the left to continue chatting. Conversations stay separate for each pet and participant pair.</p>
+        </div>`;
+      chatMessages.style.display = 'flex';
+      if (layout) layout.classList.remove('chat-open');
+    }
 
     if (unsubInboxParticipants) {
       unsubInboxParticipants();
@@ -1623,7 +1634,11 @@
         : [];
       const otherUid = participants.find(id => id !== String(currentUser.uid)) || '';
 
-      let name = conv.ownerName || conv.adopterName || 'User';
+      const currentUid = String(currentUser && currentUser.uid || '');
+      const isCurrentOwner = String(conv.ownerId || conv.owner_id || '') === currentUid;
+      let name = isCurrentOwner
+        ? (conv.adopterName || 'User')
+        : (conv.ownerName || conv.adopterName || 'User');
       let avatar = conv.petImage || 'https://ui-avatars.com/api/?name=User&background=random';
 
       try {
@@ -1804,17 +1819,18 @@
         const members = Array.isArray(data.participants)
           ? data.participants.map(String).filter(Boolean).sort()
           : [];
-        // Legacy versions may create separate conversation documents for the
-        // same participants and pet using different ID formats (e.g. "1" and
-        // "pet_1"). Prefer normalized pet name, falling back to normalized ID.
-        const normalizeChatKey = value => String(value || '')
+        // Distinguish threads by participant pair AND pet identity. Pet names
+        // are not unique (two different animals can both be named Luna), so
+        // never use a name when a petId is available.
+        const normalizeChatName = value => String(value || '')
           .trim()
           .toLowerCase()
-          .replace(/^pet[_-]+/, '')
           .replace(/[^a-z0-9]+/g, '');
-        const normalizedPetName = normalizeChatKey(data.petName);
-        const normalizedPetId = normalizeChatKey(data.petId || doc.id);
-        const petKey = normalizedPetName ? `name:${normalizedPetName}` : `id:${normalizedPetId}`;
+        const normalizedPetId = normalizePetIdentity(data.petId || '');
+        const normalizedPetName = normalizeChatName(data.petName);
+        const petKey = normalizedPetId
+          ? `id:${normalizedPetId}`
+          : (normalizedPetName ? `legacy-name:${normalizedPetName}` : `doc:${doc.id}`);
         const key = `${members.join('::')}::${petKey}`;
         if (seenConversationKeys.has(key)) continue;
         seenConversationKeys.add(key);
@@ -1849,12 +1865,13 @@
           : Number((conv.unread && conv.unread[currentUser.uid]) || 0);
         const time = formatInboxTime(conv.lastMessageTime);
         const preview = conv.lastMessage || 'Start chatting';
-        const petLabel = conv.petName ? ` · ${conv.petName}` : '';
+        const petDetails = [conv.petName, conv.petBreed].map(v => String(v || '').trim()).filter(Boolean);
+        const petLabel = petDetails.length ? ` · ${petDetails.join(' · ')}` : '';
 
         const item = document.createElement('div');
         item.className = 'inbox-chat' + (conversationId === doc.id ? ' active' : '');
         item.dataset.conversationId = doc.id;
-        item.dataset.search = `${person.name} ${conv.petName || ''} ${preview}`.toLowerCase();
+        item.dataset.search = `${person.name} ${conv.petName || ''} ${conv.petBreed || ''} ${conv.petId || ''} ${preview}`.toLowerCase();
 
         item.innerHTML = `
           <img class="inbox-avatar" src="${escapeHtml(person.avatar)}" alt="">
@@ -1908,6 +1925,8 @@
 
     async function openConversationFromInbox(id, conv, person) {
       if (!currentUser || !id) return;
+      const openGeneration = ++activeChatGeneration;
+      const selectedId = String(id);
 
       // The inbox renderer has already verified that this is a real chat.
       // Open the EXISTING Firestore conversation directly by its document ID.
@@ -1927,13 +1946,15 @@
           return;
         }
       }
+      if (openGeneration !== activeChatGeneration) return;
 
       if (unsubMessages) {
         unsubMessages();
         unsubMessages = null;
       }
+      messagesListenerGeneration++;
 
-      conversationId = String(id);
+      conversationId = selectedId;
       conversationOwnerId = String(conv.ownerId || '').trim();
       adoptionApproved = conv.adoptionApproved === true;
 
@@ -2031,10 +2052,11 @@
       // Clear the current user's unread count as soon as this conversation is
       // opened. This is separate from marking individual incoming messages read.
       try {
-        await db.collection('conversations').doc(id).update({
+        await db.collection('conversations').doc(selectedId).update({
           [`unread.${currentUser.uid}`]: 0
         });
-        const cached = conversationMap.get(String(id));
+        if (openGeneration !== activeChatGeneration || String(conversationId) !== selectedId) return;
+        const cached = conversationMap.get(selectedId);
         if (cached && typeof cached.data === 'function') {
           // Keep the in-memory snapshot's data from repainting a stale badge.
           const cachedData = cached.data();
@@ -2044,6 +2066,7 @@
         console.warn('Could not clear conversation unread count:', e);
       }
 
+      if (openGeneration !== activeChatGeneration || String(conversationId) !== selectedId) return;
       loadMessagesFromFirebase();
     }
 
@@ -2083,6 +2106,8 @@
   }
 
   function closeInboxChat() {
+    activeChatGeneration++;
+    messagesListenerGeneration++;
     const layout = document.getElementById('messenger-layout');
     if (layout) layout.classList.remove('chat-open');
     if (unsubMessages) {
@@ -2179,14 +2204,16 @@
   }
 
   async function initSingleChat() {
+    const chatGeneration = ++activeChatGeneration;
     const headerName = document.getElementById('header-name');
     if (headerName) headerName.textContent = petOwnerName || 'Pet Parent';
     document.title = `Chat - ${petName} | TailMates`;
 
     const id = await getOrCreateConversation();
-    if (!id) return;
+    if (!id || chatGeneration !== activeChatGeneration || String(conversationId) !== String(id)) return;
 
     await loadOtherUserProfile();
+    if (chatGeneration !== activeChatGeneration || String(conversationId) !== String(id)) return;
     loadMessagesFromFirebase();
   }
 
@@ -2211,70 +2238,136 @@
     document.getElementById('chat-messages').style.display = 'none';
   }
 
+  // Treat numeric legacy pet IDs like "pet_2" and "2" as the same pet, but
+  // preserve case and punctuation in all other IDs to avoid merging different pets.
+  function normalizePetIdentity(value) {
+    let raw = String(value == null ? '' : value).trim();
+    try { raw = decodeURIComponent(raw); } catch (_) {}
+    if (/^pet[_-]\d+$/i.test(raw)) raw = raw.replace(/^pet[_-]/i, '');
+    return raw;
+  }
+
+  // encodeURIComponent leaves underscores untouched. Encode them too because
+  // underscores are our document-ID separators; this prevents pair collisions.
+  function encodeConversationPart(value) {
+    return encodeURIComponent(String(value == null ? '' : value)).replace(/_/g, '%5F');
+  }
+
+  function buildConversationDocumentId(targetPetId, participantIds) {
+    return 'pet_' + encodeConversationPart(normalizePetIdentity(targetPetId)) + '_' +
+      participantIds.map(encodeConversationPart).join('_');
+  }
+
+  function getConversationSortTime(data) {
+    const val = data && (data.lastMessageTime || data.createdAt || data.updatedAt);
+    if (!val) return 0;
+    if (typeof val.toMillis === 'function') return val.toMillis();
+    if (typeof val.toDate === 'function') return val.toDate().getTime();
+    if (val instanceof Date) return val.getTime();
+    if (typeof val === 'number') return val;
+    const parsed = Date.parse(String(val));
+    return Number.isNaN(parsed) ? 0 : parsed;
+  }
+
   async function getOrCreateConversation() {
-    if (!currentUser || !db || !otherUserId || otherUserId === currentUser.uid || !petId) {
-      return null;
-    }
+    const uid = String(currentUser && currentUser.uid || '').trim();
+    const ownerId = String(otherUserId || '').trim();
+    const targetPetId = String(petId || '').trim();
+    if (!uid || !db || !ownerId || ownerId === uid || !targetPetId) return null;
 
-    const participants = [currentUser.uid, otherUserId].sort();
-    conversationId = 'pet_' + encodeURIComponent(String(petId)) + '_' + participants.map(encodeURIComponent).join('_');
+    const participantIds = [...new Set([uid, ownerId])].sort();
+    if (participantIds.length !== 2) return null;
 
-    const convRef = db.collection('conversations').doc(conversationId);
-    const existing = await convRef.get().catch(() => null);
-
-    // This direct-chat path is opened from a pet listing, so the other user is
-    // the pet owner and the signed-in user is the adopter.
-    const ownerId = String(otherUserId).trim();
-    const adopterId = String(currentUser.uid).trim();
-    conversationOwnerId = ownerId;
+    const petIdentity = normalizePetIdentity(targetPetId);
+    const canonicalId = buildConversationDocumentId(petIdentity, participantIds);
 
     try {
-      if (existing && existing.exists) {
-        const data = existing.data() || {};
-        adoptionApproved = data.adoptionApproved === true;
-
-        // Never overwrite a known role with the person who is currently typing.
-        // The pet owner remains ownerId and the adopter remains adopterId.
-        const existingOwnerId = String(data.ownerId || '').trim();
-        const existingAdopterId = String(data.adopterId || '').trim();
-
-        if (existingOwnerId && existingOwnerId !== ownerId) {
-          console.warn('Stored ownerId differs from the pet record. Keeping the pet record owner:', ownerId);
-        }
-
-        await convRef.set({
-          participants,
-          ownerId,
-          adopterId: existingAdopterId || adopterId,
-          petId: String(petId),
-          petName,
-          petBreed,
-          petImage: petImg,
-          ownerName: petOwnerName || data.ownerName || 'Pet Parent',
-          adopterName: data.adopterName || currentUser.displayName || currentUser.email || 'Adopter'
-        }, { merge: true });
-      } else {
-        const conversationData = {
-          participants,
-          ownerId,
-          adopterId,
-          petId: String(petId),
-          petName,
-          petBreed,
-          petImage: petImg,
-          ownerName: petOwnerName || 'Pet Parent',
-          adopterName: currentUser.displayName || currentUser.email || 'Adopter',
-          adoptionApproved: false,
-          lastMessage: '',
-          lastSender: '',
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
-          unread: { [participants[0]]: 0, [participants[1]]: 0 }
-        };
-        await convRef.set(conversationData, { merge: true });
-        adoptionApproved = false;
+      // Reuse an existing thread for this exact pet + exact participant pair,
+      // even if an older version created it with a different document-ID format.
+      // This prevents repeat clicks/reloads from making parallel duplicate threads.
+      let matchingDocs = [];
+      try {
+        const candidateSnapshot = await db.collection('conversations')
+          .where('participants', 'array-contains', uid)
+          .get();
+        candidateSnapshot.forEach(doc => {
+          const data = doc.data() || {};
+          const participants = Array.isArray(data.participants)
+            ? [...new Set(data.participants.map(value => String(value).trim()).filter(Boolean))].sort()
+            : [];
+          if (participants.length !== 2 || participants[0] !== participantIds[0] || participants[1] !== participantIds[1]) return;
+          if (normalizePetIdentity(data.petId || '') !== petIdentity) return;
+          matchingDocs.push(doc);
+        });
+      } catch (queryError) {
+        // We still try the deterministic path below; the real error will be
+        // surfaced if neither a reusable thread nor a writable document exists.
+        console.warn('Could not search older conversations before creating:', queryError);
       }
 
+      matchingDocs.sort((a, b) => {
+        if (a.id === canonicalId) return -1;
+        if (b.id === canonicalId) return 1;
+        return getConversationSortTime(b.data() || {}) - getConversationSortTime(a.data() || {});
+      });
+
+      let targetConversationId = matchingDocs.length ? matchingDocs[0].id : canonicalId;
+      let convRef = db.collection('conversations').doc(targetConversationId);
+      let existing = await convRef.get().catch(() => null);
+
+      // Never overwrite a document that happens to have a colliding legacy ID.
+      const documentMatchesThread = snap => {
+        if (!snap || !snap.exists) return true;
+        const data = snap.data() || {};
+        const parts = Array.isArray(data.participants)
+          ? [...new Set(data.participants.map(value => String(value).trim()).filter(Boolean))].sort()
+          : [];
+        return parts.length === 2 && parts[0] === participantIds[0] && parts[1] === participantIds[1] &&
+          normalizePetIdentity(data.petId || '') === petIdentity;
+      };
+
+      if (existing && existing.exists && !documentMatchesThread(existing)) {
+        targetConversationId = 'chat_' + encodeConversationPart(petIdentity) + '__' +
+          participantIds.map(encodeConversationPart).join('__');
+        convRef = db.collection('conversations').doc(targetConversationId);
+        existing = await convRef.get().catch(() => null);
+        if (existing && existing.exists && !documentMatchesThread(existing)) {
+          throw new Error('A conversation ID collision was detected. No existing conversation was overwritten.');
+        }
+      }
+
+      conversationId = String(targetConversationId);
+      conversationOwnerId = ownerId;
+
+      const existingData = existing && existing.exists ? (existing.data() || {}) : {};
+      adoptionApproved = existingData.adoptionApproved === true;
+      const adopterRoleId = String(existingData.adopterId || '').trim();
+      const finalAdopterId = adopterRoleId && participantIds.includes(adopterRoleId) && adopterRoleId !== ownerId
+        ? adopterRoleId
+        : uid;
+
+      const conversationData = {
+        participants: participantIds,
+        ownerId,
+        adopterId: finalAdopterId,
+        petId: targetPetId,
+        petName: petName || existingData.petName || 'Pet',
+        petBreed: petBreed || existingData.petBreed || '',
+        petImage: petImg || existingData.petImage || '',
+        ownerName: petOwnerName || existingData.ownerName || 'Pet Parent',
+        adopterName: existingData.adopterName || currentUser.displayName || currentUser.email || 'Adopter',
+        lastMessage: existingData.lastMessage || '',
+        lastSender: existingData.lastSender || '',
+        lastMessageTime: existingData.lastMessageTime || firebase.firestore.FieldValue.serverTimestamp(),
+        unread: existingData.unread || { [participantIds[0]]: 0, [participantIds[1]]: 0 }
+      };
+
+      if (!existing || !existing.exists) {
+        conversationData.adoptionApproved = false;
+        conversationData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      }
+
+      await convRef.set(conversationData, { merge: true });
       updateApprovalButton();
       return conversationId;
     } catch (e) {
@@ -2399,26 +2492,35 @@
 
   function loadMessagesFromFirebase() {
     if (!conversationId || !currentUser) return;
-    if (unsubMessages) unsubMessages();
+    if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+    const targetConversationId = String(conversationId);
+    const targetUserId = String(currentUser.uid);
+    const listenerGeneration = ++messagesListenerGeneration;
+    const isCurrentListener = () =>
+      listenerGeneration === messagesListenerGeneration &&
+      String(conversationId || '') === targetConversationId &&
+      currentUser && String(currentUser.uid) === targetUserId;
 
     // Do NOT use orderBy('time') here.
     // Older TailMates messages may have been saved without the newer
     // `time` field. Firestore's orderBy would silently exclude those
     // older documents from the result.
     const msgsRef = db.collection('conversations')
-      .doc(conversationId)
+      .doc(targetConversationId)
       .collection('messages');
 
     unsubMessages = msgsRef.onSnapshot(snapshot => {
+      if (!isCurrentListener()) return;
       // Keep a clear distinction between an actually empty subcollection and
       // a render/read failure. This helps avoid a silently blank chat pane.
       console.info('[TailMates] Message snapshot received', {
-        conversationId,
+        conversationId: targetConversationId,
         messageCount: snapshot.size,
-        currentUser: currentUser && currentUser.uid
+        currentUser: targetUserId
       });
 
-      db.collection('conversations').doc(conversationId).get().then(conv => {
+      db.collection('conversations').doc(targetConversationId).get().then(conv => {
+        if (!isCurrentListener()) return;
         if (conv.exists) {
           const data = conv.data() || {};
           conversationOwnerId = data.ownerId || conversationOwnerId;
@@ -2692,11 +2794,13 @@
       }
 
       if (snapshot.empty) {
+        // A fresh conversation legitimately has no message documents until the
+        // first send. Treat this as a normal empty state, not a Firebase error.
         chatMessages.innerHTML = `
-          <div class="firebase-debug">
-            <strong>No message documents were returned for this chat.</strong><br>
-            Conversation: ${escapeHtml(conversationId)}<br>
-            Check that the messages shown in Firebase belong to this exact conversation document.
+          <div class="chat-pane-empty">
+            <div class="empty-icon"><i class="fa-solid fa-paw"></i></div>
+            <h3>Start the conversation</h3>
+            <p>Send a message about ${escapeHtml(petName || 'this pet')} to begin. This chat stays separate from other pets and other adopters.</p>
           </div>`;
         return;
       }
@@ -2720,22 +2824,26 @@
       }
 
     }, err => {
+      if (!isCurrentListener()) return;
       console.error("Messages error:", err);
 
       chatMessages.innerHTML = `
         <div class="firebase-debug">
           <strong>Could not load messages.</strong><br>
-          Conversation: ${escapeHtml(conversationId || '(none)')}<br>
+          Conversation: ${escapeHtml(targetConversationId || '(none)')}<br>
           ${escapeHtml(formatFirebaseError(err))}
         </div>`;
     });
   }
 
-  async function saveMessage(data) {
+  async function saveMessage(data, targetConversationId) {
     if (!db || !currentUser) throw new Error('Firebase user/session is not ready.');
-    await ensureConversationReady();
 
-    const convRef = db.collection('conversations').doc(String(conversationId));
+    let targetId = String(targetConversationId || '').trim();
+    if (!targetId) targetId = String(await ensureConversationReady() || conversationId || '').trim();
+    if (!targetId) throw new Error('Select a conversation before sending a message.');
+
+    const convRef = db.collection('conversations').doc(targetId);
     const currentConv = await convRef.get();
     if (!currentConv.exists) {
       throw new Error('This conversation was not found. Reopen the pet profile and start the chat again.');
@@ -2744,29 +2852,26 @@
     const conv = currentConv.data() || {};
     const uid = String(currentUser.uid);
     const participants = Array.isArray(conv.participants)
-      ? conv.participants.map(value => String(value).trim()).filter(Boolean)
+      ? [...new Set(conv.participants.map(value => String(value).trim()).filter(Boolean))]
       : [];
 
-    // Fail clearly rather than silently changing the membership of an existing
-    // private conversation. The participant array is the source of truth.
     if (participants.length !== 2 || !participants.includes(uid)) {
-      throw new Error('This account is not listed as a participant in this chat. Please open the chat from the pet listing again.');
+      throw new Error('This account is not listed as a participant in this chat. Please reopen the correct pet conversation.');
     }
 
     const recipientId = participants.find(value => value !== uid);
     if (!recipientId) throw new Error('The other participant account could not be identified.');
 
-    const ownerId = String(conv.ownerId || conversationOwnerId || '').trim();
-    const adopterId = String(conv.adopterId || '').trim();
-
-    // If legacy documents do not contain role metadata, infer it only when we
-    // have a reliable owner ID. Do not rewrite participants or role fields here.
-    if (ownerId && ownerId !== uid && ownerId !== recipientId) {
-      throw new Error('The saved pet owner does not match this conversation. Please contact support before sending.');
+    const ownerId = String(conv.ownerId || '').trim();
+    if (ownerId && !participants.includes(ownerId)) {
+      throw new Error('The saved pet owner does not match this conversation. No message was sent.');
     }
 
-    conversationOwnerId = ownerId || conversationOwnerId;
-    otherUserId = recipientId;
+    // Only update active-page role state if the user is still viewing this thread.
+    if (String(conversationId || '') === targetId) {
+      conversationOwnerId = ownerId || conversationOwnerId;
+      otherUserId = recipientId;
+    }
 
     const messagePayload = {
       ...data,
@@ -2778,9 +2883,8 @@
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    // Write the message first. Avoid a broad conversation metadata rewrite
-    // before sending: it can fail security rules and make a valid send appear
-    // to have failed, especially for newly registered accounts.
+    // Firestore is the only source of rendered message bubbles. A unique document
+    // per send prevents a client-side re-render from creating a visual duplicate.
     const msgRef = convRef.collection('messages').doc();
     await msgRef.set(messagePayload);
 
@@ -2789,22 +2893,17 @@
       data.type === 'system' ? String(data.text || 'System message') :
       data.live ? 'Live location' : 'Location';
 
-    // Conversation preview and unread counts are secondary metadata. Keep them
-    // separate from the message write so the saved message is not lost if a
-    // summary update is rejected by older rules or malformed legacy fields.
     try {
-      const update = {
+      await convRef.update({
         lastMessage,
         lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
         lastSender: uid,
         [`unread.${recipientId}`]: firebase.firestore.FieldValue.increment(1),
         [`unread.${uid}`]: 0
-      };
-      await convRef.update(update);
+      });
     } catch (metadataError) {
       console.warn('Message saved, but conversation preview/unread metadata could not be updated:', metadataError);
     }
-
     return msgRef;
   }
 
@@ -2818,27 +2917,27 @@
 
     messageSendInProgress = true;
     const btn = document.getElementById('send-btn');
+    const startingConversationId = String(conversationId || '');
+    const startingGeneration = activeChatGeneration;
+    let targetConversationId = startingConversationId;
     try {
       if (btn) btn.disabled = true;
 
-      await ensureConversationReady();
+      if (!targetConversationId) {
+        targetConversationId = String(await ensureConversationReady() || conversationId || '');
+        if (startingGeneration !== activeChatGeneration) {
+          throw new Error('The selected chat changed before the conversation was ready. Please press Send again in the intended chat.');
+        }
+      }
+      if (!targetConversationId) throw new Error('Select a conversation before sending a message.');
 
-      // Save the message and let the Firestore snapshot listener render it.
-      // Do not append an optimistic bubble here: the listener redraws the full
-      // history, so appending locally as well can make a sent message appear twice.
-      const msgRef = await saveMessage({
-        text,
-        type: 'text',
-        read: false
-      });
-
-      if (messageInput) {
+      const msgRef = await saveMessage({ text, type: 'text', read: false }, targetConversationId);
+      if (messageInput && messageInput.value.trim() === text) {
         messageInput.value = '';
         messageInput.style.height = 'auto';
-        messageInput.focus();
+        if (String(conversationId || '') === targetConversationId) messageInput.focus();
       }
-
-      if (msgRef) console.log('Message saved successfully:', msgRef.id);
+      if (msgRef) console.log('Message saved successfully:', targetConversationId, msgRef.id);
     } catch (e) {
       console.error('SEND MESSAGE ERROR:', e);
       const errorText = formatFirebaseError(e);
@@ -2958,20 +3057,20 @@
 
     try {
       if (btn) { btn.disabled = true; btn.textContent = 'Scheduling...'; }
-      await ensureConversationReady();
+      const meetupConversationId = String(await ensureConversationReady() || conversationId || '');
       await saveMessage({
         type: 'system',
         text: 'Meetup Scheduled',
         subtext: `${spot.name} - ${dateStr} at ${time}`,
         read: false,
         meetup: { spotName: spot.name, area: spot.area, date: dateVal, time }
-      });
+      }, meetupConversationId);
       await saveMessage({
         type: 'text',
         text: `Meetup scheduled at ${spot.name} on ${dateStr} at ${time}.`,
         read: false,
         meetup: { spotName: spot.name, area: spot.area, date: dateVal, time }
-      });
+      }, meetupConversationId);
 
       toggleMeetupPanel();
       selectedSpot = null; selectedTime = null;
@@ -3154,7 +3253,7 @@
 
     try {
       if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...'; }
-      await ensureConversationReady();
+      const locationConversationId = String(await ensureConversationReady() || conversationId || '');
       const ref = await saveMessage({
         type: 'location',
         lat: Number(loc.lat),
@@ -3163,7 +3262,7 @@
         address: loc.address || '',
         live: isLive,
         read: false
-      });
+      }, locationConversationId);
 
       if (isLive && ref) startLiveSharing(ref);
       stopPanelLive();
