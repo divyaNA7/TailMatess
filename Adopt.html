@@ -575,6 +575,160 @@
       .filter-btn, .pet-fav, .adopt-btn, .message-btn, .chat-launcher, .chat-close, .chat-input button, .chat-quick button, .footer-newsletter button, .socials a { cursor: pointer; }
     }
   </style>
+
+<style id="tailmates-mobile-responsive">
+
+/* TailMates responsive layer — desktop rules remain unchanged */
+@media (max-width: 768px) {
+  html { -webkit-text-size-adjust: 100%; scroll-padding-top: 84px; }
+  body { max-width: 100%; overflow-x: clip; }
+  img, video, canvas, iframe, svg { max-width: 100%; }
+  img, video { height: auto; }
+  input, select, textarea, button { max-width: 100%; font: inherit; }
+  input, select, textarea { font-size: 16px !important; }
+  button, .btn, [role="button"], input[type="submit"], input[type="button"] {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+  .cursor, .cursor-follower { display: none !important; }
+  body { cursor: auto !important; }
+  .navbar {
+    padding: .75rem 1rem !important;
+    min-height: 64px;
+  }
+  .nav-inner {
+    position: relative;
+    width: 100%;
+    gap: .6rem;
+    flex-wrap: nowrap;
+  }
+  .logo, .nav-profile { min-width: 0; }
+  .logo-icon { flex: 0 0 auto; }
+  .logo-text { min-width: 0; }
+  .logo-text h2 { font-size: 1.05rem; }
+  .logo-text span { font-size: .65rem; }
+  .profile-name { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tm-mobile-toggle {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 12px;
+    background: rgba(255,255,255,.07);
+    color: inherit;
+    font-size: 1.15rem;
+    cursor: pointer;
+    order: 10;
+  }
+  .navbar .nav-links,
+  .navbar.tm-menu-open .nav-links {
+    display: none !important;
+    position: absolute !important;
+    top: calc(100% + 10px);
+    left: 0;
+    right: 0;
+    z-index: 2000;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    width: 100%;
+    max-height: min(72vh, 520px);
+    overflow-y: auto;
+    padding: .5rem;
+    margin: 0;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 16px;
+    background: rgba(10,10,15,.97);
+    box-shadow: 0 18px 45px rgba(0,0,0,.4);
+    backdrop-filter: blur(18px);
+  }
+  .navbar.tm-menu-open .nav-links { display: flex !important; }
+  .navbar .nav-links li { width: 100%; list-style: none; }
+  .navbar .nav-links a {
+    display: flex !important;
+    align-items: center;
+    min-height: 44px;
+    padding: .75rem .85rem !important;
+    border-radius: 10px;
+    white-space: normal;
+  }
+  .navbar .nav-links a:hover,
+  .navbar .nav-links a:focus-visible { background: rgba(255,255,255,.08); }
+  .nav-profile { margin-left: auto; }
+  .container, .page-wrapper, .content-wrapper, .main-content, main,
+  .section-container, .dashboard-container, .success-wrapper, .signup-wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .container { padding-left: 1rem !important; padding-right: 1rem !important; }
+  main, .page-wrapper { padding-left: 1rem; padding-right: 1rem; }
+  section { min-width: 0; }
+  h1 { overflow-wrap: anywhere; font-size: clamp(1.7rem, 7vw, 2.5rem); }
+  h2 { overflow-wrap: anywhere; }
+  p, label, a, li { overflow-wrap: anywhere; }
+  /* Collapse multi-column content instead of allowing horizontal page overflow. */
+  [style*="grid-template-columns"], [class*="grid"] {
+    min-width: 0;
+  }
+  [style*="grid-template-columns"] { grid-template-columns: minmax(0, 1fr) !important; }
+  [class*="grid"] { column-gap: 1rem; }
+  .footer-grid, .pet-grid, .pets-grid, .services-grid, .product-grid,
+  .applications-grid, .cards-grid, .stats-grid, .dashboard-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .resp-grid-2, .resp-grid-sidebar { grid-template-columns: minmax(0, 1fr) !important; }
+  .resp-flex-col { flex-direction: column !important; align-items: stretch !important; }
+  .resp-full { width: 100% !important; max-width: 100% !important; }
+  .hero, .hero-content, .hero-inner, .hero-section {
+    max-width: 100%;
+    min-width: 0;
+  }
+  .hero { min-height: auto; }
+  .hero-content { padding-left: 0; padding-right: 0; }
+  .hero img, .hero video { max-width: 100%; }
+  .card, .pet-card, .service-card, .product-card, .application-card,
+  .signup-card, .success-card, .glass-effect, .form-card {
+    max-width: 100%;
+    min-width: 0;
+  }
+  .signup-card, .success-card { padding: 1.35rem !important; }
+  form { min-width: 0; }
+  form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  form select, form textarea { width: 100%; min-width: 0; }
+  .form-row, .form-grid, .input-row { grid-template-columns: minmax(0, 1fr) !important; }
+  table { display: block; width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  pre, code { overflow-wrap: anywhere; }
+  .chat-panel { width: calc(100vw - 1.5rem) !important; max-width: calc(100vw - 1.5rem) !important; right: .75rem !important; }
+  .chat-input { max-width: 100%; }
+  .footer-grid { gap: 1.5rem !important; }
+}
+@media (max-width: 480px) {
+  .navbar { padding: .65rem .75rem !important; }
+  .logo { gap: .5rem !important; }
+  .logo-icon { width: 38px !important; height: 38px !important; }
+  .logo-text span { display: none; }
+  .profile-name { display: none; }
+  .container { padding-left: .75rem !important; padding-right: .75rem !important; }
+  main, .page-wrapper { padding-left: .75rem; padding-right: .75rem; }
+  .signup-wrapper, .success-wrapper { padding-left: .75rem !important; padding-right: .75rem !important; }
+  .signup-card, .success-card { padding: 1.1rem !important; border-radius: 18px !important; }
+  .btn, .button, .primary-btn, .secondary-btn { max-width: 100%; white-space: normal; }
+}
+@media (hover: none), (pointer: coarse) {
+  .cursor, .cursor-follower { display: none !important; }
+  body { cursor: auto !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+</style>
 </head>
   
 <body>
@@ -1634,6 +1788,61 @@ onAuthStateChanged(auth, (user) => {
         loadPetsFromFirebase();
     }
 });
+
+</script>
+
+<script id="tailmates-mobile-navigation">
+
+/* Mobile navigation enhancement; desktop navigation is untouched. */
+(function () {
+  function setupTailMatesMobileNav() {
+    document.querySelectorAll('.navbar').forEach(function (nav, index) {
+      var links = nav.querySelector('.nav-links');
+      if (!links || nav.querySelector('.tm-mobile-toggle')) return;
+
+      var toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'tm-mobile-toggle';
+      toggle.setAttribute('aria-label', 'Open navigation menu');
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.innerHTML = '<i class="fa-solid fa-bars" aria-hidden="true"></i>';
+      toggle.style.display = 'none';
+
+      var anchor = nav.querySelector('.nav-inner') || nav;
+      anchor.appendChild(toggle);
+      nav.classList.add('tm-mobile-nav-ready');
+
+      function closeMenu() {
+        nav.classList.remove('tm-menu-open');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-label', 'Open navigation menu');
+        toggle.innerHTML = '<i class="fa-solid fa-bars" aria-hidden="true"></i>';
+      }
+      toggle.addEventListener('click', function () {
+        var open = nav.classList.toggle('tm-menu-open');
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
+        toggle.innerHTML = open
+          ? '<i class="fa-solid fa-xmark" aria-hidden="true"></i>'
+          : '<i class="fa-solid fa-bars" aria-hidden="true"></i>';
+      });
+      links.addEventListener('click', function (event) {
+        if (event.target.closest('a')) closeMenu();
+      });
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') closeMenu();
+      });
+      window.addEventListener('resize', function () {
+        if (window.innerWidth > 768) closeMenu();
+      });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupTailMatesMobileNav);
+  } else {
+    setupTailMatesMobileNav();
+  }
+})();
 
 </script>
 </body>
