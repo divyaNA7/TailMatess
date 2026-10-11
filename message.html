@@ -1437,9 +1437,13 @@
     // Do this before the pet-link/inbox logic so old chats never try to
     // recreate a conversation from pet metadata.
     if (rawConversationId) {
-      await initExistingConversation(rawConversationId);
-      const layout = document.getElementById('messenger-layout');
-      if (layout) layout.classList.add('chat-open');
+      const opened = await initExistingConversation(rawConversationId);
+      if (opened) {
+        // Populate the inbox as well, without clearing the conversation already open.
+        await loadMyConversations({ preserveOpenChat: true });
+        const layout = document.getElementById('messenger-layout');
+        if (layout) layout.classList.add('chat-open');
+      }
       return;
     }
 
@@ -1459,34 +1463,45 @@
       return;
     }
 
-    await initSingleChat();
-    const layout = document.getElementById('messenger-layout');
-    if (layout) layout.classList.add('chat-open');
+    const opened = await initSingleChat();
+    if (opened) {
+      // A pet link opens the chat directly. Also initialize its inbox, but keep
+      // the active chat/header/messages intact while the inbox listener starts.
+      await loadMyConversations({ preserveOpenChat: true });
+      const layout = document.getElementById('messenger-layout');
+      if (layout) layout.classList.add('chat-open');
+    }
   });
 
   let unsubInboxParticipants = null;
 
-  async function loadMyConversations() {
-    document.title = 'My Chats | TailMates';
+  async function loadMyConversations(options = {}) {
+    const preserveOpenChat = options.preserveOpenChat === true;
+    if (!preserveOpenChat) document.title = 'My Chats | TailMates';
     const headerName = document.getElementById('header-name');
     const headerStatus = document.getElementById('header-status');
     const inputArea = document.getElementById('input-area');
     const inboxList = document.getElementById('inbox-list');
     const layout = document.getElementById('messenger-layout');
 
-    if (headerName) headerName.textContent = 'Select a chat';
-    if (headerStatus) headerStatus.textContent = 'Your conversations';
-    if (inputArea) inputArea.style.display = 'none';
+    // When opened from Adopt/PawMate, keep the current chat in place while
+    // loading the inbox in the background. The old implementation reset the
+    // message area to the inbox placeholder and left a stale Loading chats row.
+    if (!preserveOpenChat) {
+      if (headerName) headerName.textContent = 'Select a chat';
+      if (headerStatus) headerStatus.textContent = 'Your conversations';
+      if (inputArea) inputArea.style.display = 'none';
 
-    chatMessages.innerHTML = `
-      <div class="chat-pane-empty">
-        <div class="empty-icon"><i class="fa-solid fa-comments"></i></div>
-        <h3>Your messages</h3>
-        <p>Select a conversation from the left to continue chatting. Only people you have actually chatted with will appear here.</p>
-      </div>`;
-    chatMessages.style.display = 'flex';
+      chatMessages.innerHTML = `
+        <div class="chat-pane-empty">
+          <div class="empty-icon"><i class="fa-solid fa-comments"></i></div>
+          <h3>Your messages</h3>
+          <p>Select a conversation from the left to continue chatting. Only people you have actually chatted with will appear here.</p>
+        </div>`;
+      chatMessages.style.display = 'flex';
 
-    if (layout) layout.classList.remove('chat-open');
+      if (layout) layout.classList.remove('chat-open');
+    }
 
     if (unsubInboxParticipants) {
       unsubInboxParticipants();
@@ -2030,10 +2045,11 @@
     document.title = `Chat - ${petName} | TailMates`;
 
     const id = await getOrCreateConversation();
-    if (!id) return;
+    if (!id) return false;
 
     await loadOtherUserProfile();
     loadMessagesFromFirebase();
+    return true;
   }
 
   function showChatError(message) {
@@ -2538,11 +2554,15 @@
       }
 
       if (snapshot.empty) {
+        // A brand-new conversation correctly has no messages until the first
+        // message is sent. This is a normal empty state, not a Firebase error.
+        // When the first document is written, the same listener will replace
+        // this placeholder with the message history automatically.
         chatMessages.innerHTML = `
-          <div class="firebase-debug">
-            <strong>No message documents were returned for this chat.</strong><br>
-            Conversation: ${escapeHtml(conversationId)}<br>
-            Check that the messages shown in Firebase belong to this exact conversation document.
+          <div class="chat-pane-empty chat-start-empty">
+            <div class="empty-icon"><i class="fa-solid fa-paw"></i></div>
+            <h3>Start the conversation</h3>
+            <p>Say hello to ${escapeHtml(petOwnerName || 'the pet owner')}. Your messages will appear here.</p>
           </div>`;
         return;
       }
