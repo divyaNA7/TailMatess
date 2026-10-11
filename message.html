@@ -1192,6 +1192,45 @@
   let otherUserProfile = null;
   let adoptionApproved = false;
 
+  // Return all possible owner identifiers from TailMates' current and legacy pet schemas.
+  function collectPetOwnerCandidates(record) {
+    if (!record || typeof record !== 'object') return [];
+    const keys = [
+      'owner_uid', 'ownerUid', 'ownerUID', 'ownerAuthUid', 'owner_auth_uid',
+      'listerId', 'lister_id', 'listerUid', 'lister_uid',
+      'createdByUid', 'created_by_uid', 'user_uid', 'userUid',
+      'userId', 'user_id', 'uid', 'owner_id', 'ownerId', 'createdBy', 'created_by'
+    ];
+    const values = [];
+    for (const key of keys) {
+      const value = record[key];
+      if (typeof value === 'string' || typeof value === 'number') {
+        const candidate = String(value).trim();
+        if (candidate && !values.includes(candidate)) values.push(candidate);
+      }
+    }
+    return values;
+  }
+
+  // Do not mistake a display name/email for a Firebase Auth UID. When possible,
+  // verify the candidate against /users/{uid}; accept UID-shaped legacy IDs if
+  // a profile document was never created.
+  async function isUsableOwnerUid(candidate) {
+    const value = String(candidate || '').trim();
+    if (!value || value.includes('@')) return false;
+    if (petOwnerName && value.toLowerCase() === String(petOwnerName).trim().toLowerCase()) return false;
+    if (currentUser && value === String(currentUser.uid)) return true;
+    if (db) {
+      try {
+        const userDoc = await db.collection('users').doc(value).get();
+        if (userDoc.exists) return true;
+      } catch (e) {
+        console.warn('Could not validate possible pet-owner UID:', e);
+      }
+    }
+    return /^[A-Za-z0-9_-]{20,}$/.test(value);
+  }
+
   async function loadPetFromDatabase() {
     petId = rawPetId;
     petName = 'Pet';
@@ -1202,151 +1241,169 @@
     petData = null;
 
     if (!rawPetId) {
-      showChatError('No pet was selected. Open the chat using the Message button on a pet listing.');
+      showChatError('No pet was selected. Return to Adopt and click Message on a pet listing.');
       return false;
     }
-
     if (!rtdb) {
-      showChatError('Firebase Realtime Database is not available right now.');
+      showChatError('Firebase Realtime Database is not available right now. Please refresh and try again.');
       return false;
     }
 
-    let snap = null;
+    let petSnap = null;
+    let firestorePetData = null;
+    const looksNumeric = /^\d+$/.test(String(rawPetId));
 
-    // ------------------------------------------------------------
-    // 1. Realtime Database: support the two layouts used by TailMates
-    //    /{petKey}
-    //    /pets/{petKey}
-    // ------------------------------------------------------------
+    // Adopt.html passes the RTDB child key (?pet=<key>). Support root-level
+    // records and records nested under /pets without assuming pet_id === key.
     try {
-      const rootSnap = await rtdb.ref(rawPetId).once('value');
-      if (rootSnap.exists() && rootSnap.val() && typeof rootSnap.val() === 'object') {
-        snap = rootSnap;
+      const rootSnap = await rtdb.ref(String(rawPetId)).once('value');
+      if (rootSnap.exists() && rootSnap.val() && typeof rootSnap.val() === 'object' &&
+          (rootSnap.val().name || rootSnap.val().pet_id != null)) {
+        petSnap = rootSnap;
       }
-
-      if (!snap) {
-        const nestedSnap = await rtdb.ref('pets/' + rawPetId).once('value');
-        if (nestedSnap.exists() && nestedSnap.val() && typeof nestedSnap.val() === 'object') {
-          snap = nestedSnap;
+      if (!petSnap) {
+        const nestedSnap = await rtdb.ref('pets/' + String(rawPetId)).once('value');
+        if (nestedSnap.exists() && nestedSnap.val() && typeof nestedSnap.val() === 'object' &&
+            (nestedSnap.val().name || nestedSnap.val().pet_id != null)) {
+          petSnap = nestedSnap;
         }
       }
-
-      // The database key and pet_id are not always guaranteed to be identical.
-      if (!snap && /^\d+$/.test(rawPetId)) {
-        const rootByPetId = await rtdb.ref('/')
-          .orderByChild('pet_id')
-          .equalTo(Number(rawPetId))
-          .once('value');
-        if (rootByPetId.exists()) {
-          rootByPetId.forEach(child => {
-            if (!snap) snap = child;
-          });
+      if (!petSnap && looksNumeric) {
+        for (const lookupValue of [Number(rawPetId), String(rawPetId)]) {
+          const rootQuery = await rtdb.ref('/').orderByChild('pet_id').equalTo(lookupValue).once('value');
+          if (rootQuery.exists()) {
+            rootQuery.forEach(child => {
+              if (!petSnap && child.val() && typeof child.val() === 'object' && child.val().name) petSnap = child;
+            });
+          }
+          if (petSnap) break;
         }
       }
-
-      if (!snap && /^\d+$/.test(rawPetId)) {
-        const nestedByPetId = await rtdb.ref('pets')
-          .orderByChild('pet_id')
-          .equalTo(Number(rawPetId))
-          .once('value');
-        if (nestedByPetId.exists()) {
-          nestedByPetId.forEach(child => {
-            if (!snap) snap = child;
-          });
+      if (!petSnap && looksNumeric) {
+        for (const lookupValue of [Number(rawPetId), String(rawPetId)]) {
+          const nestedQuery = await rtdb.ref('pets').orderByChild('pet_id').equalTo(lookupValue).once('value');
+          if (nestedQuery.exists()) {
+            nestedQuery.forEach(child => {
+              if (!petSnap && child.val() && typeof child.val() === 'object' && child.val().name) petSnap = child;
+            });
+          }
+          if (petSnap) break;
         }
       }
     } catch (e) {
       console.warn('RTDB pet lookup failed:', e);
     }
 
-    if (snap && snap.exists()) {
-      petData = snap.val() || {};
-      petId = String(petData.pet_id ?? snap.key ?? rawPetId);
+    if (petSnap && petSnap.exists()) {
+      petData = petSnap.val() || {};
+      // Keep pet_id for compatibility with conversations created by older code;
+      // the incoming URL itself always contains the RTDB key used by Adopt.
+      petId = String(petData.pet_id ?? petSnap.key ?? rawPetId);
       petName = String(petData.name || 'Pet');
       petBreed = String(petData.breed || petData.species || '');
-      petImg = String(
-        petData.image_url || petData.imageUrl ||
-        'https://images.unsplash.com/photo-1513245543132-31f507417b26?w=100&h=100&fit=crop'
-      );
-      otherUserId = String(
-        petData.owner_id || petData.ownerId || petData.owner_uid ||
-        petData.ownerUid || petData.userId || petData.listerId || ''
-      ).trim();
-      petOwnerName = String(
-        petData.owner_name || petData.ownerName || petData.owner || ''
-      ).trim();
+      petImg = String(petData.image_url || petData.imageUrl || petData.photoURL || petImg);
+      petOwnerName = String(petData.owner_name || petData.ownerName || petData.owner_name_display || '').trim();
     }
 
-    // ------------------------------------------------------------
-    // 2. Firestore fallback for pets created by an account that stores
-    //    ownership in /pets/{petId}. The user's rules allow authenticated
-    //    users to read /pets documents.
-    // ------------------------------------------------------------
-    if ((!otherUserId || !petOwnerName) && db) {
-      try {
-        let petDoc = await db.collection('pets').doc(String(rawPetId)).get();
-
-        // Also try pet_id when the Firestore document ID differs from the RTDB key.
-        if (!petDoc.exists && /^\d+$/.test(rawPetId)) {
-          const q = await db.collection('pets')
-            .where('pet_id', '==', Number(rawPetId))
-            .limit(1)
-            .get();
-          if (!q.empty) petDoc = q.docs[0];
+    // Search Firestore pet documents even when a partial document exists. Older
+    // records vary: document ID may be the RTDB key, pet_id may be a string or a
+    // number, and some records only expose listerId/ownerId in Firestore.
+    if (db) {
+      const lookupIds = [...new Set([
+        String(rawPetId),
+        petSnap && petSnap.key != null ? String(petSnap.key) : '',
+        petData && petData.pet_id != null ? String(petData.pet_id) : ''
+      ].filter(Boolean))];
+      for (const lookupId of lookupIds) {
+        try {
+          const docSnap = await db.collection('pets').doc(lookupId).get();
+          if (docSnap.exists) {
+            firestorePetData = { ...(docSnap.data() || {}), __firestoreDocId: docSnap.id };
+            break;
+          }
+        } catch (e) {
+          console.warn('Firestore pet document lookup failed for ' + lookupId + ':', e);
         }
+      }
 
-        if (petDoc && petDoc.exists) {
-          const data = petDoc.data() || {};
-          const firestoreOwnerId = String(
-            data.listerId || data.ownerId || data.owner_id || data.owner_uid ||
-            data.ownerUid || data.userId || ''
-          ).trim();
-          const firestoreOwnerName = String(
-            data.ownerName || data.owner_name || data.owner || ''
-          ).trim();
-
-          if (!otherUserId && firestoreOwnerId) otherUserId = firestoreOwnerId;
-          if (!petOwnerName && firestoreOwnerName) petOwnerName = firestoreOwnerName;
-
-          if (!petData || Object.keys(petData).length === 0) petData = data;
-          if (petName === 'Pet') petName = String(data.name || 'Pet');
-          if (!petBreed) petBreed = String(data.breed || data.species || '');
-          if (!petImg) petImg = String(data.image_url || data.imageUrl || petImg);
+      if (!firestorePetData) {
+        const fieldValues = [...new Set([
+          String(rawPetId),
+          petData && petData.pet_id != null ? String(petData.pet_id) : '',
+          looksNumeric ? Number(rawPetId) : null,
+          petData && petData.pet_id != null && /^\d+$/.test(String(petData.pet_id)) ? Number(petData.pet_id) : null
+        ].filter(value => value !== '' && value !== null && value !== undefined))];
+        const fields = ['pet_id', 'petId', 'id'];
+        lookupLoop:
+        for (const field of fields) {
+          for (const value of fieldValues) {
+            try {
+              const querySnap = await db.collection('pets').where(field, '==', value).limit(1).get();
+              if (!querySnap.empty) {
+                firestorePetData = { ...(querySnap.docs[0].data() || {}), __firestoreDocId: querySnap.docs[0].id };
+                break lookupLoop;
+              }
+            } catch (_) {
+              // A field may not exist in this version of the pet schema; try the next.
+            }
+          }
         }
-      } catch (e) {
-        console.warn('Firestore pet fallback failed:', e);
+      }
+
+      if (firestorePetData) {
+        if (!petData) petData = {};
+        petData = { ...firestorePetData, ...petData };
+        if (petName === 'Pet' && firestorePetData.name) petName = String(firestorePetData.name);
+        if (!petBreed) petBreed = String(firestorePetData.breed || firestorePetData.species || '');
+        if (!petImg) petImg = String(firestorePetData.image_url || firestorePetData.imageUrl || petImg);
+        if (!petOwnerName) petOwnerName = String(
+          firestorePetData.ownerName || firestorePetData.owner_name || firestorePetData.owner || ''
+        ).trim();
       }
     }
 
-    // ------------------------------------------------------------
-    // 3. Resolve the owner's display name from the owner's account profile.
-    //    This keeps the adopter's/test account name out of the header.
-    // ------------------------------------------------------------
-    if (otherUserId && db) {
-      try {
-        const ownerDoc = await db.collection('users').doc(otherUserId).get();
-        if (ownerDoc.exists) {
-          const owner = ownerDoc.data() || {};
-          petOwnerName = String(
-            owner.name || owner.displayName || owner.fullName ||
-            owner.username || owner.email?.split('@')[0] || petOwnerName || 'Pet Parent'
-          ).trim();
-        }
-      } catch (e) {
-        console.warn('Owner profile lookup failed:', e);
+    // Prefer a real Firebase UID over labels such as "Pet Owner" or an email.
+    // Candidate order includes both current and legacy field names.
+    const ownerCandidates = [
+      ...collectPetOwnerCandidates(firestorePetData),
+      ...collectPetOwnerCandidates(petData)
+    ];
+    const uniqueOwnerCandidates = [...new Set(ownerCandidates)];
+    for (const candidate of uniqueOwnerCandidates) {
+      if (await isUsableOwnerUid(candidate)) {
+        otherUserId = candidate;
+        break;
       }
     }
 
+    // Some data uses a Firebase UID field in the conversation-style naming
+    // format. If no candidate is valid, show a precise setup error rather than
+    // creating a chat whose other participant is a name/email.
     if (!otherUserId) {
       showChatError(
-        `The pet "${petName}" is not linked to an owner account. ` +
-        `Add the listing account's Firebase Auth UID to owner_id, ownerId, owner_uid, ` +
-        `ownerUid, userId, or listerId in the pet record (RTDB or Firestore /pets).`
+        `The pet "${petName}" was found, but its registered owner's Firebase Auth UID could not be resolved. ` +
+        `The pet record must contain the listing account UID in owner_id, ownerId, owner_uid, ownerUid, ` +
+        `listerId, userId, or user_id. A display name/email is not enough. Check both the RTDB pet record ` +
+        `and Firestore /pets/${String(rawPetId)}.`
       );
       return false;
     }
 
-    if (currentUser && otherUserId === currentUser.uid) {
+    // Resolve the current owner's display name from their user profile.
+    try {
+      const ownerDoc = await db.collection('users').doc(otherUserId).get();
+      if (ownerDoc.exists) {
+        const owner = ownerDoc.data() || {};
+        petOwnerName = String(
+          owner.name || owner.displayName || owner.fullName || owner.username ||
+          owner.email?.split('@')[0] || petOwnerName || 'Pet Parent'
+        ).trim();
+      }
+    } catch (e) {
+      console.warn('Owner profile lookup failed:', e);
+    }
+
+    if (currentUser && otherUserId === String(currentUser.uid)) {
       showChatError('This pet belongs to your account. Open the conversation from My Chats to message the adopter.');
       return false;
     }
@@ -1354,7 +1411,6 @@
     document.title = `Chat - ${petName} | TailMates`;
     const header = document.getElementById('header-name');
     if (header) header.textContent = petOwnerName || 'Pet Parent';
-
     return true;
   }
 
@@ -1506,67 +1562,21 @@
       if (!petIdValue) return '';
       if (petOwnerLookupCache.has(petIdValue)) return petOwnerLookupCache.get(petIdValue);
 
-      const extractOwnerId = value => {
-        if (!value || typeof value !== 'object') return '';
-        return String(
-          value.listerId || value.lister_id || value.ownerId || value.owner_id ||
-          value.ownerUid || value.owner_uid || value.userId || value.user_id || ''
-        ).trim();
-      };
-
       let ownerId = '';
-
-      // First check Firestore. Newer accounts may store a pet at /pets/{petId}.
       try {
-        let petSnap = await db.collection('pets').doc(petIdValue).get();
-        if (!petSnap.exists && /^\d+$/.test(petIdValue)) {
-          const byPetId = await db.collection('pets')
-            .where('pet_id', '==', Number(petIdValue)).limit(1).get();
-          if (!byPetId.empty) petSnap = byPetId.docs[0];
+        const petSnap = await db.collection('pets').doc(petIdValue).get();
+        if (petSnap.exists) {
+          const pet = petSnap.data() || {};
+          ownerId = String(
+            pet.listerId || pet.ownerId || pet.owner_id || pet.ownerUid ||
+            pet.owner_uid || pet.userId || pet.user_id || ''
+          ).trim();
         }
-        if (petSnap && petSnap.exists) ownerId = extractOwnerId(petSnap.data() || {});
       } catch (e) {
-        console.warn('Firestore pet owner lookup failed for inbox validation:', petIdValue, e);
+        // Some older listings may be stored outside Firestore's pets collection.
+        // In that case, fall back to the conversation's saved role fields.
+        console.warn('Could not resolve canonical pet owner for inbox validation:', petIdValue, e);
       }
-
-      // TailMates' existing pet-registration flow primarily stores listings in
-      // Realtime Database. Resolve legacy records there too; otherwise the
-      // inbox cannot tell the real owner from an old conversation with a stale UID.
-      if (!ownerId && rtdb) {
-        try {
-          const direct = await rtdb.ref(petIdValue).once('value');
-          if (direct.exists()) ownerId = extractOwnerId(direct.val());
-        } catch (e) {
-          console.warn('RTDB root pet owner lookup failed:', petIdValue, e);
-        }
-
-        if (!ownerId) {
-          try {
-            const nested = await rtdb.ref('pets/' + petIdValue).once('value');
-            if (nested.exists()) ownerId = extractOwnerId(nested.val());
-          } catch (e) {
-            console.warn('RTDB nested pet owner lookup failed:', petIdValue, e);
-          }
-        }
-
-        if (!ownerId && /^\d+$/.test(petIdValue)) {
-          for (const ref of [rtdb.ref('/'), rtdb.ref('pets')]) {
-            try {
-              const byPetId = await ref.orderByChild('pet_id')
-                .equalTo(Number(petIdValue)).limitToFirst(1).once('value');
-              if (byPetId.exists()) {
-                byPetId.forEach(child => {
-                  if (!ownerId) ownerId = extractOwnerId(child.val());
-                });
-              }
-            } catch (e) {
-              console.warn('RTDB pet_id owner lookup failed:', petIdValue, e);
-            }
-            if (ownerId) break;
-          }
-        }
-      }
-
       petOwnerLookupCache.set(petIdValue, ownerId);
       return ownerId;
     }
@@ -1640,19 +1650,17 @@
         const members = Array.isArray(data.participants)
           ? data.participants.map(String).filter(Boolean).sort()
           : [];
-        // Collapse true duplicate documents only: same two UIDs and same pet ID.
-        // Do not use pet name as the primary key because different pets can share
-        // a name. Normalize legacy IDs such as "2" and "pet_2" to the same key.
+        // Legacy versions may create separate conversation documents for the
+        // same participants and pet using different ID formats (e.g. "1" and
+        // "pet_1"). Prefer normalized pet name, falling back to normalized ID.
         const normalizeChatKey = value => String(value || '')
           .trim()
           .toLowerCase()
           .replace(/^pet[_-]+/, '')
           .replace(/[^a-z0-9]+/g, '');
-        const normalizedPetId = normalizeChatKey(data.petId);
         const normalizedPetName = normalizeChatKey(data.petName);
-        const petKey = normalizedPetId
-          ? `id:${normalizedPetId}`
-          : (normalizedPetName ? `name:${normalizedPetName}` : `doc:${doc.id}`);
+        const normalizedPetId = normalizeChatKey(data.petId || doc.id);
+        const petKey = normalizedPetName ? `name:${normalizedPetName}` : `id:${normalizedPetId}`;
         const key = `${members.join('::')}::${petKey}`;
         if (seenConversationKeys.has(key)) continue;
         seenConversationKeys.add(key);
