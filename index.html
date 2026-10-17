@@ -748,20 +748,78 @@
         .footer-brand h3 { font-size: 1.5rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; }
         .footer-brand h3 i { color: var(--primary); }
         .footer-brand > p { color: var(--text-dim); font-size: 0.9rem; line-height: 1.7; margin-bottom: 1.5rem; }
-        .footer-newsletter { display: flex; gap: 0.5rem; }
-        .footer-newsletter input {
-            flex: 1; padding: 0.8rem 1.2rem; background: var(--bg-glass);
-            border: 1px solid var(--border); border-radius: 50px; color: var(--text);
-            font-size: 0.85rem; outline: none; transition: all 0.3s ease;
-        }
-        .footer-newsletter input:focus { border-color: var(--primary); box-shadow: 0 0 20px rgba(0, 245, 255, 0.1); }
-        .footer-newsletter button {
-            width: 45px; height: 45px; border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            border: none; color: var(--bg); display: flex; align-items: center; justify-content: center;
-            cursor: none; transition: all 0.3s ease;
-        }
-        .footer-newsletter button:hover { transform: scale(1.1); box-shadow: 0 0 20px rgba(0, 245, 255, 0.3); }
+         
+.footer-query-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 540px;
+}
+
+.footer-query-form input,
+.footer-query-form textarea {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.footer-query-form textarea {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.6;
+}
+
+.footer-query-form input:focus,
+.footer-query-form textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 18px rgba(0, 245, 255, 0.1);
+}
+
+.footer-query-form input::placeholder,
+.footer-query-form textarea::placeholder {
+    color: var(--text-dim);
+}
+
+.footer-query-form button {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 22px;
+    border: none;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: var(--bg);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.footer-query-form button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 24px rgba(0, 245, 255, 0.25);
+}
+
+@media (max-width: 600px) {
+    .footer-query-form {
+        max-width: 100%;
+    }
+
+    .footer-query-form button {
+        width: 100%;
+    }
+}
+
         .footer-col h4 { font-size: 1rem; margin-bottom: 1.5rem; color: var(--text); }
         .footer-col a {
             display: block; color: var(--text-dim); text-decoration: none;
@@ -1521,11 +1579,31 @@
     <div class="footer-grid">
         <div class="footer-brand">
             <h3><i class="fa-solid fa-paw"></i> TailMates</h3>
-            <p>Connecting loving families with rescued companions. Every paw deserves a forever home. Join our mission to make India a better place for animals.</p>
-            <div class="footer-newsletter">
-                <input type="email" placeholder="Enter your email">
-                <button><i class="fa-solid fa-paper-plane"></i></button>
-            </div>
+           
+<p>Have questions about pet adoption or our services? Send us your query, and we'll be happy to help!</p>
+
+<form class="footer-query-form" onsubmit="sendFooterQuery(event)">
+    <input
+        type="email"
+        id="footerEmail"
+        placeholder="Enter your email address"
+        aria-label="Your email address"
+        required
+    >
+
+    <textarea
+        id="footerMessage"
+        placeholder="Write your query here..."
+        aria-label="Your query"
+        rows="3"
+        required
+    ></textarea>
+
+    <button type="submit">
+        Send Query <i class="fa-solid fa-paper-plane"></i>
+    </button>
+</form>
+
         </div>
         <div class="footer-col">
             <h4>Explore</h4>
