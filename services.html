@@ -171,6 +171,15 @@
         }
         .profile-dropdown a:hover { color: var(--primary); background: var(--primary-dim); }
         .profile-dropdown a i { width: 18px; text-align: center; }
+        .profile-menu-heading {
+            display: flex; align-items: center; gap: 8px;
+            padding: 0.7rem 1.2rem; font-size: 0.75rem;
+            color: var(--text-dim); text-transform: uppercase;
+            letter-spacing: 1px; font-weight: 600;
+        }
+        .profile-trigger { font-family: inherit; color: var(--text); }
+        .profile-create-account { color: var(--accent) !important; }
+        .profile-create-account:hover { background: var(--primary-dim) !important; }
         .profile-divider { height: 1px; background: var(--border); margin: 0.5rem 0; }
         .profile-login { color: var(--primary) !important; font-weight: 600; }
         .profile-login:hover { background: var(--primary-dim) !important; }
@@ -441,50 +450,52 @@
             <li><a href="index.html#about">About</a></li>
             <li><a href="register.html">Register a Pet</a></li>
         </ul>
+        <!-- Profile Dropdown -->
         <div class="nav-profile" id="navProfile">
-            <div class="profile-trigger" id="profileTrigger">
+            <button type="button" class="profile-trigger" id="profileTrigger"
+                    aria-expanded="false" aria-controls="profileDropdown">
                 <div class="profile-avatar-icon"><i class="fa-solid fa-user"></i></div>
-                <span class="profile-name">Profile</span>
+                <span class="profile-name" id="profileName">Profile</span>
                 <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; color: var(--text-dim);"></i>
-            </div>
+            </button>
+
             <div class="profile-dropdown" id="profileDropdown">
                 <div id="profileDropdownLoggedOut">
-                    <div style="padding: 0.7rem 1.2rem; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
-                        <i class="fa-solid fa-user" style="margin-right: 6px;"></i> Account
+                    <div class="profile-menu-heading">
+                        <i class="fa-solid fa-user"></i> Account
                     </div>
                     <div class="profile-divider"></div>
-                    <a href="login.html" class="profile-login"><i class="fa-solid fa-right-to-bracket"></i> Log In</a>
-                    <a href="createacc.html" class="profile-login" style="color: var(--accent) !important;"><i class="fa-solid fa-user-plus"></i> Create Account</a>
+                    <a href="login.html" class="profile-login">
+                        <i class="fa-solid fa-right-to-bracket"></i> Log In
+                    </a>
+                    <a href="createacc.html" class="profile-login profile-create-account">
+                        <i class="fa-solid fa-user-plus"></i> Create Account
+                    </a>
                 </div>
+
                 <div id="profileDropdownLoggedIn" style="display: none;">
-                    <div style="padding: 0.7rem 1.2rem; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
-                        <i class="fa-solid fa-user" style="margin-right: 6px;"></i> Profile
+                    <div class="profile-menu-heading">
+                        <i class="fa-solid fa-user"></i>
+                        <span id="dropdownUserName">My Account</span>
                     </div>
                     <div class="profile-divider"></div>
-                    <a href="#"><i class="fa-regular fa-user"></i> My Profile</a>
-                    <a href="#"><i class="fa-solid fa-heart"></i> Saved Pets</a>
-                    <a href="#"><i class="fa-solid fa-clipboard-list"></i> My Applications</a>
-                    <a href="#"><i class="fa-solid fa-paw"></i> My Registered Pets</a>
-                    <a href="#"><i class="fa-solid fa-gear"></i> Settings</a>
+                    <a href="profile.html"><i class="fa-regular fa-user"></i> My Profile</a>
+                    <a href="saved-pets.html"><i class="fa-solid fa-heart"></i> Saved Pets</a>
+                    <a href="applications.html"><i class="fa-solid fa-clipboard-list"></i> My Applications</a>
+                    <a href="register.html"><i class="fa-solid fa-paw"></i> My Registered Pets</a>
+                    <a href="message.html"><i class="fa-solid fa-comments"></i> Messages</a>
+                    <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
                     <div class="profile-divider"></div>
-                    <a href="#" class="profile-logout"><i class="fa-solid fa-right-from-bracket"></i> Log Out</a>
+                    <a href="#" class="profile-logout" id="logoutBtn">
+                        <i class="fa-solid fa-right-from-bracket"></i> Log Out
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </nav>
 
-     <div style="padding:.7rem 1.2rem;font-size:.75rem;color:#8b8b9a;text-transform:uppercase;letter-spacing:1px;font-weight:600;"><i class="fa-solid fa-user" style="margin-right:6px;"></i> <span id="dropdownUserName">Profile</span></div>
-            <div class="profile-divider"></div>
-            <a href="profile.html"><i class="fa-regular fa-user"></i> My Profile</a>
-            <a href="saved-pets.html"><i class="fa-solid fa-heart"></i> Saved Pets</a>
-            <a href="register.html"><i class="fa-solid fa-clipboard-list"></i> My Registered Pets</a>
-            <a href="message.html"><i class="fa-solid fa-paw"></i> Messages</a>
-            <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
-            <div class="profile-divider"></div>
-            <a href="#" class="profile-logout" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Log Out</a>
-          </div>
-    
+
 <!-- Services Hero -->
 <section class="services-hero">
     <div class="services-hero-content">
@@ -601,13 +612,23 @@
     const profileDropdown = document.getElementById('profileDropdown');
 
     if (profileTrigger && profileDropdown) {
-        profileTrigger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            profileDropdown.classList.toggle('active');
+        profileTrigger.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const isOpen = profileDropdown.classList.toggle('active');
+            profileTrigger.setAttribute('aria-expanded', String(isOpen));
         });
-        document.addEventListener('click', (e) => {
-            if (!profileTrigger.contains(e.target) && !profileDropdown.contains(e.target)) {
+
+        document.addEventListener('click', (event) => {
+            if (!profileTrigger.contains(event.target) && !profileDropdown.contains(event.target)) {
                 profileDropdown.classList.remove('active');
+                profileTrigger.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                profileDropdown.classList.remove('active');
+                profileTrigger.setAttribute('aria-expanded', 'false');
             }
         });
     }
