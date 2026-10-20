@@ -1446,7 +1446,7 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     out+=`</div><div class="btns">`;
     out+=cur>0?`<button type="button" class="btn btn-g" id="backBtn"><i class="fa-solid fa-arrow-left"></i> Back</button>`:`<div></div>`;
     out+=`<button type="button" class="btn btn-p" id="nextBtn" ${ok?'':'disabled'}>
-      ${cur===Q.length-1?'<i class="fa-solid fa-wand-magic-sparkles"></i> See matches':'Next <i class="fa-solid fa-arrow-right"></i>'}</button></div></div>`;
+      ${cur===Q.length-1?'See matches':'Next <i class="fa-solid fa-arrow-right"></i>'}</button></div></div>`;
     if(q.type==='m') out+=`<div class="hint">Select up to 3 traits (${sel.length}/3 selected)</div>`;
 
     C.innerHTML=out;
@@ -1687,7 +1687,7 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
 
     let out = `<div class="res">
       <div class="result-title">
-        <h3><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:8px"></i>Your Matches</h3>
+        <h3>Your Matches</h3>
         <p>Ranked using your preferences and the pet details available in Firebase.</p>
       </div>`;
 
