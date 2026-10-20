@@ -645,171 +645,6 @@
     }
     .footer-bottom i { color: var(--secondary); }
 
-    /* Chat Widget */
-    .chat-widget { position: fixed; bottom: 2rem; right: 2rem; z-index: 1000; }
-    .chat-launcher {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      border: none;
-      color: var(--bg);
-      font-size: 1.3rem;
-      cursor: none;
-      position: relative;
-      box-shadow: 0 0 25px rgba(0, 245, 255, 0.4);
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .chat-launcher:hover {
-      transform: scale(1.1);
-      box-shadow: 0 0 35px rgba(0, 245, 255, 0.6);
-    }
-    .chat-launcher::before {
-      content: '';
-      position: absolute;
-      inset: -4px;
-      border-radius: 50%;
-      border: 2px solid var(--primary);
-      animation: chatPulse 2s infinite;
-    }
-    @keyframes chatPulse {
-      0% { transform: scale(1); opacity: 1; }
-      100% { transform: scale(1.5); opacity: 0; }
-    }
-    .chat-panel {
-      position: absolute;
-      bottom: 72px;
-      right: 0;
-      width: 360px;
-      height: 460px;
-      background: var(--bg-glass);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      backdrop-filter: blur(30px);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .chat-panel.active { display: flex; }
-    .chat-header {
-      padding: 1rem;
-      background: var(--primary-dim);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .chat-header-info { display: flex; align-items: center; gap: 10px; }
-    .chat-avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--bg);
-      font-size: 0.9rem;
-    }
-    .chat-header-info div strong { display: block; font-size: 0.85rem; }
-    .chat-header-info div span { font-size: 0.7rem; color: var(--text-dim); }
-    .chat-close {
-      background: none;
-      border: none;
-      color: var(--text-dim);
-      font-size: 1.4rem;
-      cursor: none;
-      transition: color 0.3s ease;
-    }
-    .chat-close:hover { color: var(--secondary); }
-    .chat-messages {
-      flex: 1;
-      padding: 1rem;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-    }
-    .chat-message { display: flex; gap: 8px; align-items: flex-start; }
-    .chat-message.user { flex-direction: row-reverse; }
-    .chat-bubble {
-      max-width: 75%;
-      padding: 0.7rem 0.9rem;
-      border-radius: 14px;
-      font-size: 0.8rem;
-      line-height: 1.5;
-    }
-    .chat-message.bot .chat-bubble {
-      background: var(--bg-glass);
-      border: 1px solid var(--border);
-      color: var(--text);
-      border-top-left-radius: 4px;
-    }
-    .chat-message.user .chat-bubble {
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      color: var(--bg);
-      border-top-right-radius: 4px;
-    }
-    .chat-quick {
-      padding: 0 1rem 0.8rem;
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .chat-quick button {
-      padding: 0.4rem 0.8rem;
-      background: var(--bg-glass);
-      border: 1px solid var(--border);
-      border-radius: 50px;
-      color: var(--text-dim);
-      font-size: 0.7rem;
-      cursor: none;
-      transition: all 0.3s ease;
-      font-family: inherit;
-    }
-    .chat-quick button:hover {
-      border-color: var(--primary);
-      color: var(--primary);
-    }
-    .chat-input {
-      padding: 0.8rem 1rem;
-      border-top: 1px solid var(--border);
-      display: flex;
-      gap: 0.5rem;
-    }
-    .chat-input input {
-      flex: 1;
-      padding: 0.7rem 1rem;
-      background: var(--bg-glass);
-      border: 1px solid var(--border);
-      border-radius: 50px;
-      color: var(--text);
-      font-size: 0.8rem;
-      outline: none;
-      font-family: inherit;
-    }
-    .chat-input input:focus { border-color: var(--primary); }
-    .chat-input button {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      border: none;
-      color: var(--bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: none;
-      transition: all 0.3s ease;
-    }
-    .chat-input button:hover {
-      transform: scale(1.1);
-      box-shadow: 0 0 15px rgba(0, 245, 255, 0.3);
-    }
 
     @media (max-width: 768px) {
       .nav-links { display: none; }
@@ -817,10 +652,9 @@
       .tgrid { grid-template-columns: 1fr; }
       .card { padding: 1.5rem; }
       .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
-      .chat-panel { width: calc(100vw - 2rem); right: -1rem; }
       .cursor, .cursor-follower { display: none; }
       body { cursor: auto; }
-      .opt, .btn, .profile-trigger, .chat-launcher, .chat-close, .chat-input button, .chat-quick button, .footer-newsletter button, .socials a { cursor: pointer; }
+      .opt, .btn, .profile-trigger, .footer-newsletter button, .socials a { cursor: pointer; }
     }
   </style>
 
@@ -943,39 +777,6 @@
   </div>
 </footer>
 
-<div class="chat-widget">
-  <div class="chat-panel" id="chatPanel">
-    <div class="chat-header">
-      <div class="chat-header-info">
-        <div class="chat-avatar"><i class="fa-solid fa-paw"></i></div>
-        <div>
-          <strong>TailBot</strong>
-          <span>TailMates companion assistant</span>
-        </div>
-      </div>
-      <button class="chat-close" id="chatClose">&times;</button>
-    </div>
-    <div class="chat-messages" id="chatMessages">
-      <div class="chat-message bot">
-        <div class="chat-bubble">Hey there! I'm TailBot. I can help you discover pets, understand adoption, or find a companion that fits your lifestyle!</div>
-      </div>
-    </div>
-    <div class="chat-quick">
-      <button data-message="Show me dogs">Dogs</button>
-      <button data-message="Show me cats">Cats</button>
-      <button data-message="Help me find my match">Match Me</button>
-    </div>
-    <form class="chat-input" id="chatForm">
-      <input id="chatInput" type="text" autocomplete="off" placeholder="Ask TailBot anything...">
-      <button type="submit"><i class="fa-solid fa-arrow-up"></i></button>
-    </form>
-  </div>
-  <button class="chat-launcher" id="chatLauncher">
-    <i class="fa-solid fa-paw"></i>
-  </button>
-</div>
-
-
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -1030,12 +831,12 @@
     }
     animateFollower();
     document.addEventListener('mouseover', e => {
-      if (e.target.closest('a,button,.opt,.mc,.chat-quick button')) {
+      if (e.target.closest('a,button,.opt,.mc')) {
         cursor.classList.add('hover'); cursorFollower.classList.add('hover');
       }
     });
     document.addEventListener('mouseout', e => {
-      const el=e.target.closest('a,button,.opt,.mc,.chat-quick button');
+      const el=e.target.closest('a,button,.opt,.mc');
       if (el && !(e.relatedTarget && el.contains(e.relatedTarget))) {
         cursor.classList.remove('hover'); cursorFollower.classList.remove('hover');
       }
@@ -1095,49 +896,6 @@
     });
   });
 
-  // ===================== TAILBOT =====================
-  const chatLauncher = document.getElementById('chatLauncher');
-  const chatPanel = document.getElementById('chatPanel');
-  const chatClose = document.getElementById('chatClose');
-  const chatForm = document.getElementById('chatForm');
-  const chatInput = document.getElementById('chatInput');
-  const chatMessages = document.getElementById('chatMessages');
-
-  if (chatLauncher && chatPanel) chatLauncher.addEventListener('click', () => chatPanel.classList.toggle('active'));
-  if (chatClose && chatPanel) chatClose.addEventListener('click', () => chatPanel.classList.remove('active'));
-
-  function addMessage(text, isUser=false) {
-    if (!chatMessages) return;
-    const div=document.createElement('div');
-    div.className='chat-message '+(isUser?'user':'bot');
-    const bubble=document.createElement('div');
-    bubble.className='chat-bubble';
-    bubble.textContent=text;
-    div.appendChild(bubble);
-    chatMessages.appendChild(div);
-    chatMessages.scrollTop=chatMessages.scrollHeight;
-  }
-
-  if (chatForm) chatForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const text=(chatInput?.value || '').trim();
-    if (!text) return;
-    addMessage(text,true);
-    chatInput.value='';
-    setTimeout(() => addMessage("I can help you find a pet that fits your lifestyle. Try PawMate AI to see your matches."),700);
-  });
-
-  document.querySelectorAll('.chat-quick button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const msg=btn.getAttribute('data-message') || '';
-      addMessage(msg,true);
-      setTimeout(() => {
-        if (msg.includes('dogs')) addMessage("Use the PawMate questions to find the dogs that best fit your preferences.");
-        else if (msg.includes('cats')) addMessage("Use the PawMate questions to find the cats that best fit your preferences.");
-        else addMessage("Answer the PawMate questions and I will show your best matches.");
-      },700);
-    });
-  });
 
   // ===================== PET DATA =====================
 const P = []; // No embedded pet records; Firebase is the only pet source.
@@ -1270,6 +1028,9 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
 
   function looksLikePetRecord(value) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+    // A pet record in TailMates normally contains these fields.
+    // We intentionally do not require every field so older/newer records
+    // in Realtime Database are still included in matching.
     const keys = Object.keys(value).map(k => k.toLowerCase());
     const hasName = keys.includes('name');
     const hasSpecies = keys.includes('species');
@@ -1461,18 +1222,25 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
           else if(arr.length<3) arr.push(value);
           ans[qid]=arr;
 
+          // Update only the clicked option instead of rebuilding the whole card.
+          // This prevents the card entrance animation from replaying on every click.
           btn.classList.toggle('sel', arr.includes(value));
           const hint=C.querySelector('.hint');
           if(hint) hint.textContent=`Select up to 3 traits (${arr.length}/3 selected)`;
         } else {
-         
+          // Q5 and Q9 glitches are avoided by keeping all values as strings
+          // and using the question's option index instead of inline onclick code.
           ans[qid]=value;
-         
+          // A changed species can make a previously selected Q8 size/weight invalid.
           if (qid === 'sp') delete ans.sz;
 
+          // Update the radio selection in place. Re-rendering the entire card
+          // here caused the question to visibly glitch/animate after every click.
           C.querySelectorAll('.opt').forEach(optionBtn=>optionBtn.classList.remove('sel'));
           btn.classList.add('sel');
         }
+
+        // Enable/disable Next without replacing the question DOM.
         const nextButton=C.querySelector('#nextBtn');
         const currentValue=ans[qid];
         const validNow=q.type==='m'
@@ -1523,6 +1291,7 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     const chosenSpecies = normalizeSpecies(ans.sp);
     const petSpecies = normalizeSpecies(p[2]);
 
+    // A chosen species is a core requirement. Only Surprise Me can rank across species.
     if (chosenSpecies && chosenSpecies !== 'any' && chosenSpecies !== petSpecies) return 0;
 
     let earned = 0;
@@ -1534,8 +1303,10 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     };
     const hasField = (...keys) => keys.some(k => Object.prototype.hasOwnProperty.call(raw, k) && raw[k] !== null && raw[k] !== '');
 
+    // Species: the requested species receives full credit; Surprise Me is neutral.
     factor(25, chosenSpecies === 'any' ? 1 : (chosenSpecies === petSpecies ? 1 : 0));
 
+    // Safety compatibility: a known incompatibility lowers ranking substantially.
     const hasKidsInfo = hasField('good_with_kids','goodWithKids');
     if (ans.ki === 'yes' && hasKidsInfo) factor(10, p[10] ? 1 : 0.15);
     else if (ans.ki === 'no') factor(10, 1);
@@ -1544,6 +1315,7 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     if (ans.op === 'yes' && hasOtherPetsInfo) factor(10, p[11] ? 1 : 0.15);
     else if (ans.op === 'no') factor(10, 1);
 
+    // Daily care, activity and grooming each use the same L/M/H scale.
     if (ans.cl) factor(10, hasField('care_level') ? (lvDist(p[6], ans.cl) === 0 ? 1 : lvDist(p[6], ans.cl) === 1 ? 0.55 : 0.1) : 0.5);
     if (ans.bu) {
       const budget = Number(ans.bu), cost = Number(p[7]);
@@ -1552,6 +1324,7 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     if (ans.ex) factor(8, hasField('exercise_needs') ? (lvDist(p[8], ans.ex) === 0 ? 1 : lvDist(p[8], ans.ex) === 1 ? 0.55 : 0.1) : 0.5);
     if (ans.gr) factor(8, hasField('grooming_needs') ? (lvDist(p[9], ans.gr) === 0 ? 1 : lvDist(p[9], ans.gr) === 1 ? 0.55 : 0.1) : 0.5);
 
+    // Question 8: chameleons are compared in grams; other species use weight categories.
     if (ans.sz && ans.sz !== 'no-preference') {
       let fits = false;
       if (String(ans.sz).startsWith('cham-')) {
@@ -1607,6 +1380,7 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
 
   function getMatchReasons(p) {
     const reasons = [];
+    // Show only concrete preference matches; never show a selected-answer label as a reason.
     if (ans.sp && ans.sp !== 'any' && p[2] === ans.sp) reasons.push('Preferred species');
     if (ans.ki === 'yes') reasons.push(p[10] ? 'Kid friendly' : 'Check child compatibility');
     if (ans.op === 'yes') reasons.push(p[11] ? 'Pet friendly' : 'Check pet compatibility');
@@ -1662,7 +1436,9 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
 
   function showRes() {
     const source = allPets;
-
+    // Score EVERY pet loaded from Firebase, then rank them.
+    // The UI shows the best 5 so the page stays manageable, but the
+    // matching engine evaluates the complete database first.
     const rankedAll = source.map(p => ({p, sc:score(p)}))
       .sort((a,b) => b.sc - a.sc || cleanString(a.p[1]).localeCompare(cleanString(b.p[1])));
     const ranked = rankedAll.slice(0,5);
@@ -1763,11 +1539,12 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     window.scrollTo({top:0,behavior:'auto'});
   }
 
-  window.pick = () => {}; 
+  window.pick = () => {}; // kept for compatibility with older cached markup
   window.prev = prev;
   window.next = next;
   window.restart = restart;
 
+  // Load pet records from Firebase before starting the quiz.
   (async function initPawMate(){
     await loadPetsFromFirebase();
     renderQ();
