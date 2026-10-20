@@ -1270,9 +1270,6 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
 
   function looksLikePetRecord(value) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-    // A pet record in TailMates normally contains these fields.
-    // We intentionally do not require every field so older/newer records
-    // in Realtime Database are still included in matching.
     const keys = Object.keys(value).map(k => k.toLowerCase());
     const hasName = keys.includes('name');
     const hasSpecies = keys.includes('species');
@@ -1464,25 +1461,18 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
           else if(arr.length<3) arr.push(value);
           ans[qid]=arr;
 
-          // Update only the clicked option instead of rebuilding the whole card.
-          // This prevents the card entrance animation from replaying on every click.
           btn.classList.toggle('sel', arr.includes(value));
           const hint=C.querySelector('.hint');
           if(hint) hint.textContent=`Select up to 3 traits (${arr.length}/3 selected)`;
         } else {
-          // Q5 and Q9 glitches are avoided by keeping all values as strings
-          // and using the question's option index instead of inline onclick code.
+         
           ans[qid]=value;
-          // A changed species can make a previously selected Q8 size/weight invalid.
+         
           if (qid === 'sp') delete ans.sz;
 
-          // Update the radio selection in place. Re-rendering the entire card
-          // here caused the question to visibly glitch/animate after every click.
           C.querySelectorAll('.opt').forEach(optionBtn=>optionBtn.classList.remove('sel'));
           btn.classList.add('sel');
         }
-
-        // Enable/disable Next without replacing the question DOM.
         const nextButton=C.querySelector('#nextBtn');
         const currentValue=ans[qid];
         const validNow=q.type==='m'
@@ -1533,7 +1523,6 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     const chosenSpecies = normalizeSpecies(ans.sp);
     const petSpecies = normalizeSpecies(p[2]);
 
-    // A chosen species is a core requirement. Only Surprise Me can rank across species.
     if (chosenSpecies && chosenSpecies !== 'any' && chosenSpecies !== petSpecies) return 0;
 
     let earned = 0;
@@ -1545,10 +1534,8 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     };
     const hasField = (...keys) => keys.some(k => Object.prototype.hasOwnProperty.call(raw, k) && raw[k] !== null && raw[k] !== '');
 
-    // Species: the requested species receives full credit; Surprise Me is neutral.
     factor(25, chosenSpecies === 'any' ? 1 : (chosenSpecies === petSpecies ? 1 : 0));
 
-    // Safety compatibility: a known incompatibility lowers ranking substantially.
     const hasKidsInfo = hasField('good_with_kids','goodWithKids');
     if (ans.ki === 'yes' && hasKidsInfo) factor(10, p[10] ? 1 : 0.15);
     else if (ans.ki === 'no') factor(10, 1);
@@ -1557,7 +1544,6 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     if (ans.op === 'yes' && hasOtherPetsInfo) factor(10, p[11] ? 1 : 0.15);
     else if (ans.op === 'no') factor(10, 1);
 
-    // Daily care, activity and grooming each use the same L/M/H scale.
     if (ans.cl) factor(10, hasField('care_level') ? (lvDist(p[6], ans.cl) === 0 ? 1 : lvDist(p[6], ans.cl) === 1 ? 0.55 : 0.1) : 0.5);
     if (ans.bu) {
       const budget = Number(ans.bu), cost = Number(p[7]);
@@ -1566,7 +1552,6 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     if (ans.ex) factor(8, hasField('exercise_needs') ? (lvDist(p[8], ans.ex) === 0 ? 1 : lvDist(p[8], ans.ex) === 1 ? 0.55 : 0.1) : 0.5);
     if (ans.gr) factor(8, hasField('grooming_needs') ? (lvDist(p[9], ans.gr) === 0 ? 1 : lvDist(p[9], ans.gr) === 1 ? 0.55 : 0.1) : 0.5);
 
-    // Question 8: chameleons are compared in grams; other species use weight categories.
     if (ans.sz && ans.sz !== 'no-preference') {
       let fits = false;
       if (String(ans.sz).startsWith('cham-')) {
@@ -1622,7 +1607,6 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
 
   function getMatchReasons(p) {
     const reasons = [];
-    // Show only concrete preference matches; never show a selected-answer label as a reason.
     if (ans.sp && ans.sp !== 'any' && p[2] === ans.sp) reasons.push('Preferred species');
     if (ans.ki === 'yes') reasons.push(p[10] ? 'Kid friendly' : 'Check child compatibility');
     if (ans.op === 'yes') reasons.push(p[11] ? 'Pet friendly' : 'Check pet compatibility');
@@ -1678,9 +1662,7 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
 
   function showRes() {
     const source = allPets;
-    // Score EVERY pet loaded from Firebase, then rank them.
-    // The UI shows the best 5 so the page stays manageable, but the
-    // matching engine evaluates the complete database first.
+
     const rankedAll = source.map(p => ({p, sc:score(p)}))
       .sort((a,b) => b.sc - a.sc || cleanString(a.p[1]).localeCompare(cleanString(b.p[1])));
     const ranked = rankedAll.slice(0,5);
@@ -1781,12 +1763,11 @@ const P = []; // No embedded pet records; Firebase is the only pet source.
     window.scrollTo({top:0,behavior:'auto'});
   }
 
-  window.pick = () => {}; // kept for compatibility with older cached markup
+  window.pick = () => {}; 
   window.prev = prev;
   window.next = next;
   window.restart = restart;
 
-  // Load pet records from Firebase before starting the quiz.
   (async function initPawMate(){
     await loadPetsFromFirebase();
     renderQ();
