@@ -112,7 +112,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.2-flash:generateContent",
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
       {
         method: "POST",
         headers: {
@@ -151,8 +151,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    console.error("Gemini unavailable:", data?.error?.message);
-  } catch (error) {
+console.error("Gemini unavailable:", response.status, data?.error?.message);  } catch (error) {
     console.error("Gemini request failed:", error.message);
   }
 
