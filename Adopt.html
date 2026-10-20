@@ -492,77 +492,6 @@
     }
     .footer-bottom i { color: var(--secondary); }
 
-    /* Chat Widget */
-    .chat-widget { position: fixed; bottom: 2rem; right: 2rem; z-index: 1000; }
-    .chat-launcher {
-      width: 56px; height: 56px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      border: none; color: var(--bg); font-size: 1.3rem;
-      cursor: none; position: relative;
-      box-shadow: 0 0 25px rgba(0,245,255,0.4);
-      transition: all 0.3s ease;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .chat-launcher:hover { transform: scale(1.1); box-shadow: 0 0 35px rgba(0,245,255,0.6); }
-    .chat-launcher::before {
-      content: ''; position: absolute; inset: -4px; border-radius: 50%;
-      border: 2px solid var(--primary); animation: chatPulse 2s infinite;
-    }
-    @keyframes chatPulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
-    .chat-panel {
-      position: absolute; bottom: 72px; right: 0; width: 360px; height: 460px;
-      background: var(--bg-glass); border: 1px solid var(--border); border-radius: 24px;
-      backdrop-filter: blur(30px); box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      display: none; flex-direction: column; overflow: hidden;
-    }
-    .chat-panel.active { display: flex; }
-    .chat-header {
-      padding: 1rem; background: var(--primary-dim);
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .chat-header-info { display: flex; align-items: center; gap: 10px; }
-    .chat-avatar {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      display: flex; align-items: center; justify-content: center;
-      color: var(--bg); font-size: 0.9rem;
-    }
-    .chat-header-info div strong { display: block; font-size: 0.85rem; }
-    .chat-header-info div span { font-size: 0.7rem; color: var(--text-dim); }
-    .chat-close { background: none; border: none; color: var(--text-dim); font-size: 1.4rem; cursor: none; transition: color 0.3s ease; }
-    .chat-close:hover { color: var(--secondary); }
-    .chat-messages {
-      flex: 1; padding: 1rem; overflow-y: auto;
-      display: flex; flex-direction: column; gap: 0.8rem;
-    }
-    .chat-message { display: flex; gap: 8px; align-items: flex-start; }
-    .chat-message.user { flex-direction: row-reverse; }
-    .chat-bubble { max-width: 75%; padding: 0.7rem 0.9rem; border-radius: 14px; font-size: 0.8rem; line-height: 1.5; }
-    .chat-message.bot .chat-bubble { background: var(--bg-glass); border: 1px solid var(--border); color: var(--text); border-top-left-radius: 4px; }
-    .chat-message.user .chat-bubble { background: linear-gradient(135deg, var(--primary), var(--accent)); color: var(--bg); border-top-right-radius: 4px; }
-    .chat-quick { padding: 0 1rem 0.8rem; display: flex; gap: 6px; flex-wrap: wrap; }
-    .chat-quick button {
-      padding: 0.4rem 0.8rem; background: var(--bg-glass); border: 1px solid var(--border);
-      border-radius: 50px; color: var(--text-dim); font-size: 0.7rem;
-      cursor: none; transition: all 0.3s ease; font-family: inherit;
-    }
-    .chat-quick button:hover { border-color: var(--primary); color: var(--primary); }
-    .chat-input { padding: 0.8rem 1rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem; }
-    .chat-input input {
-      flex: 1; padding: 0.7rem 1rem; background: var(--bg-glass);
-      border: 1px solid var(--border); border-radius: 50px;
-      color: var(--text); font-size: 0.8rem; outline: none; font-family: inherit;
-    }
-    .chat-input input:focus { border-color: var(--primary); }
-    .chat-input button {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      border: none; color: var(--bg); display: flex; align-items: center; justify-content: center;
-      cursor: none; transition: all 0.3s ease;
-    }
-    .chat-input button:hover { transform: scale(1.1); box-shadow: 0 0 15px rgba(0,245,255,0.3); }
-
     @media (max-width: 768px) {
       .nav-links { display: none; }
       .pet-list { grid-template-columns: 1fr; padding: 0 1.5rem 4rem; }
@@ -572,7 +501,7 @@
       .chat-panel { width: calc(100vw - 2rem); right: -1rem; }
       .cursor, .cursor-follower { display: none; }
       body { cursor: auto; }
-      .filter-btn, .pet-fav, .adopt-btn, .message-btn, .chat-launcher, .chat-close, .chat-input button, .chat-quick button, .footer-newsletter button, .socials a { cursor: pointer; }
+      .filter-btn, .pet-fav, .adopt-btn, .message-btn, .footer-newsletter button, .socials a { cursor: pointer; }
     }
   </style>
 </head>
@@ -657,7 +586,7 @@
 
 <!-- Hero -->
 <section class="adopt-hero">
-  <h1><i class="fa-solid fa-heart" style="margin-right:12px;"></i>Find Your Forever Friend</h1>
+  <h1>Find Your Forever Friend</h1>
   <p>Every pet here is waiting for a home.</p>
   <div class="filters">
     <button class="filter-btn active" data-filter="all"><i class="fa-solid fa-paw"></i> All Pets</button>
@@ -731,39 +660,6 @@
     </i> &copy; 2026 TailMates - Designed for every rescued companion.</i>
   </div>
 </footer>
-
-<!-- Chat Widget -->
-<div class="chat-widget">
-  <div class="chat-panel" id="chatPanel">
-    <div class="chat-header">
-      <div class="chat-header-info">
-        <div class="chat-avatar"><i class="fa-solid fa-paw"></i></div>
-        <div>
-          <strong>TailBot</strong>
-          <span>TailMates companion assistant</span>
-        </div>
-      </div>
-      <button class="chat-close" id="chatClose">&times;</button>
-    </div>
-    <div class="chat-messages" id="chatMessages">
-      <div class="chat-message bot">
-        <div class="chat-bubble">Hey there! I can help you find the perfect pet, understand adoption, or answer any questions!</div>
-      </div>
-    </div>
-    <div class="chat-quick">
-      <button data-message="Show me dogs">Dogs</button>
-      <button data-message="Show me cats">Cats</button>
-      <button data-message="Help me find my match">Match Me</button>
-    </div>
-    <form class="chat-input" id="chatForm">
-      <input id="chatInput" type="text" autocomplete="off" placeholder="Ask TailBot anything...">
-      <button type="submit"><i class="fa-solid fa-arrow-up"></i></button>
-    </form>
-  </div>
-  <button class="chat-launcher" id="chatLauncher">
-    <i class="fa-solid fa-paw"></i>
-  </button>
-</div>
 
 <script type="module">
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -855,66 +751,6 @@ if (profileTrigger && profileDropdown) {
     });
 }
 
-// ===================== CHAT =====================
-const chatLauncher = document.getElementById('chatLauncher');
-const chatPanel = document.getElementById('chatPanel');
-const chatClose = document.getElementById('chatClose');
-const chatForm = document.getElementById('chatForm');
-const chatInput = document.getElementById('chatInput');
-const chatMessages = document.getElementById('chatMessages');
-
-if (chatLauncher && chatPanel) {
-    chatLauncher.addEventListener('click', () => chatPanel.classList.toggle('active'));
-}
-if (chatClose && chatPanel) {
-    chatClose.addEventListener('click', () => chatPanel.classList.remove('active'));
-}
-
-function addMessage(text, isUser = false) {
-    if (!chatMessages) return;
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'chat-message ' + (isUser ? 'user' : 'bot');
-    msgDiv.innerHTML = '<div class="chat-bubble">' + text + '</div>';
-    chatMessages.appendChild(msgDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-if (chatForm) {
-    chatForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const text = chatInput.value.trim();
-        if (!text) return;
-        addMessage(text, true);
-        chatInput.value = '';
-        setTimeout(() => {
-            const responses = [
-                "I'd love to help you find the perfect pet! What type of companion are you looking for?",
-                "That's a great question! Our PawMate AI can analyze your lifestyle to suggest the best matches.",
-                "We have many wonderful pets waiting for homes. Would you like to browse dogs, cats, or small pets?",
-            ];
-            addMessage(responses[Math.floor(Math.random() * responses.length)]);
-        }, 1000);
-    });
-}
-
-document.querySelectorAll('.chat-quick button').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const message = btn.getAttribute('data-message');
-        addMessage(message, true);
-        setTimeout(() => {
-            let response = '';
-            if (message.includes('dogs')) {
-                response = "We have over 120 dogs waiting for homes! From playful Labradors to loyal Indies.";
-            } else if (message.includes('cats')) {
-                response = "Our cat family has 80+ beautiful felines! From calm British Shorthairs to energetic tabbies.";
-            } else {
-                response = "Let's find your perfect match! I'll need to know about your living situation, work schedule, and experience with pets.";
-            }
-            addMessage(response);
-        }, 1000);
-    });
-});
-
 // ===================== FIREBASE USER =====================
 const profileName = document.getElementById('profileName');
 const profileAvatar = document.getElementById('profileAvatar');
@@ -933,8 +769,6 @@ async function loadPetsFromFirebase() {
     const statusEl = document.getElementById("status");
 
     try {
-        // Firebase SDK automatically uses the signed-in user's ID token
-        // when the Realtime Database rules require authentication.
         const snapshot = await get(ref(rtdb, "/"));
 
         if (!snapshot.exists()) {
@@ -950,7 +784,6 @@ async function loadPetsFromFirebase() {
         const data = snapshot.val();
         allPets = [];
 
-        // Support both root-level pets and pets stored under /pets.
         const containers = [data, data && data.pets];
 
         for (const container of containers) {
@@ -966,8 +799,6 @@ async function loadPetsFromFirebase() {
                     entry.name &&
                     entry.species
                 ) {
-                    // Prevent duplicates when the same pet is exposed in
-                    // more than one supported database location.
                     const duplicate = allPets.some(p =>
                         String(p._id) === String(key) ||
                         (p.pet_id != null && entry.pet_id != null &&
@@ -975,8 +806,6 @@ async function loadPetsFromFirebase() {
                     );
 
                     if (!duplicate) {
-                        // _id is the Firebase Realtime Database key.
-                        // This is the ONLY pet value passed to message.html.
                         allPets.push({ ...entry, _id: String(key) });
                     }
                 }
@@ -1115,16 +944,12 @@ async function isPetSaved(petId) {
 // ===================== TOGGLE FAVORITE =====================
 
 window.toggleFav = async function(btn, e) {
-
     e.stopPropagation();
-
     if (!db) {
         alert("Saving pets is temporarily unavailable. Please try again later.");
         return;
     }
-
     if (!currentUser) {
-
         alert(
             "Please log in to save pets."
         );
@@ -1234,68 +1059,46 @@ window.toggleFav = async function(btn, e) {
 
                 savedAt:
                     new Date()
-
             });
-
-
             icon.classList.remove(
                 'fa-regular'
             );
-
             icon.classList.add(
                 'fa-solid'
             );
-
             btn.style.background =
                 'var(--secondary)';
-
             btn.style.borderColor =
                 'var(--secondary)';
-
         }
-
     } catch (error) {
-
         console.error(
             "Error saving pet:",
             error
         );
-
         alert(
             "Could not update saved pets: " +
             error.message
         );
-
     }
-
 };
-
 
 // ===================== PET CHAT =====================
 
 function openPetChat(event, link, petId) {
-    // The Message page only needs the Firebase pet key.
-    // Do NOT put pet image URLs, owner names, breed, or other data
-    // into the URL because some image URLs can be extremely long.
     if (event) event.preventDefault();
-
     const id = String(petId ?? '').trim();
-
     if (!id) {
         alert("This pet does not have a valid Firebase ID.");
         return false;
     }
-
     window.location.href = "message.html?pet=" + encodeURIComponent(id);
     return false;
 }
 
 // ===================== RENDER PETS =====================
-
 let renderVersion = 0;
-
 async function renderPets(pets) {
-
     const thisRender = ++renderVersion;
     const container =
         document.getElementById(
@@ -1396,8 +1199,6 @@ async function renderPets(pets) {
         const temperament =
             pet.temperament || "";
 
-        // Doesn't wait for Firestore before displaying the pet card.
-        // Saved state is applied asynchronously after the card is visible.
         const saved = false;
         const card =
             document.createElement(
@@ -1532,11 +1333,9 @@ async function renderPets(pets) {
             </div>
         `;
 
-        // Store Firebase pet ID on object
         pet._id = petId;
 
         container.appendChild(card);
-        // Check the saved state after rendering so Firebase cannot block the pet list.
         if (currentUser && db) {
             isPetSaved(petId).then(isSaved => {
                 if (thisRender !== renderVersion) return;
@@ -1598,8 +1397,6 @@ if (petSearch) {
 updateSearchUI();
 
 // ===================== START PET LOADING =====================
-// Wait for Firebase Auth to initialize before reading the Realtime Database.
-// This is important when database rules require an authenticated user.
 onAuthStateChanged(auth, (user) => {
     currentUser = user;
 
@@ -1627,9 +1424,6 @@ onAuthStateChanged(auth, (user) => {
         profileDropdownLoggedIn.style.display = 'none';
         localStorage.removeItem('tailmates_user');
 
-        // Try loading once even while signed out in case the RTDB rules
-        // allow public reads. If rules require auth, a clear permission
-        // message is shown instead of the old HTTP 401 message.
         loadPetsFromFirebase();
     }
 });
